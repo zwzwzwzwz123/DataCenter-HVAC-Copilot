@@ -16,7 +16,7 @@ This first stage builds the project foundation:
 - Deterministic router, baseline orchestrator, and baseline eval runner
 - Demo data-source metadata for processed BEAR CSV, BEAR sample CSV, or mock fallback
 - A first reproducible comparison summary for LLM-only, keyword RAG, hybrid RAG, hybrid RAG + reranker, and RAG + Tool Agent baselines, including overall and per-task-type metrics
-- A Streamlit demo with Copilot and evaluation-summary tabs, route/tool/citation display, metric tables, and trend charts for tool results
+- A Streamlit demo with Copilot and evaluation-summary tabs, route/tool/citation display, grouped eval metrics, prediction evidence preview fields, and trend charts for tool results
 - Tests for retrieval, evaluation, API, BEAR ingestion, time-series, and policy behavior
 
 Full vector RAG, LangGraph Agent orchestration, richer production-grade UI polish, and real DiffFNO / Guided-DiffFNO integration are planned for later stages.
@@ -97,7 +97,7 @@ The Streamlit demo includes:
 
 - a Copilot tab for `/ask`, showing route, tools, citations, retrieved contexts, tool results, and the active trajectory `data_source`
 - table and line-chart rendering for time-series tool summaries and records
-- an evaluation-summary tab for `/eval/run`, showing metric cards, a metric table, and prediction previews
+- an evaluation-summary tab for `/eval/run`, grouping metrics into Retrieval, Answer, Tool, and Quality Proxy sections, plus a full metric table and prediction previews with citation/tool evidence flags
 
 ## Project Layout
 

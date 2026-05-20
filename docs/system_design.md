@@ -24,7 +24,7 @@
 1. API、orchestrator 和 Streamlit demo 会显式返回/展示当前轨迹数据源标签和路径，取值为 `processed_csv`、`bear_sample_csv` 或 `mock`，避免把 BEAR 或 mock 轨迹误表述成真实生产数据。
 2. `src/evaluation/runner.py` 提供 `run_baseline_comparison`，对同一评测集运行 `llm_only`、`rag_keyword`、`rag_hybrid`、`rag_hybrid_rerank`、`rag`、`rag_tool_agent` 多组可替换 baseline，并输出 citation hit rate、context recall、expected keyword coverage、lexical answer coverage、tool selection accuracy、tool execution success rate、evidence coverage、answer correctness proxy 与 faithfulness proxy 的整体 summary 和 `by_task_type` 分组指标。
 3. `src/evaluation/report.py` 将 comparison summary 和按任务类型指标渲染为 `docs/experiment_report.md`，形成可展示的 Markdown 实验表格和数据边界说明。
-4. `app/streamlit_app.py` 提供 Copilot / 评测摘要双页：Copilot 页展示 route、tools、citations、retrieved contexts、tool results、data_source，并将时序 summary / records 渲染为表格和折线图；评测摘要页调用 `/eval/run` 展示指标卡片、指标表和预测预览。
+4. `app/streamlit_app.py` 提供 Copilot / 评测摘要双页：Copilot 页展示 route、tools、citations、retrieved contexts、tool results、data_source，并将时序 summary / records 渲染为表格和折线图；评测摘要页调用 `/eval/run`，将指标分为 Retrieval、Answer、Tool 和 Quality Proxy 组展示，并在预测预览中展示 citation/tool evidence 标记和 answer length。
 
 当前 49 条评测集上的 baseline summary 显示：
 

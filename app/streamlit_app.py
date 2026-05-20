@@ -14,6 +14,51 @@ TASK_OPTIONS = {
     "策略建议": "policy_recommendation",
 }
 
+METRIC_GROUPS = {
+    "Retrieval": ["citation_hit_rate", "context_recall"],
+    "Answer": ["expected_keyword_coverage", "lexical_answer_coverage"],
+    "Tool": [
+        "tool_selection_accuracy",
+        "tool_execution_success_rate",
+        "evidence_coverage",
+    ],
+    "Quality Proxy": ["answer_correctness_proxy", "faithfulness_proxy"],
+}
+
+
+def group_eval_metrics(metrics: dict) -> dict[str, list[tuple[str, float]]]:
+    grouped: dict[str, list[tuple[str, float]]] = {}
+    for group_name, metric_names in METRIC_GROUPS.items():
+        values = []
+        for metric_name in metric_names:
+            if metric_name in metrics:
+                values.append((metric_name, float(metrics[metric_name])))
+        if values:
+            grouped[group_name] = values
+    return grouped
+
+
+def build_prediction_preview(predictions: list[dict]) -> list[dict]:
+    preview = []
+    for prediction in predictions:
+        citations = prediction.get("citations", [])
+        tool_results = prediction.get("tool_results", [])
+        answer = str(prediction.get("answer") or "")
+        preview.append(
+            {
+                "id": prediction.get("id"),
+                "task_type": prediction.get("task_type"),
+                "route": prediction.get("route"),
+                "tools": ", ".join(prediction.get("tools", [])),
+                "citation_count": len(citations),
+                "tool_result_count": len(tool_results),
+                "has_citation": bool(citations),
+                "has_tool_result": bool(tool_results),
+                "answer_length": len(answer),
+            }
+        )
+    return preview
+
 
 def main() -> None:
     st.set_page_config(page_title="DataCenter-HVAC Copilot", layout="wide")
@@ -132,14 +177,20 @@ def _render_eval_result(result: dict) -> None:
     metrics = result.get("metrics", {})
     if metrics:
         st.subheader("Metrics")
-        metric_items = list(metrics.items())
-        columns = st.columns(min(4, len(metric_items)))
-        for index, (name, value) in enumerate(metric_items):
-            with columns[index % len(columns)]:
-                st.metric(name, f"{float(value):.3f}")
+        grouped_metrics = group_eval_metrics(metrics)
+        for group_name, metric_items in grouped_metrics.items():
+            st.markdown(f"**{group_name}**")
+            columns = st.columns(min(3, len(metric_items)))
+            for index, (name, value) in enumerate(metric_items):
+                with columns[index % len(columns)]:
+                    st.metric(name, f"{value:.3f}")
+        st.caption(
+            "Quality Proxy 指标来自本地 must_include / must_not_include 弱标注，"
+            "不等价于人工评审或 LLM judge。"
+        )
         st.dataframe(
             pd.DataFrame(
-                [{"metric": name, "value": value} for name, value in metric_items]
+                [{"metric": name, "value": value} for name, value in metrics.items()]
             ),
             use_container_width=True,
         )
@@ -147,17 +198,7 @@ def _render_eval_result(result: dict) -> None:
     predictions = result.get("predictions", [])
     if predictions:
         st.subheader("Predictions")
-        preview = [
-            {
-                "id": prediction.get("id"),
-                "task_type": prediction.get("task_type"),
-                "route": prediction.get("route"),
-                "tools": ", ".join(prediction.get("tools", [])),
-                "citation_count": len(prediction.get("citations", [])),
-                "tool_result_count": len(prediction.get("tool_results", [])),
-            }
-            for prediction in predictions
-        ]
+        preview = build_prediction_preview(predictions)
         st.dataframe(pd.DataFrame(preview), use_container_width=True)
         with st.expander("Raw predictions"):
             st.json(predictions)

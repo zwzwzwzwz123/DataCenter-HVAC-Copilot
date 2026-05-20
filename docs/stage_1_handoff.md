@@ -8,7 +8,7 @@
 
 **技术栈：** Python 3.10+、pandas、numpy、pydantic、matplotlib、pytest。
 
-**第二阶段起步更新：** API、orchestrator 和 Streamlit demo 已能展示当前 demo 轨迹数据源；评测 runner 已提供 `llm_only`、`rag_keyword`、`rag_hybrid`、`rag_hybrid_rerank`、`rag`、`rag_tool_agent` 多组 baseline comparison summary 和按任务类型分组指标；`data/eval/hvac_eval.jsonl` 已扩展到 49 条样例，且全部样例包含人工维护的 `expected_keywords`，代表性样例包含 `must_include` / `must_not_include` 质量代理标注；demo RAG 已支持加载 `data/documents/` 下的多篇 UTF-8 Markdown/TXT 文档，并补充了相似主题内部文档、长噪声/短目标文档对和 metadata-aware reranking 压力文档，用于早期检索压力测试；Streamlit demo 已扩展为 Copilot / 评测摘要双页，支持展示 route、tools、citations、tool results、metric summary、时序趋势图和 eval metrics。
+**第二阶段起步更新：** API、orchestrator 和 Streamlit demo 已能展示当前 demo 轨迹数据源；评测 runner 已提供 `llm_only`、`rag_keyword`、`rag_hybrid`、`rag_hybrid_rerank`、`rag`、`rag_tool_agent` 多组 baseline comparison summary 和按任务类型分组指标；`data/eval/hvac_eval.jsonl` 已扩展到 49 条样例，且全部样例包含人工维护的 `expected_keywords`，代表性样例包含 `must_include` / `must_not_include` 质量代理标注；demo RAG 已支持加载 `data/documents/` 下的多篇 UTF-8 Markdown/TXT 文档，并补充了相似主题内部文档、长噪声/短目标文档对和 metadata-aware reranking 压力文档，用于早期检索压力测试；Streamlit demo 已扩展为 Copilot / 评测摘要双页，支持展示 route、tools、citations、tool results、metric summary、时序趋势图、分组 eval metrics 和 prediction evidence preview。
 
 ---
 
@@ -206,7 +206,7 @@
 - [x] 页面展示当前 API 返回的数据源标签和路径。
 - [x] 页面拆分为 Copilot 和评测摘要两个 tab。
 - [x] Copilot tab 将时序工具 summary / records 渲染为表格和折线图。
-- [x] 评测摘要 tab 调用 `/eval/run`，展示 metric cards、指标表和 prediction preview。
+- [x] 评测摘要 tab 调用 `/eval/run`，按 Retrieval / Answer / Tool / Quality Proxy 分组展示 metric cards，并在 prediction preview 中展示 citation/tool evidence 标记和 answer length。
 - [x] 添加 API client 单元测试。
 
 ### 任务 11：真实 BEAR 仓库接入雏形
