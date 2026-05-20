@@ -7,7 +7,13 @@ import pandas as pd
 from src.agent.router import route_task
 from src.policies.rule_based import run_rule_based_policy
 from src.retrieval.rag import ExtractiveRAGPipeline
-from src.tools.timeseries import detect_anomaly, query_metric
+from src.tools.timeseries import (
+    compare_period,
+    compute_energy_breakdown,
+    detect_anomaly,
+    plot_metric_trend,
+    query_metric,
+)
 
 
 class BaselineOrchestrator:
@@ -57,21 +63,54 @@ class BaselineOrchestrator:
 
     def _run_timeseries_query(self, question: str, reason: str) -> dict[str, Any]:
         start_time, end_time = _trajectory_bounds(self.trajectory)
-        result = query_metric(
-            self.trajectory,
-            metric_name="zone_temperature",
-            start_time=start_time,
-            end_time=end_time,
-            zone_id=_first_zone(self.trajectory),
-        )
+        tool_name = _select_timeseries_tool(question)
+        metric_name = _select_metric_name(question, self.trajectory)
+        zone_id = _first_zone(self.trajectory)
+
+        if tool_name == "compare_period":
+            midpoint = start_time + (end_time - start_time) / 2
+            result = compare_period(
+                self.trajectory,
+                metric_name=metric_name,
+                period_a=(start_time, midpoint),
+                period_b=(midpoint, end_time),
+                zone_id=zone_id,
+            )
+            answer = f"{metric_name} 两个时间窗口的均值差为 {result['delta_mean']}。"
+        elif tool_name == "plot_metric_trend":
+            result = plot_metric_trend(
+                self.trajectory,
+                metric_name=metric_name,
+                start_time=start_time,
+                end_time=end_time,
+                zone_id=zone_id,
+            )
+            answer = f"已生成 {metric_name} 趋势序列。"
+        elif tool_name == "compute_energy_breakdown":
+            result = compute_energy_breakdown(
+                self.trajectory,
+                start_time=start_time,
+                end_time=end_time,
+            )
+            answer = f"当前可用能耗字段总和为 {result['total']}。"
+        else:
+            result = query_metric(
+                self.trajectory,
+                metric_name=metric_name,
+                start_time=start_time,
+                end_time=end_time,
+                zone_id=zone_id,
+            )
+            answer = f"{metric_name} 最大值为 {result['summary']['max']}。"
+
         return {
             "question": question,
             "route": "timeseries_query",
             "route_reason": reason,
-            "answer": f"zone_temperature 最大值为 {result['summary']['max']}。",
+            "answer": answer,
             "citations": [],
             "retrieved_contexts": [],
-            "tools": ["query_metric"],
+            "tools": [tool_name],
             "tool_results": [result],
             "data_source": self.data_source,
         }
@@ -141,3 +180,41 @@ def _latest_state(trajectory: pd.DataFrame) -> dict[str, Any]:
         "comfort_lower_bound": 22.0,
         "current_action": [0.0, 0.0],
     }
+
+
+def _select_timeseries_tool(question: str) -> str:
+    normalized = question.lower()
+    if any(token in normalized for token in ["构成", "breakdown", "能耗字段", "能耗"]):
+        return "compute_energy_breakdown"
+    if any(token in normalized for token in ["趋势", "trend", "折线图", "序列", "画"]):
+        return "plot_metric_trend"
+    if any(token in normalized for token in ["比较", "对比", "前后", "变化", "compare"]):
+        return "compare_period"
+    return "query_metric"
+
+
+def _select_metric_name(question: str, trajectory: pd.DataFrame) -> str:
+    normalized = question.lower()
+    candidates = [
+        "fan_power",
+        "control_action",
+        "outdoor_temp",
+        "internal_load",
+        "cooling_power",
+        "hvac_power",
+        "zone_temperature",
+    ]
+    for candidate in candidates:
+        if candidate in trajectory.columns and candidate.lower() in normalized:
+            return candidate
+    if "温度" in question and "zone_temperature" in trajectory.columns:
+        return "zone_temperature"
+    if "风机" in question and "fan_power" in trajectory.columns:
+        return "fan_power"
+    if "控制" in question and "control_action" in trajectory.columns:
+        return "control_action"
+    if "室外" in question and "outdoor_temp" in trajectory.columns:
+        return "outdoor_temp"
+    if "负载" in question and "internal_load" in trajectory.columns:
+        return "internal_load"
+    return "zone_temperature"

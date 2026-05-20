@@ -71,6 +71,42 @@ def test_orchestrator_handles_timeseries_query_with_tool_result():
     assert result["tool_results"][0]["summary"]["max"] == 30.0
 
 
+def test_orchestrator_selects_compare_period_for_period_comparison():
+    orchestrator = BaselineOrchestrator(rag_pipeline=mock_rag(), trajectory=mock_trajectory())
+
+    result = orchestrator.run(
+        "请比较 zone_temperature 在前半段和后半段的平均值变化。",
+        task_type="timeseries_query",
+    )
+
+    assert result["tools"] == ["compare_period"]
+    assert result["tool_results"][0]["tool_name"] == "compare_period"
+
+
+def test_orchestrator_selects_plot_metric_trend_for_trend_requests():
+    orchestrator = BaselineOrchestrator(rag_pipeline=mock_rag(), trajectory=mock_trajectory())
+
+    result = orchestrator.run(
+        "请生成 zone_a 温度趋势图所需的数据。",
+        task_type="timeseries_query",
+    )
+
+    assert result["tools"] == ["plot_metric_trend"]
+    assert result["tool_results"][0]["tool_name"] == "plot_metric_trend"
+
+
+def test_orchestrator_selects_energy_breakdown_for_energy_breakdown_requests():
+    orchestrator = BaselineOrchestrator(rag_pipeline=mock_rag(), trajectory=mock_trajectory())
+
+    result = orchestrator.run(
+        "当前轨迹的冷却能耗构成是什么？",
+        task_type="timeseries_query",
+    )
+
+    assert result["tools"] == ["compute_energy_breakdown"]
+    assert result["tool_results"][0]["tool_name"] == "compute_energy_breakdown"
+
+
 def test_orchestrator_handles_anomaly_diagnosis():
     orchestrator = BaselineOrchestrator(rag_pipeline=mock_rag(), trajectory=mock_trajectory())
 

@@ -17,7 +17,7 @@
 7. `src/evaluation/` 提供 eval JSONL 读取、最小指标计算、轻量回答质量代理指标和 baseline runner。
 8. `src/api/` 提供 FastAPI 服务雏形，暴露 `/health`、`/ask` 和 `/eval/run`。
 9. `app/` 提供 Streamlit demo，调用 API 并展示 route、tools、answer、citations、tool results、时序趋势和评测摘要。
-10. `data/eval/hvac_eval.jsonl` 保存 49 条评测样例，覆盖文档问答、时序查询、异常诊断和策略建议，全部包含人工维护的 `expected_keywords`。
+10. `data/eval/hvac_eval.jsonl` 保存 100 条评测样例，按文档问答 40、时序查询 20、异常诊断 20、策略建议 20 覆盖四类任务，全部包含人工维护的 `expected_keywords`，代表性样例包含 `must_include` / `must_not_include` 质量代理标注。
 
 第二阶段起步补充了两个可复现能力：
 
@@ -26,13 +26,13 @@
 3. `src/evaluation/report.py` 将 comparison summary 和按任务类型指标渲染为 `docs/experiment_report.md`，形成可展示的 Markdown 实验表格和数据边界说明。
 4. `app/streamlit_app.py` 提供 Copilot / 评测摘要双页：Copilot 页展示 route、tools、citations、retrieved contexts、tool results、data_source，并将时序 summary / records 渲染为表格和折线图；评测摘要页调用 `/eval/run`，将指标分为 Retrieval、Answer、Tool 和 Quality Proxy 组展示，并在预测预览中展示 citation/tool evidence 标记和 answer length。
 
-当前 49 条评测集上的 baseline summary 显示：
+当前 100 条评测集上的 baseline summary 显示：
 
 - `llm_only` 没有引用、检索上下文和工具证据，各项指标均为 0。
-- `rag_keyword` 的 citation/context 指标为 0.519，`rag_hybrid` 为 0.593，长噪声/短目标压力样例继续体现 BM25-style hybrid 检索优势。
-- `rag_hybrid_rerank` 的 citation/context 指标为 0.630，metadata-aware 轻量重排已能在当前压力样例中拉开与 `rag_hybrid` 的差异。
-- `rag_tool_agent` 在当前确定性路由样例上完成工具选择与执行，tool selection / execution 均为 1.000，并将 evidence coverage 保持在 0.878。
-- 代表性样例已加入 `must_include` / `must_not_include` 标注；最新 `rag_tool_agent` 的 `answer_correctness_proxy` 为 0.417，`faithfulness_proxy` 为 0.333。这是本地确定性代理指标，不等价于完整人工评审或 LLM judge。
+- `rag_keyword` 的 citation/context 指标为 0.554，`rag_hybrid` 为 0.585，长噪声/短目标和领域近义压力样例继续体现 BM25-style hybrid 检索优势。
+- `rag_hybrid_rerank` 的 citation/context 指标为 0.600，metadata-aware 轻量重排仍能在 100 条样例中拉开与 `rag_hybrid` 的差异。
+- `rag_tool_agent` 在当前确定性路由样例上完成工具选择与执行，tool selection / execution 均为 1.000，并将 evidence coverage 提升到 0.910。
+- 代表性样例已加入 `must_include` / `must_not_include` 标注；最新 `rag_tool_agent` 的 `answer_correctness_proxy` 为 0.308，`faithfulness_proxy` 为 0.245。这是本地确定性代理指标，不等价于完整人工评审或 LLM judge。
 - 按任务类型表显示，工具类任务的 tool selection / execution 已达到 1.000，文档问答仍主要受 citation/context 和回答覆盖率限制，异常诊断与策略建议的自然语言覆盖仍需更强生成器或人工/LLM judge 指标进一步评估。
 - `expected_keyword_coverage` 使用人工维护的 `expected_keywords`，比直接对 `gold_answer` 做 token 覆盖更适合中文样例；`answer_correctness_proxy` 和 `faithfulness_proxy` 使用代表性样例上的人工轻标注，`lexical_answer_coverage` 仍保留为备用弱监督指标。
 

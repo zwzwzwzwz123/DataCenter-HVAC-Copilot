@@ -8,7 +8,7 @@
 
 **技术栈：** Python 3.10+、pandas、numpy、pydantic、matplotlib、pytest。
 
-**第二阶段起步更新：** API、orchestrator 和 Streamlit demo 已能展示当前 demo 轨迹数据源；评测 runner 已提供 `llm_only`、`rag_keyword`、`rag_hybrid`、`rag_hybrid_rerank`、`rag`、`rag_tool_agent` 多组 baseline comparison summary 和按任务类型分组指标；`data/eval/hvac_eval.jsonl` 已扩展到 49 条样例，且全部样例包含人工维护的 `expected_keywords`，代表性样例包含 `must_include` / `must_not_include` 质量代理标注；demo RAG 已支持加载 `data/documents/` 下的多篇 UTF-8 Markdown/TXT 文档，并补充了相似主题内部文档、长噪声/短目标文档对和 metadata-aware reranking 压力文档，用于早期检索压力测试；Streamlit demo 已扩展为 Copilot / 评测摘要双页，支持展示 route、tools、citations、tool results、metric summary、时序趋势图、分组 eval metrics 和 prediction evidence preview。
+**第二阶段起步更新：** API、orchestrator 和 Streamlit demo 已能展示当前 demo 轨迹数据源；评测 runner 已提供 `llm_only`、`rag_keyword`、`rag_hybrid`、`rag_hybrid_rerank`、`rag`、`rag_tool_agent` 多组 baseline comparison summary 和按任务类型分组指标；`data/eval/hvac_eval.jsonl` 已扩展到 100 条样例，按文档问答 40、时序查询 20、异常诊断 20、策略建议 20 覆盖四类任务，且全部样例包含人工维护的 `expected_keywords`，代表性样例包含 `must_include` / `must_not_include` 质量代理标注；demo RAG 已支持加载 `data/documents/` 下的多篇 UTF-8 Markdown/TXT 文档，并补充了相似主题内部文档、长噪声/短目标文档对和 metadata-aware reranking 压力文档，用于早期检索压力测试；Streamlit demo 已扩展为 Copilot / 评测摘要双页，支持展示 route、tools、citations、tool results、metric summary、时序趋势图、分组 eval metrics 和 prediction evidence preview。
 
 ---
 
@@ -93,8 +93,8 @@
 
 **完成内容：**
 
-- [x] 添加 49 条 JSONL 样例。
-- [x] 覆盖文档问答、时序查询、异常诊断和策略建议。
+- [x] 添加 100 条 JSONL 样例。
+- [x] 按文档问答 40、时序查询 20、异常诊断 20、策略建议 20 覆盖四类任务。
 - [x] 每条样例包含 `question`、`task_type`、`gold_answer`、`required_tools`、`required_documents`、`expected_output_format` 和人工维护的 `expected_keywords`；代表性样例补充 `must_include` / `must_not_include` 质量代理标注。
 
 ### 任务 6：文档入库与最小检索 baseline
@@ -302,7 +302,7 @@
 - `scripts/run_eval.py`：运行 baseline eval，写出 baseline comparison summary / by-task-type JSON，并生成 Markdown 实验报告。
 - `scripts/export_bear_data.py`：从外部 BEAR 仓库导出标准化 rollout CSV。
 - `data/documents/*.md`：用于开发和测试的项目内部 HVAC / 控制 / 评测 / 数据边界样例文档，以及相似主题和长噪声/短目标检索压力测试文档。
-- `data/eval/hvac_eval.jsonl`：49 条评测 JSONL 样例，全部包含人工维护的 `expected_keywords`，代表性样例包含 `must_include` / `must_not_include` 质量代理标注。
+- `data/eval/hvac_eval.jsonl`：100 条评测 JSONL 样例，全部包含人工维护的 `expected_keywords`，代表性样例包含 `must_include` / `must_not_include` 质量代理标注。
 - `tests/test_bear_schema.py`：BEAR 字段来源和标准化测试。
 - `tests/test_timeseries_tools.py`：时序查询、周期对比、异常检测、能耗拆分和趋势数据测试。
 - `tests/test_policies.py`：policy fallback、diffusion adapter 和 offline replay 测试。
@@ -327,12 +327,12 @@ python -m pytest
 当前验证结果：
 
 ```text
-64 passed
+70 passed
 ```
 
 最近一次 Streamlit smoke test 使用 `streamlit run app/streamlit_app.py --server.headless true --server.port 8502` 启动后，HTTP 访问 `http://127.0.0.1:8502` 返回 200；FastAPI smoke test 中 `/health` 返回 `ok`，`/ask` 的时序查询返回 route=`timeseries_query` 且 tools=`query_metric`。
 
-当前 `scripts/run_eval.py` 会生成 49 条样例的 baseline comparison，并在 `baseline_comparison.json` 中保存整体 `summary` 和 `by_task_type`。最新报告中 `rag_keyword` 的 `citation_hit_rate` / `context_recall` 为 0.519，`rag_hybrid` 为 0.593，说明长噪声/短目标压力样例继续体现 BM25-style hybrid 检索优势。`rag_hybrid_rerank` 的 citation/context 指标提升到 0.630，说明 metadata-aware 轻量重排已能在当前压力样例中拉开与 `rag_hybrid` 的差异。`rag_tool_agent` 的 `tool_selection_accuracy` 和 `tool_execution_success_rate` 为 1.000，`evidence_coverage` 为 0.878，`answer_correctness_proxy` 为 0.417，`faithfulness_proxy` 为 0.333。按任务类型表显示，工具类任务的 tool selection / execution 已达 1.000，文档问答主要受 citation/context 和回答覆盖率限制；质量代理指标是本地确定性弱指标，不等价于完整人工评审或 LLM judge。
+当前 `scripts/run_eval.py` 会生成 100 条样例的 baseline comparison，并在 `baseline_comparison.json` 中保存整体 `summary` 和 `by_task_type`。最新报告中 `rag_keyword` 的 `citation_hit_rate` / `context_recall` 为 0.554，`rag_hybrid` 为 0.585，说明长噪声/短目标和领域近义压力样例继续体现 BM25-style hybrid 检索优势。`rag_hybrid_rerank` 的 citation/context 指标提升到 0.600，说明 metadata-aware 轻量重排在更大样例上仍能拉开与 `rag_hybrid` 的差异。`rag_tool_agent` 的 `tool_selection_accuracy` 和 `tool_execution_success_rate` 为 1.000，`evidence_coverage` 为 0.910，`answer_correctness_proxy` 为 0.308，`faithfulness_proxy` 为 0.245。按任务类型表显示，工具类任务的 tool selection / execution 已达 1.000，文档问答主要受 citation/context 和回答覆盖率限制；质量代理指标是本地确定性弱指标，不等价于完整人工评审或 LLM judge。
 
 ## 本阶段尚未实现
 
@@ -343,7 +343,7 @@ python -m pytest
 - LangGraph Agent 工作流。
 - 更完整的 Streamlit 运行日志、案例 walkthrough 和截图素材。
 - 真实 DiffFNO / Guided-DiffFNO 推理。
-- 100 条以上完整评测集。
+- 150 条以上更完整评测集。
 - 更完整的人工 correctness / faithfulness 标注和可选 LLM judge 报告表格。
 
 ## 下一步建议
@@ -355,7 +355,7 @@ python -m pytest
 - [x] 继续增加更多真实领域风格的近义问题，避免当前差异只来自人工构造的长噪声样例。
 - [x] 继续设计能区分 `rag_hybrid` 与 `rag_hybrid_rerank` 的真实领域压力样例，或替换为 cross-encoder / LLM reranker。
 - [x] 增加基于代表性人工轻标注的 correctness / faithfulness proxy，避免只依赖 extractive coverage。
-- [ ] 后续将评测集扩展到 100 条以上，并补充更细的回答质量人工标注。
+- [x] 后续将评测集扩展到 100 条以上，并补充更细的回答质量人工标注。
 - [x] 增加按任务类型分组的 baseline 指标表，便于说明文档问答、时序工具、异常诊断和策略建议各自瓶颈。
 - [x] 开始增强 Streamlit 图表和评测摘要展示，把 route、tool call、citations、data_source 和 metric summary 做成更适合演示的视图。
 - [ ] 继续补充 Streamlit 运行日志时间线、典型案例 walkthrough 和 README 截图说明。

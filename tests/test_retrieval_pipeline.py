@@ -222,4 +222,10 @@ def test_demo_documents_include_similar_theme_pressure_notes():
         "sensor_drift_alarm_boundary_note",
         "return_air_delta_t_operations_note",
         "cooling_airflow_noise_long_note",
+        "economizer_free_cooling_note",
+        "redundancy_maintenance_alarm_note",
+        "liquid_air_hybrid_cooling_note",
+        "sensor_missing_data_quality_note",
+        "policy_offline_replay_boundary_note",
+        "timeseries_tool_workflow_note",
     }.issubset(source_ids)

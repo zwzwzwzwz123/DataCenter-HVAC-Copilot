@@ -28,8 +28,8 @@ def test_eval_dataset_has_curated_keywords_for_representative_records():
     records = load_eval_dataset(Path("data/eval/hvac_eval.jsonl"))
     keyword_records = [record for record in records if record.expected_keywords]
 
-    assert len(records) == 49
-    assert len(keyword_records) == 49
+    assert len(records) == 100
+    assert len(keyword_records) == 100
     assert {"document_qa", "timeseries_query", "anomaly_diagnosis", "policy_recommendation"}.issubset(
         {record.task_type for record in keyword_records}
     )
@@ -47,7 +47,21 @@ def test_eval_dataset_has_quality_proxy_annotations_for_representative_records()
     records = load_eval_dataset(Path("data/eval/hvac_eval.jsonl"))
     annotated = [record for record in records if record.must_include or record.must_not_include]
 
-    assert len(annotated) >= 12
+    assert len(annotated) >= 40
+
+
+def test_eval_dataset_task_type_distribution_matches_stage_target():
+    records = load_eval_dataset(Path("data/eval/hvac_eval.jsonl"))
+    counts = {}
+    for record in records:
+        counts[record.task_type] = counts.get(record.task_type, 0) + 1
+
+    assert counts == {
+        "document_qa": 40,
+        "timeseries_query": 20,
+        "anomaly_diagnosis": 20,
+        "policy_recommendation": 20,
+    }
 
 
 def test_citation_hit_rate_counts_required_documents():
