@@ -2,10 +2,12 @@ from pathlib import Path
 
 from src.evaluation.dataset import load_eval_dataset
 from src.evaluation.metrics import (
+    answer_correctness_proxy,
     citation_hit_rate,
     context_recall,
     evidence_coverage,
     expected_keyword_coverage,
+    faithfulness_proxy,
     lexical_answer_coverage,
     tool_execution_success_rate,
     tool_selection_accuracy,
@@ -31,6 +33,21 @@ def test_eval_dataset_has_curated_keywords_for_representative_records():
     assert {"document_qa", "timeseries_query", "anomaly_diagnosis", "policy_recommendation"}.issubset(
         {record.task_type for record in keyword_records}
     )
+
+
+def test_eval_dataset_loads_quality_proxy_annotations():
+    records = load_eval_dataset(Path("data/eval/hvac_eval.jsonl"))
+    record = {record.id: record for record in records}["doc_qa_006"]
+
+    assert "BEAR" in record.must_include
+    assert "真实数据中心生产遥测" in record.must_not_include
+
+
+def test_eval_dataset_has_quality_proxy_annotations_for_representative_records():
+    records = load_eval_dataset(Path("data/eval/hvac_eval.jsonl"))
+    annotated = [record for record in records if record.must_include or record.must_not_include]
+
+    assert len(annotated) >= 12
 
 
 def test_citation_hit_rate_counts_required_documents():
@@ -104,6 +121,37 @@ def test_expected_keyword_coverage_uses_curated_keywords_only():
     }
 
     assert expected_keyword_coverage(records, predictions) == 1.0
+
+
+def test_answer_correctness_proxy_scores_must_include_matches():
+    records = _records_by_id(["doc_qa_006"])
+    predictions = {
+        "doc_qa_006": {
+            "answer": "BEAR 是 HVAC 仿真轨迹，可作为可控代理场景。",
+            "citations": [{"source_id": "bear_data_boundary_note"}],
+            "tool_results": [],
+        }
+    }
+
+    assert answer_correctness_proxy(records, predictions) == 1.0
+
+
+def test_faithfulness_proxy_penalizes_missing_evidence_and_forbidden_terms():
+    records = _records_by_id(["doc_qa_006", "policy_002"])
+    predictions = {
+        "doc_qa_006": {
+            "answer": "BEAR 是真实数据中心生产遥测。",
+            "citations": [{"source_id": "bear_data_boundary_note"}],
+            "tool_results": [],
+        },
+        "policy_002": {
+            "answer": "LLM 不应直接编造控制动作。",
+            "citations": [],
+            "tool_results": [],
+        },
+    }
+
+    assert faithfulness_proxy(records, predictions) == 0.25
 
 
 def test_tool_execution_success_rate_counts_non_empty_tool_results():

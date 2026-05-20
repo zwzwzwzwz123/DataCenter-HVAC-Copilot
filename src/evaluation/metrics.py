@@ -87,6 +87,50 @@ def expected_keyword_coverage(records: list[EvalRecord], predictions: dict[str, 
     return sum(scores) / len(scores)
 
 
+def answer_correctness_proxy(records: list[EvalRecord], predictions: dict[str, dict]) -> float:
+    annotated_records = [record for record in records if record.must_include]
+    if not annotated_records:
+        return 0.0
+
+    scores = []
+    for record in annotated_records:
+        answer = str(predictions.get(record.id, {}).get("answer", "")).lower()
+        required = [item.lower() for item in record.must_include]
+        matches = [item for item in required if item in answer]
+        scores.append(len(matches) / len(required))
+    return sum(scores) / len(scores)
+
+
+def faithfulness_proxy(records: list[EvalRecord], predictions: dict[str, dict]) -> float:
+    annotated_records = [
+        record for record in records if record.must_include or record.must_not_include
+    ]
+    if not annotated_records:
+        return 0.0
+
+    scores = []
+    for record in annotated_records:
+        predicted = predictions.get(record.id, {})
+        answer = str(predicted.get("answer", "")).lower()
+        forbidden = [item.lower() for item in record.must_not_include]
+        if any(item in answer for item in forbidden):
+            scores.append(0.0)
+            continue
+
+        score = 1.0
+        if record.must_include:
+            required = [item.lower() for item in record.must_include]
+            matches = [item for item in required if item in answer]
+            score *= len(matches) / len(required)
+
+        needs_evidence = bool(record.required_documents or record.required_tools)
+        has_evidence = bool(predicted.get("citations") or predicted.get("tool_results"))
+        if needs_evidence and not has_evidence:
+            score = min(score, 0.5)
+        scores.append(score)
+    return sum(scores) / len(scores)
+
+
 def _tokenize(text: str) -> list[str]:
     return [match.group(0).lower() for match in TOKEN_PATTERN.finditer(text)]
 

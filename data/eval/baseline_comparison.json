@@ -7,7 +7,9 @@
       "lexical_answer_coverage": 0.0,
       "tool_selection_accuracy": 0.0,
       "tool_execution_success_rate": 0.0,
-      "evidence_coverage": 0.0
+      "evidence_coverage": 0.0,
+      "answer_correctness_proxy": 0.09722222222222221,
+      "faithfulness_proxy": 0.09722222222222221
     },
     "rag_keyword": {
       "citation_hit_rate": 0.5185185185185185,
@@ -16,7 +18,9 @@
       "lexical_answer_coverage": 0.1346160109065271,
       "tool_selection_accuracy": 0.0,
       "tool_execution_success_rate": 0.0,
-      "evidence_coverage": 0.5102040816326531
+      "evidence_coverage": 0.5102040816326531,
+      "answer_correctness_proxy": 0.513888888888889,
+      "faithfulness_proxy": 0.4305555555555556
     },
     "rag_hybrid": {
       "citation_hit_rate": 0.5925925925925926,
@@ -25,7 +29,9 @@
       "lexical_answer_coverage": 0.1532263121698896,
       "tool_selection_accuracy": 0.0,
       "tool_execution_success_rate": 0.0,
-      "evidence_coverage": 0.5102040816326531
+      "evidence_coverage": 0.5102040816326531,
+      "answer_correctness_proxy": 0.5694444444444444,
+      "faithfulness_proxy": 0.4861111111111111
     },
     "rag_hybrid_rerank": {
       "citation_hit_rate": 0.6296296296296297,
@@ -34,7 +40,9 @@
       "lexical_answer_coverage": 0.1568868239936667,
       "tool_selection_accuracy": 0.0,
       "tool_execution_success_rate": 0.0,
-      "evidence_coverage": 0.5102040816326531
+      "evidence_coverage": 0.5102040816326531,
+      "answer_correctness_proxy": 0.5694444444444444,
+      "faithfulness_proxy": 0.4861111111111111
     },
     "rag": {
       "citation_hit_rate": 0.5925925925925926,
@@ -43,7 +51,9 @@
       "lexical_answer_coverage": 0.1532263121698896,
       "tool_selection_accuracy": 0.0,
       "tool_execution_success_rate": 0.0,
-      "evidence_coverage": 0.5102040816326531
+      "evidence_coverage": 0.5102040816326531,
+      "answer_correctness_proxy": 0.5694444444444444,
+      "faithfulness_proxy": 0.4861111111111111
     },
     "rag_tool_agent": {
       "citation_hit_rate": 0.48148148148148145,
@@ -52,7 +62,9 @@
       "lexical_answer_coverage": 0.11932608541251999,
       "tool_selection_accuracy": 1.0,
       "tool_execution_success_rate": 1.0,
-      "evidence_coverage": 0.8775510204081632
+      "evidence_coverage": 0.8775510204081632,
+      "answer_correctness_proxy": 0.4166666666666667,
+      "faithfulness_proxy": 0.3333333333333333
     }
   },
   "by_task_type": {
@@ -64,7 +76,9 @@
         "lexical_answer_coverage": 0.0,
         "tool_selection_accuracy": 0.0,
         "tool_execution_success_rate": 0.0,
-        "evidence_coverage": 0.0
+        "evidence_coverage": 0.0,
+        "answer_correctness_proxy": 0.0,
+        "faithfulness_proxy": 0.0
       },
       "document_qa": {
         "citation_hit_rate": 0.0,
@@ -73,7 +87,9 @@
         "lexical_answer_coverage": 0.0,
         "tool_selection_accuracy": 0.0,
         "tool_execution_success_rate": 0.0,
-        "evidence_coverage": 0.0
+        "evidence_coverage": 0.0,
+        "answer_correctness_proxy": 0.09523809523809523,
+        "faithfulness_proxy": 0.09523809523809523
       },
       "policy_recommendation": {
         "citation_hit_rate": 0.0,
@@ -82,7 +98,9 @@
         "lexical_answer_coverage": 0.0,
         "tool_selection_accuracy": 0.0,
         "tool_execution_success_rate": 0.0,
-        "evidence_coverage": 0.0
+        "evidence_coverage": 0.0,
+        "answer_correctness_proxy": 0.1,
+        "faithfulness_proxy": 0.1
       },
       "timeseries_query": {
         "citation_hit_rate": 0.0,
@@ -91,7 +109,9 @@
         "lexical_answer_coverage": 0.0,
         "tool_selection_accuracy": 0.0,
         "tool_execution_success_rate": 0.0,
-        "evidence_coverage": 0.0
+        "evidence_coverage": 0.0,
+        "answer_correctness_proxy": 0.0,
+        "faithfulness_proxy": 0.0
       }
     },
     "rag_keyword": {
@@ -102,7 +122,9 @@
         "lexical_answer_coverage": 0.1,
         "tool_selection_accuracy": 0.0,
         "tool_execution_success_rate": 0.0,
-        "evidence_coverage": 0.2222222222222222
+        "evidence_coverage": 0.2222222222222222,
+        "answer_correctness_proxy": 0.0,
+        "faithfulness_proxy": 0.0
       },
       "document_qa": {
         "citation_hit_rate": 0.4782608695652174,
@@ -111,7 +133,9 @@
         "lexical_answer_coverage": 0.18951664987470612,
         "tool_selection_accuracy": 0.0,
         "tool_execution_success_rate": 0.0,
-        "evidence_coverage": 0.7391304347826086
+        "evidence_coverage": 0.7391304347826086,
+        "answer_correctness_proxy": 0.619047619047619,
+        "faithfulness_proxy": 0.47619047619047616
       },
       "policy_recommendation": {
         "citation_hit_rate": 0.5,
@@ -120,7 +144,9 @@
         "lexical_answer_coverage": 0.12037037037037036,
         "tool_selection_accuracy": 0.0,
         "tool_execution_success_rate": 0.0,
-        "evidence_coverage": 0.3333333333333333
+        "evidence_coverage": 0.3333333333333333,
+        "answer_correctness_proxy": 0.36666666666666664,
+        "faithfulness_proxy": 0.36666666666666664
       },
       "timeseries_query": {
         "citation_hit_rate": 0.0,
@@ -129,7 +155,9 @@
         "lexical_answer_coverage": 0.031746031746031744,
         "tool_selection_accuracy": 0.0,
         "tool_execution_success_rate": 0.0,
-        "evidence_coverage": 0.375
+        "evidence_coverage": 0.375,
+        "answer_correctness_proxy": 0.0,
+        "faithfulness_proxy": 0.0
       }
     },
     "rag_hybrid": {
@@ -140,7 +168,9 @@
         "lexical_answer_coverage": 0.1,
         "tool_selection_accuracy": 0.0,
         "tool_execution_success_rate": 0.0,
-        "evidence_coverage": 0.2222222222222222
+        "evidence_coverage": 0.2222222222222222,
+        "answer_correctness_proxy": 0.0,
+        "faithfulness_proxy": 0.0
       },
       "document_qa": {
         "citation_hit_rate": 0.5652173913043478,
@@ -149,7 +179,9 @@
         "lexical_answer_coverage": 0.22916468300100015,
         "tool_selection_accuracy": 0.0,
         "tool_execution_success_rate": 0.0,
-        "evidence_coverage": 0.7391304347826086
+        "evidence_coverage": 0.7391304347826086,
+        "answer_correctness_proxy": 0.7142857142857143,
+        "faithfulness_proxy": 0.5714285714285714
       },
       "policy_recommendation": {
         "citation_hit_rate": 0.5,
@@ -158,7 +190,9 @@
         "lexical_answer_coverage": 0.12037037037037036,
         "tool_selection_accuracy": 0.0,
         "tool_execution_success_rate": 0.0,
-        "evidence_coverage": 0.3333333333333333
+        "evidence_coverage": 0.3333333333333333,
+        "answer_correctness_proxy": 0.36666666666666664,
+        "faithfulness_proxy": 0.36666666666666664
       },
       "timeseries_query": {
         "citation_hit_rate": 0.0,
@@ -167,7 +201,9 @@
         "lexical_answer_coverage": 0.031746031746031744,
         "tool_selection_accuracy": 0.0,
         "tool_execution_success_rate": 0.0,
-        "evidence_coverage": 0.375
+        "evidence_coverage": 0.375,
+        "answer_correctness_proxy": 0.0,
+        "faithfulness_proxy": 0.0
       }
     },
     "rag_hybrid_rerank": {
@@ -178,7 +214,9 @@
         "lexical_answer_coverage": 0.1,
         "tool_selection_accuracy": 0.0,
         "tool_execution_success_rate": 0.0,
-        "evidence_coverage": 0.2222222222222222
+        "evidence_coverage": 0.2222222222222222,
+        "answer_correctness_proxy": 0.0,
+        "faithfulness_proxy": 0.0
       },
       "document_qa": {
         "citation_hit_rate": 0.6086956521739131,
@@ -187,7 +225,9 @@
         "lexical_answer_coverage": 0.2369631647125253,
         "tool_selection_accuracy": 0.0,
         "tool_execution_success_rate": 0.0,
-        "evidence_coverage": 0.7391304347826086
+        "evidence_coverage": 0.7391304347826086,
+        "answer_correctness_proxy": 0.7142857142857143,
+        "faithfulness_proxy": 0.5714285714285714
       },
       "policy_recommendation": {
         "citation_hit_rate": 0.5,
@@ -196,7 +236,9 @@
         "lexical_answer_coverage": 0.12037037037037036,
         "tool_selection_accuracy": 0.0,
         "tool_execution_success_rate": 0.0,
-        "evidence_coverage": 0.3333333333333333
+        "evidence_coverage": 0.3333333333333333,
+        "answer_correctness_proxy": 0.36666666666666664,
+        "faithfulness_proxy": 0.36666666666666664
       },
       "timeseries_query": {
         "citation_hit_rate": 0.0,
@@ -205,7 +247,9 @@
         "lexical_answer_coverage": 0.031746031746031744,
         "tool_selection_accuracy": 0.0,
         "tool_execution_success_rate": 0.0,
-        "evidence_coverage": 0.375
+        "evidence_coverage": 0.375,
+        "answer_correctness_proxy": 0.0,
+        "faithfulness_proxy": 0.0
       }
     },
     "rag": {
@@ -216,7 +260,9 @@
         "lexical_answer_coverage": 0.1,
         "tool_selection_accuracy": 0.0,
         "tool_execution_success_rate": 0.0,
-        "evidence_coverage": 0.2222222222222222
+        "evidence_coverage": 0.2222222222222222,
+        "answer_correctness_proxy": 0.0,
+        "faithfulness_proxy": 0.0
       },
       "document_qa": {
         "citation_hit_rate": 0.5652173913043478,
@@ -225,7 +271,9 @@
         "lexical_answer_coverage": 0.22916468300100015,
         "tool_selection_accuracy": 0.0,
         "tool_execution_success_rate": 0.0,
-        "evidence_coverage": 0.7391304347826086
+        "evidence_coverage": 0.7391304347826086,
+        "answer_correctness_proxy": 0.7142857142857143,
+        "faithfulness_proxy": 0.5714285714285714
       },
       "policy_recommendation": {
         "citation_hit_rate": 0.5,
@@ -234,7 +282,9 @@
         "lexical_answer_coverage": 0.12037037037037036,
         "tool_selection_accuracy": 0.0,
         "tool_execution_success_rate": 0.0,
-        "evidence_coverage": 0.3333333333333333
+        "evidence_coverage": 0.3333333333333333,
+        "answer_correctness_proxy": 0.36666666666666664,
+        "faithfulness_proxy": 0.36666666666666664
       },
       "timeseries_query": {
         "citation_hit_rate": 0.0,
@@ -243,7 +293,9 @@
         "lexical_answer_coverage": 0.031746031746031744,
         "tool_selection_accuracy": 0.0,
         "tool_execution_success_rate": 0.0,
-        "evidence_coverage": 0.375
+        "evidence_coverage": 0.375,
+        "answer_correctness_proxy": 0.0,
+        "faithfulness_proxy": 0.0
       }
     },
     "rag_tool_agent": {
@@ -254,7 +306,9 @@
         "lexical_answer_coverage": 0.011111111111111112,
         "tool_selection_accuracy": 1.0,
         "tool_execution_success_rate": 1.0,
-        "evidence_coverage": 1.0
+        "evidence_coverage": 1.0,
+        "answer_correctness_proxy": 0.0,
+        "faithfulness_proxy": 0.0
       },
       "document_qa": {
         "citation_hit_rate": 0.5652173913043478,
@@ -263,7 +317,9 @@
         "lexical_answer_coverage": 0.22916468300100015,
         "tool_selection_accuracy": 0.0,
         "tool_execution_success_rate": 0.0,
-        "evidence_coverage": 0.7391304347826086
+        "evidence_coverage": 0.7391304347826086,
+        "answer_correctness_proxy": 0.7142857142857143,
+        "faithfulness_proxy": 0.5714285714285714
       },
       "policy_recommendation": {
         "citation_hit_rate": 0.0,
@@ -272,7 +328,9 @@
         "lexical_answer_coverage": 0.024691358024691357,
         "tool_selection_accuracy": 1.0,
         "tool_execution_success_rate": 1.0,
-        "evidence_coverage": 1.0
+        "evidence_coverage": 1.0,
+        "answer_correctness_proxy": 0.0,
+        "faithfulness_proxy": 0.0
       },
       "timeseries_query": {
         "citation_hit_rate": 0.0,
@@ -281,7 +339,9 @@
         "lexical_answer_coverage": 0.031746031746031744,
         "tool_selection_accuracy": 1.0,
         "tool_execution_success_rate": 1.0,
-        "evidence_coverage": 1.0
+        "evidence_coverage": 1.0,
+        "answer_correctness_proxy": 0.0,
+        "faithfulness_proxy": 0.0
       }
     }
   }

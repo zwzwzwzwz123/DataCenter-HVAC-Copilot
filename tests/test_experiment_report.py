@@ -12,7 +12,9 @@ def test_render_experiment_report_creates_markdown_table():
             "lexical_answer_coverage": 0.0,
             "tool_selection_accuracy": 0.0,
             "tool_execution_success_rate": 0.0,
-                "evidence_coverage": 0.0,
+            "evidence_coverage": 0.0,
+            "answer_correctness_proxy": 0.0,
+            "faithfulness_proxy": 0.0,
         },
         "rag_keyword": {
             "citation_hit_rate": 0.4,
@@ -22,6 +24,8 @@ def test_render_experiment_report_creates_markdown_table():
             "tool_selection_accuracy": 0.0,
             "tool_execution_success_rate": 0.0,
             "evidence_coverage": 0.16666666666666666,
+            "answer_correctness_proxy": 0.2,
+            "faithfulness_proxy": 0.3,
         },
         "rag_hybrid": {
             "citation_hit_rate": 0.5,
@@ -31,6 +35,8 @@ def test_render_experiment_report_creates_markdown_table():
             "tool_selection_accuracy": 0.0,
             "tool_execution_success_rate": 0.0,
             "evidence_coverage": 0.16666666666666666,
+            "answer_correctness_proxy": 0.3,
+            "faithfulness_proxy": 0.4,
         },
         "rag_hybrid_rerank": {
             "citation_hit_rate": 0.5,
@@ -40,6 +46,8 @@ def test_render_experiment_report_creates_markdown_table():
             "tool_selection_accuracy": 0.0,
             "tool_execution_success_rate": 0.0,
             "evidence_coverage": 0.16666666666666666,
+            "answer_correctness_proxy": 0.35,
+            "faithfulness_proxy": 0.45,
         },
         "rag_tool_agent": {
             "citation_hit_rate": 0.5,
@@ -49,6 +57,8 @@ def test_render_experiment_report_creates_markdown_table():
             "tool_selection_accuracy": 1.0,
             "tool_execution_success_rate": 1.0,
             "evidence_coverage": 0.8666666666666667,
+            "answer_correctness_proxy": 0.6,
+            "faithfulness_proxy": 0.7,
         },
     }
 
@@ -66,6 +76,8 @@ def test_render_experiment_report_creates_markdown_table():
                     "tool_selection_accuracy": 0.0,
                     "tool_execution_success_rate": 0.0,
                     "evidence_coverage": 0.5,
+                    "answer_correctness_proxy": 0.6,
+                    "faithfulness_proxy": 0.7,
                 },
                 "timeseries_query": {
                     "citation_hit_rate": 0.0,
@@ -75,6 +87,8 @@ def test_render_experiment_report_creates_markdown_table():
                     "tool_selection_accuracy": 1.0,
                     "tool_execution_success_rate": 1.0,
                     "evidence_coverage": 1.0,
+                    "answer_correctness_proxy": 0.4,
+                    "faithfulness_proxy": 0.5,
                 },
             }
         },
@@ -83,8 +97,9 @@ def test_render_experiment_report_creates_markdown_table():
     assert markdown.startswith("# 实验报告")
     assert "BEAR 仿真轨迹" in markdown
     assert "12 条样例包含人工维护的 expected_keywords" in markdown
-    assert "| baseline | citation_hit_rate | context_recall | expected_keyword_coverage | lexical_answer_coverage | tool_selection_accuracy | tool_execution_success_rate | evidence_coverage |" in markdown
-    assert "| rag_tool_agent | 0.500 | 0.750 | 0.800 | 0.450 | 1.000 | 1.000 | 0.867 |" in markdown
+    assert "answer_correctness_proxy" in markdown
+    assert "faithfulness_proxy" in markdown
+    assert "| rag_tool_agent | 0.500 | 0.750 | 0.800 | 0.450 | 1.000 | 1.000 | 0.867 | 0.600 | 0.700 |" in markdown
     assert "当前结论" in markdown
     assert "rag_hybrid` 在 citation/context 指标上优于 `rag_keyword" in markdown
     assert "rag_hybrid_rerank" in markdown
@@ -106,6 +121,8 @@ def test_save_experiment_report_writes_utf8_markdown(tmp_path: Path):
                 "tool_selection_accuracy": 0.0,
                 "tool_execution_success_rate": 0.0,
                 "evidence_coverage": 0.0,
+                "answer_correctness_proxy": 0.0,
+                "faithfulness_proxy": 0.0,
             }
         },
         output_path=output_path,

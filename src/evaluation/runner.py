@@ -8,10 +8,12 @@ from src.agent.orchestrator import BaselineOrchestrator
 from src.evaluation.dataset import load_eval_dataset
 from src.evaluation.dataset import EvalRecord
 from src.evaluation.metrics import (
+    answer_correctness_proxy,
     citation_hit_rate,
     context_recall,
     evidence_coverage,
     expected_keyword_coverage,
+    faithfulness_proxy,
     lexical_answer_coverage,
     tool_execution_success_rate,
     tool_selection_accuracy,
@@ -165,6 +167,8 @@ def _compute_metrics(records: list[EvalRecord], prediction_map: dict[str, dict])
         "tool_selection_accuracy": tool_selection_accuracy(records, prediction_map),
         "tool_execution_success_rate": tool_execution_success_rate(records, prediction_map),
         "evidence_coverage": evidence_coverage(records, prediction_map),
+        "answer_correctness_proxy": answer_correctness_proxy(records, prediction_map),
+        "faithfulness_proxy": faithfulness_proxy(records, prediction_map),
     }
 
 

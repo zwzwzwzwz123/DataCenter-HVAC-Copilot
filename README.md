@@ -11,8 +11,8 @@ This first stage builds the project foundation:
 - Policy adapter interfaces for rule-based, MPC-like, diffusion, and offline replay policies
 - UTF-8 Markdown/text document loading, citation-preserving chunks, keyword retrieval, a lightweight BM25-style hybrid retrieval baseline, and a metadata-aware lexical reranker wrapper
 - Extractive RAG baseline with citations
-- A 49-record evaluation JSONL sample with curated expected keywords
-- Evaluation dataset loader and citation/tool/evidence metrics
+- A 49-record evaluation JSONL sample with curated expected keywords and representative quality-proxy annotations
+- Evaluation dataset loader and citation/tool/evidence plus lightweight correctness/faithfulness proxy metrics
 - Deterministic router, baseline orchestrator, and baseline eval runner
 - Demo data-source metadata for processed BEAR CSV, BEAR sample CSV, or mock fallback
 - A first reproducible comparison summary for LLM-only, keyword RAG, hybrid RAG, hybrid RAG + reranker, and RAG + Tool Agent baselines, including overall and per-task-type metrics
@@ -55,7 +55,7 @@ The eval script writes:
 - `data/eval/baseline_comparison.json`
 - `docs/experiment_report.md`
 
-The current evaluation set contains 49 records across document QA, time-series query, anomaly diagnosis, and policy recommendation tasks. All 49 records include curated `expected_keywords`, and `data/documents/` includes similar-theme internal notes plus long-noise/short-target and metadata-aware reranking pressure notes. The comparison summary currently reports `citation_hit_rate`, `context_recall`, `expected_keyword_coverage`, `lexical_answer_coverage`, `tool_selection_accuracy`, `tool_execution_success_rate`, and `evidence_coverage` for LLM-only, keyword RAG, hybrid RAG, hybrid RAG + reranker, default RAG, and RAG + Tool Agent modes. `data/eval/baseline_comparison.json` stores both overall `summary` and `by_task_type` metrics, and `docs/experiment_report.md` renders both tables. In the latest run, `rag_hybrid_rerank` improves citation/context metrics to `0.630`, ahead of `rag_hybrid` at `0.593` and `rag_keyword` at `0.519`, while `rag_tool_agent` keeps tool selection and execution at `1.000`.
+The current evaluation set contains 49 records across document QA, time-series query, anomaly diagnosis, and policy recommendation tasks. All 49 records include curated `expected_keywords`, and representative records include `must_include` / `must_not_include` annotations for deterministic quality proxy metrics. `data/documents/` includes similar-theme internal notes plus long-noise/short-target and metadata-aware reranking pressure notes. The comparison summary currently reports `citation_hit_rate`, `context_recall`, `expected_keyword_coverage`, `lexical_answer_coverage`, `tool_selection_accuracy`, `tool_execution_success_rate`, `evidence_coverage`, `answer_correctness_proxy`, and `faithfulness_proxy` for LLM-only, keyword RAG, hybrid RAG, hybrid RAG + reranker, default RAG, and RAG + Tool Agent modes. `data/eval/baseline_comparison.json` stores both overall `summary` and `by_task_type` metrics, and `docs/experiment_report.md` renders both tables. In the latest run, `rag_hybrid_rerank` improves citation/context metrics to `0.630`, ahead of `rag_hybrid` at `0.593` and `rag_keyword` at `0.519`; `rag_tool_agent` keeps tool selection and execution at `1.000`, with lightweight `answer_correctness_proxy = 0.417` and `faithfulness_proxy = 0.333`.
 
 Export a rollout from the real BEAR repository after cloning it outside this project:
 

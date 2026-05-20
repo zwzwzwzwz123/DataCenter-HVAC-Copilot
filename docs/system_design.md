@@ -14,7 +14,7 @@
 4. `src/policies/` 定义 policy adapter 边界，避免把尚未接入的模型伪装成可用能力。
 5. `src/retrieval/` 提供文档 schema、UTF-8 文档加载、chunk、轻量关键词检索、BM25-style hybrid 检索 baseline、metadata-aware lightweight reranker wrapper 和 extractive RAG baseline。
 6. `src/agent/` 提供 deterministic router 和 baseline orchestrator，先串联 RAG、时序工具和 policy fallback，不引入复杂 Agent。
-7. `src/evaluation/` 提供 eval JSONL 读取、最小指标计算和 baseline runner。
+7. `src/evaluation/` 提供 eval JSONL 读取、最小指标计算、轻量回答质量代理指标和 baseline runner。
 8. `src/api/` 提供 FastAPI 服务雏形，暴露 `/health`、`/ask` 和 `/eval/run`。
 9. `app/` 提供 Streamlit demo，调用 API 并展示 route、tools、answer、citations、tool results、时序趋势和评测摘要。
 10. `data/eval/hvac_eval.jsonl` 保存 49 条评测样例，覆盖文档问答、时序查询、异常诊断和策略建议，全部包含人工维护的 `expected_keywords`。
@@ -22,7 +22,7 @@
 第二阶段起步补充了两个可复现能力：
 
 1. API、orchestrator 和 Streamlit demo 会显式返回/展示当前轨迹数据源标签和路径，取值为 `processed_csv`、`bear_sample_csv` 或 `mock`，避免把 BEAR 或 mock 轨迹误表述成真实生产数据。
-2. `src/evaluation/runner.py` 提供 `run_baseline_comparison`，对同一评测集运行 `llm_only`、`rag_keyword`、`rag_hybrid`、`rag_hybrid_rerank`、`rag`、`rag_tool_agent` 多组可替换 baseline，并输出 citation hit rate、context recall、expected keyword coverage、lexical answer coverage、tool selection accuracy、tool execution success rate 与 evidence coverage 的整体 summary 和 `by_task_type` 分组指标。
+2. `src/evaluation/runner.py` 提供 `run_baseline_comparison`，对同一评测集运行 `llm_only`、`rag_keyword`、`rag_hybrid`、`rag_hybrid_rerank`、`rag`、`rag_tool_agent` 多组可替换 baseline，并输出 citation hit rate、context recall、expected keyword coverage、lexical answer coverage、tool selection accuracy、tool execution success rate、evidence coverage、answer correctness proxy 与 faithfulness proxy 的整体 summary 和 `by_task_type` 分组指标。
 3. `src/evaluation/report.py` 将 comparison summary 和按任务类型指标渲染为 `docs/experiment_report.md`，形成可展示的 Markdown 实验表格和数据边界说明。
 4. `app/streamlit_app.py` 提供 Copilot / 评测摘要双页：Copilot 页展示 route、tools、citations、retrieved contexts、tool results、data_source，并将时序 summary / records 渲染为表格和折线图；评测摘要页调用 `/eval/run` 展示指标卡片、指标表和预测预览。
 
@@ -32,8 +32,9 @@
 - `rag_keyword` 的 citation/context 指标为 0.519，`rag_hybrid` 为 0.593，长噪声/短目标压力样例继续体现 BM25-style hybrid 检索优势。
 - `rag_hybrid_rerank` 的 citation/context 指标为 0.630，metadata-aware 轻量重排已能在当前压力样例中拉开与 `rag_hybrid` 的差异。
 - `rag_tool_agent` 在当前确定性路由样例上完成工具选择与执行，tool selection / execution 均为 1.000，并将 evidence coverage 保持在 0.878。
+- 代表性样例已加入 `must_include` / `must_not_include` 标注；最新 `rag_tool_agent` 的 `answer_correctness_proxy` 为 0.417，`faithfulness_proxy` 为 0.333。这是本地确定性代理指标，不等价于完整人工评审或 LLM judge。
 - 按任务类型表显示，工具类任务的 tool selection / execution 已达到 1.000，文档问答仍主要受 citation/context 和回答覆盖率限制，异常诊断与策略建议的自然语言覆盖仍需更强生成器或人工/LLM judge 指标进一步评估。
-- `expected_keyword_coverage` 使用人工维护的 `expected_keywords`，比直接对 `gold_answer` 做 token 覆盖更适合中文样例；`lexical_answer_coverage` 仍保留为备用弱监督指标。
+- `expected_keyword_coverage` 使用人工维护的 `expected_keywords`，比直接对 `gold_answer` 做 token 覆盖更适合中文样例；`answer_correctness_proxy` 和 `faithfulness_proxy` 使用代表性样例上的人工轻标注，`lexical_answer_coverage` 仍保留为备用弱监督指标。
 
 ## 数据契约
 
@@ -98,3 +99,4 @@ Agent 不负责直接训练模型，也不直接向环境写入控制动作。�
 - LangGraph 工作流，用于替换当前 deterministic baseline orchestrator。
 - 更完整的 Streamlit 运行日志、案例 walkthrough 和截图素材。
 - 扩展 LLM-only、RAG、RAG + Tool Agent 三组 baseline 的指标和样本规模。
+- 更完整的人工 correctness / faithfulness 标注或可选 LLM judge adapter。

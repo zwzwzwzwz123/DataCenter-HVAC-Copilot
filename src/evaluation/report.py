@@ -11,6 +11,8 @@ METRIC_COLUMNS = [
     "tool_selection_accuracy",
     "tool_execution_success_rate",
     "evidence_coverage",
+    "answer_correctness_proxy",
+    "faithfulness_proxy",
 ]
 
 
@@ -38,8 +40,8 @@ def render_experiment_report(
         "",
         "## Baseline 对比",
         "",
-        "| baseline | citation_hit_rate | context_recall | expected_keyword_coverage | lexical_answer_coverage | tool_selection_accuracy | tool_execution_success_rate | evidence_coverage |",
-        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        _metric_header(["baseline"]),
+        _metric_alignment(["---"]),
     ]
     for name, metrics in comparison_summary.items():
         values = [_format_metric(metrics.get(column, 0.0)) for column in METRIC_COLUMNS]
@@ -51,8 +53,8 @@ def render_experiment_report(
                 "",
                 "## 按任务类型指标",
                 "",
-                "| baseline | task_type | citation_hit_rate | context_recall | expected_keyword_coverage | lexical_answer_coverage | tool_selection_accuracy | tool_execution_success_rate | evidence_coverage |",
-                "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+                _metric_header(["baseline", "task_type"]),
+                _metric_alignment(["---", "---"]),
             ]
         )
         for baseline, task_metrics in by_task_type.items():
@@ -141,3 +143,11 @@ def save_experiment_report(
 
 def _format_metric(value: float) -> str:
     return f"{value:.3f}"
+
+
+def _metric_header(prefix_columns: list[str]) -> str:
+    return "| " + " | ".join(prefix_columns + METRIC_COLUMNS) + " |"
+
+
+def _metric_alignment(prefix_columns: list[str]) -> str:
+    return "| " + " | ".join(prefix_columns + ["---:"] * len(METRIC_COLUMNS)) + " |"

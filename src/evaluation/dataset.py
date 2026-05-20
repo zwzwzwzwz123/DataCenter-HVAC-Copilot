@@ -14,6 +14,8 @@ class EvalRecord(BaseModel):
     required_tools: list[str] = Field(default_factory=list)
     required_documents: list[str] = Field(default_factory=list)
     expected_keywords: list[str] = Field(default_factory=list)
+    must_include: list[str] = Field(default_factory=list)
+    must_not_include: list[str] = Field(default_factory=list)
     expected_output_format: str
 
 
