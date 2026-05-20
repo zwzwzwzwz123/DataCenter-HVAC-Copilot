@@ -1,0 +1,100 @@
+# 系统设计
+
+## 项目定位
+
+本项目遵循 `DataCenter-HVAC-Copilot-Project-Spec.md` 中定义的 B 路线：RAG + Agent + 工具调用 + 评测。主要数据源是 BEAR HVAC 仿真轨迹。项目叙事可以面向数据中心冷却优化，但不能把 BEAR 仿真轨迹描述成真实数据中心生产数据。
+
+## 当前阶段架构
+
+当前阶段优先搭建可测试、可扩展的后端基础：
+
+1. `src/core/` 定义共享 schema、字段来源和结果格式。
+2. `src/ingestion/` 将 BEAR-like 轨迹记录标准化成统一表格格式，并提供 `chz056/BEAR` 的 `BuildingEnvReal` rollout adapter。
+3. `src/tools/` 暴露确定性的时序分析工具函数。
+4. `src/policies/` 定义 policy adapter 边界，避免把尚未接入的模型伪装成可用能力。
+5. `src/retrieval/` 提供文档 schema、UTF-8 文档加载、chunk、轻量关键词检索、BM25-style hybrid 检索 baseline、lightweight reranker wrapper 和 extractive RAG baseline。
+6. `src/agent/` 提供 deterministic router 和 baseline orchestrator，先串联 RAG、时序工具和 policy fallback，不引入复杂 Agent。
+7. `src/evaluation/` 提供 eval JSONL 读取、最小指标计算和 baseline runner。
+8. `src/api/` 提供 FastAPI 服务雏形，暴露 `/health`、`/ask` 和 `/eval/run`。
+9. `app/` 提供 Streamlit demo，调用 API 并展示 route、tools、answer、citations、tool results、时序趋势和评测摘要。
+10. `data/eval/hvac_eval.jsonl` 保存 37 条第一版评测样例，覆盖文档问答、时序查询、异常诊断和策略建议。
+
+第二阶段起步补充了两个可复现能力：
+
+1. API、orchestrator 和 Streamlit demo 会显式返回/展示当前轨迹数据源标签和路径，取值为 `processed_csv`、`bear_sample_csv` 或 `mock`，避免把 BEAR 或 mock 轨迹误表述成真实生产数据。
+2. `src/evaluation/runner.py` 提供 `run_baseline_comparison`，对同一评测集运行 `llm_only`、`rag_keyword`、`rag_hybrid`、`rag_hybrid_rerank`、`rag`、`rag_tool_agent` 多组可替换 baseline，并输出 citation hit rate、context recall、expected keyword coverage、lexical answer coverage、tool selection accuracy、tool execution success rate 与 evidence coverage 的整体 summary 和 `by_task_type` 分组指标。
+3. `src/evaluation/report.py` 将 comparison summary 和按任务类型指标渲染为 `docs/experiment_report.md`，形成可展示的 Markdown 实验表格和数据边界说明。
+4. `app/streamlit_app.py` 提供 Copilot / 评测摘要双页：Copilot 页展示 route、tools、citations、retrieved contexts、tool results、data_source，并将时序 summary / records 渲染为表格和折线图；评测摘要页调用 `/eval/run` 展示指标卡片、指标表和预测预览。
+
+当前 37 条评测集上的 baseline summary 显示：
+
+- `llm_only` 没有引用、检索上下文和工具证据，各项指标均为 0。
+- `rag_keyword` 的 citation/context 指标为 0.533，`rag_hybrid` 为 0.600，长噪声/短目标压力样例已经能体现 BM25-style hybrid 检索优势。
+- `rag_hybrid_rerank` 已纳入 baseline 表格，当前指标与 `rag_hybrid` 持平；这说明轻量 reranker 接口已具备，但还需要更强重排策略或更多重排压力样例。
+- `rag_tool_agent` 在当前确定性路由样例上完成工具选择与执行，并将 evidence coverage 提升到 0.865。
+- 按任务类型表显示，工具类任务的 tool selection / execution 已达到 1.000，文档问答主要受 citation/context 和回答覆盖率限制，异常诊断与策略建议的自然语言覆盖仍需更强生成器或人工/LLM judge 指标进一步评估。
+- `expected_keyword_coverage` 使用人工维护的 `expected_keywords`，比直接对 `gold_answer` 做 token 覆盖更适合中文样例；`lexical_answer_coverage` 仍保留为备用弱监督指标。
+
+## 数据契约
+
+BEAR 标准字段按来源分为：
+
+- `native`：直接来自 BEAR 导出或环境状态。
+- `derived`：可从 BEAR 轨迹中可重复计算得到。
+- `optional_derived`：可选派生字段，缺少时不能编造。
+- `optional_synthetic`：可选合成字段，只能在明确说明生成方式后使用。
+
+`pue`、`humidity`、`it_load`、`chiller_power` 等字段不能默认视为 BEAR 原生字段。除非后续 BEAR 导出映射能够证明这些字段真实存在，否则它们只能作为 optional、derived 或 synthetic 字段处理。
+
+## BEAR 接入边界
+
+当前 BEAR 接入基于开源仓库 `https://github.com/chz056/BEAR.git` 的真实接口：
+
+- `ParameterGenerator(building, weather, location, root=...)` 创建环境参数。
+- `BuildingEnvReal(parameter)` 创建环境。
+- `env.reset()` 返回初始 state。
+- `env.step(action)` 返回 `(state, reward, terminated, truncated, info)`。
+- `env.statelist` 保存 step 前 state。
+- `env.actionlist` 保存动作，BEAR 内部会将 action 乘以 `maxpower` 后记录。
+
+BEAR state 布局为：
+
+```text
+[zone_temperature(n), outdoor_temp(1), solar_irradiance_or_ghi(n), ground_temp(1), occupancy_power(n)]
+```
+
+本项目将其映射为标准 trajectory 字段：`zone_temperature`、`outdoor_temp`、`solar_irradiance`、`ground_temp`、`internal_load`、`control_action`、`reward`、`comfort_violation`。`pue`、`humidity`、`it_load`、`chiller_power` 仍保持 optional，不由 adapter 编造。
+
+## 外部依赖放置方式
+
+BEAR 仓库已放在主项目根目录下的 `BEAR/`。这样它会和主项目一起出现在仓库里，但仍然只作为外部依赖和数据源，不承担主项目核心逻辑。后续如果切换到 conda 环境，只需要在那个环境里安装 BEAR 依赖并复用现有 adapter 和导出脚本。
+
+当前 demo 的轨迹数据优先级是：
+
+1. `data/bear_processed/bear_rollout.csv`
+2. `BEAR/BEAR/Data/Exercise2A-mytest.csv`
+3. mock trajectory
+
+该选择结果会作为只读 `data_source` 元数据返回给 API 和 demo；它只说明当前演示/评测使用的数据来源，不代表真实数据中心生产遥测。
+
+## Agent 边界
+
+Agent 后续负责：
+
+- 判断用户任务类型。
+- 路由到 RAG、时序工具或 policy 工具。
+- 整合证据。
+- 生成解释性回答。
+
+Agent 不负责直接训练模型，也不直接向环境写入控制动作。控制建议必须来自规则策略、MPC-like policy、DiffFNO / Guided-DiffFNO adapter 或 offline replay 等工具。
+
+## 后续扩展方向
+
+后续阶段可以继续加入：
+
+- FAISS 或 Qdrant 向量检索。
+- 更强的 neural / cross-encoder / LLM reranker，以及更多能检验 reranker 的真实领域压力样例。
+- 真实 LLM 回答生成器。
+- LangGraph 工作流，用于替换当前 deterministic baseline orchestrator。
+- 更完整的 Streamlit 运行日志、案例 walkthrough 和截图素材。
+- 扩展 LLM-only、RAG、RAG + Tool Agent 三组 baseline 的指标和样本规模。

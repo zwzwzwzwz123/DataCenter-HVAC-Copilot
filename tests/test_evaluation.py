@@ -1,0 +1,134 @@
+from pathlib import Path
+
+from src.evaluation.dataset import load_eval_dataset
+from src.evaluation.metrics import (
+    citation_hit_rate,
+    context_recall,
+    evidence_coverage,
+    expected_keyword_coverage,
+    lexical_answer_coverage,
+    tool_execution_success_rate,
+    tool_selection_accuracy,
+)
+
+
+def test_load_eval_dataset_reads_jsonl_records():
+    records = load_eval_dataset(Path("data/eval/hvac_eval.jsonl"))
+
+    assert len(records) >= 34
+    assert records[0].id == "doc_qa_001"
+    assert records[0].task_type == "document_qa"
+    assert records[0].expected_output_format == "answer_with_citations"
+    assert isinstance(records[0].expected_keywords, list)
+
+
+def test_eval_dataset_has_curated_keywords_for_representative_records():
+    records = load_eval_dataset(Path("data/eval/hvac_eval.jsonl"))
+    keyword_records = [record for record in records if record.expected_keywords]
+
+    assert len(keyword_records) >= 30
+    assert {"document_qa", "timeseries_query", "anomaly_diagnosis", "policy_recommendation"}.issubset(
+        {record.task_type for record in keyword_records}
+    )
+
+
+def test_citation_hit_rate_counts_required_documents():
+    records = _records_by_id(["doc_qa_001", "ts_query_001"])
+    predictions = {
+        "doc_qa_001": {
+            "citations": [
+                {"source_id": "hvac_energy_reference"},
+                {"source_id": "other_doc"},
+            ]
+        },
+        "ts_query_001": {"citations": []},
+    }
+
+    assert citation_hit_rate(records, predictions) == 1.0
+
+
+def test_context_recall_counts_required_documents_in_retrieved_contexts():
+    records = _records_by_id(["doc_qa_001", "doc_qa_009"])
+    predictions = {
+        "doc_qa_001": {
+            "retrieved_contexts": [
+                {"citation": {"source_id": "hvac_energy_reference"}},
+                {"citation": {"source_id": "other_doc"}},
+            ]
+        },
+        "doc_qa_009": {
+            "retrieved_contexts": [
+                {"citation": {"source_id": "hvac_energy_reference"}},
+            ]
+        },
+    }
+
+    assert context_recall(records, predictions) == 0.5
+
+
+def test_tool_selection_accuracy_counts_required_tools():
+    records = _records_by_id(["ts_query_001", "anomaly_001", "policy_001"])
+    predictions = {
+        "ts_query_001": {"tools": ["query_metric"]},
+        "anomaly_001": {"tools": ["query_metric"]},
+        "policy_001": {"tools": ["rule_based_policy", "mpc_like_policy"]},
+    }
+
+    assert round(tool_selection_accuracy(records, predictions), 2) == 0.67
+
+
+def test_lexical_answer_coverage_counts_gold_answer_keywords():
+    records = _records_by_id(["doc_qa_010", "policy_001"])
+    predictions = {
+        "doc_qa_010": {
+            "answer": "Agent 负责任务路由、证据收集和解释，控制建议来自 policy 工具。"
+        },
+        "policy_001": {
+            "answer": "应调用 rule_based_policy，并说明 diffusion 模型不可用时不能伪造。"
+        },
+    }
+
+    assert lexical_answer_coverage(records, predictions) > 0.2
+
+
+def test_expected_keyword_coverage_uses_curated_keywords_only():
+    records = _records_by_id(["doc_qa_010", "ts_query_001"])
+    predictions = {
+        "doc_qa_010": {
+            "answer": "Agent 负责任务路由和证据收集，控制建议来自 policy 工具。"
+        },
+        "ts_query_001": {
+            "answer": "zone_temperature 最大值为 30.0，并返回时间范围。"
+        },
+    }
+
+    assert expected_keyword_coverage(records, predictions) == 1.0
+
+
+def test_tool_execution_success_rate_counts_non_empty_tool_results():
+    records = _records_by_id(["ts_query_001", "anomaly_001", "policy_001"])
+    predictions = {
+        "ts_query_001": {"tools": ["query_metric"], "tool_results": [{"summary": {"max": 30.0}}]},
+        "anomaly_001": {"tools": ["detect_anomaly"], "tool_results": []},
+        "policy_001": {"tools": ["rule_based_policy"], "tool_results": [{"policy_name": "rule_based"}]},
+    }
+
+    assert round(tool_execution_success_rate(records, predictions), 2) == 0.67
+
+
+def test_evidence_coverage_counts_required_evidence_from_citations_or_tools():
+    records = _records_by_id(["doc_qa_001", "ts_query_001", "anomaly_001", "policy_001"])
+    predictions = {
+        "doc_qa_001": {"citations": [{"source_id": "hvac_energy_reference"}], "tool_results": []},
+        "ts_query_001": {"citations": [], "tool_results": [{"summary": {"max": 30.0}}]},
+        "anomaly_001": {"citations": [], "tool_results": []},
+        "policy_001": {"citations": [], "tool_results": [{"policy_name": "rule_based"}]},
+    }
+
+    assert evidence_coverage(records, predictions) == 0.75
+
+
+def _records_by_id(ids: list[str]):
+    records = load_eval_dataset(Path("data/eval/hvac_eval.jsonl"))
+    by_id = {record.id: record for record in records}
+    return [by_id[id_] for id_ in ids]

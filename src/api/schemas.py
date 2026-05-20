@@ -1,0 +1,29 @@
+from __future__ import annotations
+
+from pydantic import BaseModel, Field
+
+
+class AskRequest(BaseModel):
+    question: str
+    task_type: str | None = None
+
+
+class AskResponse(BaseModel):
+    question: str
+    route: str
+    answer: str
+    tools: list[str] = Field(default_factory=list)
+    citations: list[dict] = Field(default_factory=list)
+    retrieved_contexts: list[dict] = Field(default_factory=list)
+    tool_results: list[dict] = Field(default_factory=list)
+    route_reason: str | None = None
+    data_source: dict[str, str] = Field(default_factory=dict)
+
+
+class EvalRunRequest(BaseModel):
+    eval_path: str = "data/eval/hvac_eval.jsonl"
+
+
+class EvalRunResponse(BaseModel):
+    metrics: dict[str, float]
+    predictions: list[dict]

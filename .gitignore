@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+.env
+*.egg-info/
+build/
+dist/
+data/bear_raw/*
+data/bear_processed/*
+!data/bear_raw/.gitkeep
+!data/bear_processed/.gitkeep
+data/eval/*_predictions.jsonl
