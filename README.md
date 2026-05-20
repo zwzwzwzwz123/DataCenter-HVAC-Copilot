@@ -9,15 +9,15 @@ This first stage builds the project foundation:
 - BEAR trajectory schema and field provenance rules
 - Time-series analysis tool interfaces
 - Policy adapter interfaces for rule-based, MPC-like, diffusion, and offline replay policies
-- UTF-8 Markdown/text document loading, citation-preserving chunks, keyword retrieval, a lightweight BM25-style hybrid retrieval baseline, and a first lexical reranker wrapper
+- UTF-8 Markdown/text document loading, citation-preserving chunks, keyword retrieval, a lightweight BM25-style hybrid retrieval baseline, and a metadata-aware lexical reranker wrapper
 - Extractive RAG baseline with citations
-- A 37-record evaluation JSONL sample with curated expected keywords
+- A 49-record evaluation JSONL sample with curated expected keywords
 - Evaluation dataset loader and citation/tool/evidence metrics
 - Deterministic router, baseline orchestrator, and baseline eval runner
 - Demo data-source metadata for processed BEAR CSV, BEAR sample CSV, or mock fallback
 - A first reproducible comparison summary for LLM-only, keyword RAG, hybrid RAG, hybrid RAG + reranker, and RAG + Tool Agent baselines, including overall and per-task-type metrics
 - A Streamlit demo with Copilot and evaluation-summary tabs, route/tool/citation display, metric tables, and trend charts for tool results
-- Tests for core time-series and policy behavior
+- Tests for retrieval, evaluation, API, BEAR ingestion, time-series, and policy behavior
 
 Full vector RAG, LangGraph Agent orchestration, richer production-grade UI polish, and real DiffFNO / Guided-DiffFNO integration are planned for later stages.
 
@@ -55,7 +55,7 @@ The eval script writes:
 - `data/eval/baseline_comparison.json`
 - `docs/experiment_report.md`
 
-The current evaluation set contains 37 records across document QA, time-series query, anomaly diagnosis, and policy recommendation tasks. All 37 records include curated `expected_keywords`, and `data/documents/` includes similar-theme internal notes plus a long-noise/short-target retrieval pressure pair. The comparison summary currently reports `citation_hit_rate`, `context_recall`, `expected_keyword_coverage`, `lexical_answer_coverage`, `tool_selection_accuracy`, `tool_execution_success_rate`, and `evidence_coverage` for LLM-only, keyword RAG, hybrid RAG, hybrid RAG + reranker, default RAG, and RAG + Tool Agent modes. `data/eval/baseline_comparison.json` stores both overall `summary` and `by_task_type` metrics, and `docs/experiment_report.md` renders both tables.
+The current evaluation set contains 49 records across document QA, time-series query, anomaly diagnosis, and policy recommendation tasks. All 49 records include curated `expected_keywords`, and `data/documents/` includes similar-theme internal notes plus long-noise/short-target and metadata-aware reranking pressure notes. The comparison summary currently reports `citation_hit_rate`, `context_recall`, `expected_keyword_coverage`, `lexical_answer_coverage`, `tool_selection_accuracy`, `tool_execution_success_rate`, and `evidence_coverage` for LLM-only, keyword RAG, hybrid RAG, hybrid RAG + reranker, default RAG, and RAG + Tool Agent modes. `data/eval/baseline_comparison.json` stores both overall `summary` and `by_task_type` metrics, and `docs/experiment_report.md` renders both tables. In the latest run, `rag_hybrid_rerank` improves citation/context metrics to `0.630`, ahead of `rag_hybrid` at `0.593` and `rag_keyword` at `0.519`, while `rag_tool_agent` keeps tool selection and execution at `1.000`.
 
 Export a rollout from the real BEAR repository after cloning it outside this project:
 
@@ -109,13 +109,13 @@ data/documents/        UTF-8 Markdown/TXT domain notes loaded by the demo RAG
 data/eval/             Evaluation JSONL samples and datasets
 src/core/              Shared schemas, result objects, and validation helpers
 src/ingestion/         BEAR trajectory loading and normalization
-src/retrieval/         Future document retrieval components
+src/retrieval/         Document loading, chunking, retrieval, reranking, and RAG baseline
 src/tools/             Time-series analysis tools
-src/agent/             Future Agent routing and evidence synthesis
+src/agent/             Deterministic routing and baseline evidence synthesis
 src/policies/          Policy adapter interfaces and fallback policies
-src/evaluation/        Future evaluation runners and metrics
-src/api/               Future FastAPI service
-app/                   Future Streamlit demo
+src/evaluation/        Evaluation runners, metrics, and report rendering
+src/api/               FastAPI service
+app/                   Streamlit demo
 scripts/               Utility scripts
 tests/                 Unit tests
 ```

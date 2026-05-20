@@ -26,7 +26,8 @@ def test_eval_dataset_has_curated_keywords_for_representative_records():
     records = load_eval_dataset(Path("data/eval/hvac_eval.jsonl"))
     keyword_records = [record for record in records if record.expected_keywords]
 
-    assert len(keyword_records) >= 30
+    assert len(records) == 49
+    assert len(keyword_records) == 49
     assert {"document_qa", "timeseries_query", "anomaly_diagnosis", "policy_recommendation"}.issubset(
         {record.task_type for record in keyword_records}
     )

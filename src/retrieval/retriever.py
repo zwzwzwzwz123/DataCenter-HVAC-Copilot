@@ -132,12 +132,14 @@ class RerankingRetriever:
         phrase_weight: float = 2.0,
         coverage_weight: float = 3.0,
         base_score_weight: float = 0.1,
+        metadata_weight: float = 1.0,
     ) -> None:
         self.base_retriever = base_retriever
         self.candidate_k = candidate_k
         self.phrase_weight = phrase_weight
         self.coverage_weight = coverage_weight
         self.base_score_weight = base_score_weight
+        self.metadata_weight = metadata_weight
         self.chunks = getattr(base_retriever, "chunks", [])
 
     def search(self, query: str, top_k: int = 5) -> list[dict]:
@@ -151,9 +153,12 @@ class RerankingRetriever:
         reranked = []
         for candidate in candidates:
             score = self._score(query, query_tokens, candidate)
+            metadata_score = self._metadata_score(query_tokens, candidate)
+            score += self.metadata_weight * metadata_score
             updated = dict(candidate)
             updated["base_score"] = candidate.get("score", 0.0)
             updated["base_retrieval_mode"] = candidate.get("retrieval_mode", "keyword")
+            updated["metadata_score"] = metadata_score
             updated["score"] = score
             updated["rerank_score"] = score
             updated["retrieval_mode"] = "rerank_keyword_overlap"
@@ -176,6 +181,19 @@ class RerankingRetriever:
             + self.phrase_weight * phrase_hits
             + self.base_score_weight * base_score
         )
+
+    def _metadata_score(self, query_tokens: list[str], candidate: dict) -> float:
+        query_token_set = set(query_tokens)
+        if not query_token_set:
+            return 0.0
+        citation = candidate.get("citation") or {}
+        metadata_text = " ".join(
+            str(citation.get(key, ""))
+            for key in ("source_id", "title", "section")
+            if citation.get(key) is not None
+        )
+        metadata_tokens = set(_tokenize(metadata_text))
+        return len(query_token_set & metadata_tokens) / len(query_token_set)
 
 
 def _tokenize(text: str) -> list[str]:

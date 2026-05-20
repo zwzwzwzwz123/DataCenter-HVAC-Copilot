@@ -12,12 +12,12 @@
 2. `src/ingestion/` 将 BEAR-like 轨迹记录标准化成统一表格格式，并提供 `chz056/BEAR` 的 `BuildingEnvReal` rollout adapter。
 3. `src/tools/` 暴露确定性的时序分析工具函数。
 4. `src/policies/` 定义 policy adapter 边界，避免把尚未接入的模型伪装成可用能力。
-5. `src/retrieval/` 提供文档 schema、UTF-8 文档加载、chunk、轻量关键词检索、BM25-style hybrid 检索 baseline、lightweight reranker wrapper 和 extractive RAG baseline。
+5. `src/retrieval/` 提供文档 schema、UTF-8 文档加载、chunk、轻量关键词检索、BM25-style hybrid 检索 baseline、metadata-aware lightweight reranker wrapper 和 extractive RAG baseline。
 6. `src/agent/` 提供 deterministic router 和 baseline orchestrator，先串联 RAG、时序工具和 policy fallback，不引入复杂 Agent。
 7. `src/evaluation/` 提供 eval JSONL 读取、最小指标计算和 baseline runner。
 8. `src/api/` 提供 FastAPI 服务雏形，暴露 `/health`、`/ask` 和 `/eval/run`。
 9. `app/` 提供 Streamlit demo，调用 API 并展示 route、tools、answer、citations、tool results、时序趋势和评测摘要。
-10. `data/eval/hvac_eval.jsonl` 保存 37 条第一版评测样例，覆盖文档问答、时序查询、异常诊断和策略建议。
+10. `data/eval/hvac_eval.jsonl` 保存 49 条评测样例，覆盖文档问答、时序查询、异常诊断和策略建议，全部包含人工维护的 `expected_keywords`。
 
 第二阶段起步补充了两个可复现能力：
 
@@ -26,13 +26,13 @@
 3. `src/evaluation/report.py` 将 comparison summary 和按任务类型指标渲染为 `docs/experiment_report.md`，形成可展示的 Markdown 实验表格和数据边界说明。
 4. `app/streamlit_app.py` 提供 Copilot / 评测摘要双页：Copilot 页展示 route、tools、citations、retrieved contexts、tool results、data_source，并将时序 summary / records 渲染为表格和折线图；评测摘要页调用 `/eval/run` 展示指标卡片、指标表和预测预览。
 
-当前 37 条评测集上的 baseline summary 显示：
+当前 49 条评测集上的 baseline summary 显示：
 
 - `llm_only` 没有引用、检索上下文和工具证据，各项指标均为 0。
-- `rag_keyword` 的 citation/context 指标为 0.533，`rag_hybrid` 为 0.600，长噪声/短目标压力样例已经能体现 BM25-style hybrid 检索优势。
-- `rag_hybrid_rerank` 已纳入 baseline 表格，当前指标与 `rag_hybrid` 持平；这说明轻量 reranker 接口已具备，但还需要更强重排策略或更多重排压力样例。
-- `rag_tool_agent` 在当前确定性路由样例上完成工具选择与执行，并将 evidence coverage 提升到 0.865。
-- 按任务类型表显示，工具类任务的 tool selection / execution 已达到 1.000，文档问答主要受 citation/context 和回答覆盖率限制，异常诊断与策略建议的自然语言覆盖仍需更强生成器或人工/LLM judge 指标进一步评估。
+- `rag_keyword` 的 citation/context 指标为 0.519，`rag_hybrid` 为 0.593，长噪声/短目标压力样例继续体现 BM25-style hybrid 检索优势。
+- `rag_hybrid_rerank` 的 citation/context 指标为 0.630，metadata-aware 轻量重排已能在当前压力样例中拉开与 `rag_hybrid` 的差异。
+- `rag_tool_agent` 在当前确定性路由样例上完成工具选择与执行，tool selection / execution 均为 1.000，并将 evidence coverage 保持在 0.878。
+- 按任务类型表显示，工具类任务的 tool selection / execution 已达到 1.000，文档问答仍主要受 citation/context 和回答覆盖率限制，异常诊断与策略建议的自然语言覆盖仍需更强生成器或人工/LLM judge 指标进一步评估。
 - `expected_keyword_coverage` 使用人工维护的 `expected_keywords`，比直接对 `gold_answer` 做 token 覆盖更适合中文样例；`lexical_answer_coverage` 仍保留为备用弱监督指标。
 
 ## 数据契约

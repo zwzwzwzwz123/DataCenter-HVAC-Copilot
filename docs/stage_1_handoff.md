@@ -4,11 +4,11 @@
 
 **目标：** 完成 DataCenter-HVAC Copilot 的第一阶段项目启动，让后续可以扩展到完整的 BEAR-based RAG + Agent + 工具调用 + 评测系统，而不需要重写基础结构。
 
-**架构：** 共享 schema 放在 `src/core/`，BEAR 标准化逻辑放在 `src/ingestion/`，确定性时序分析工具放在 `src/tools/`，policy adapter 放在 `src/policies/`，文档加载、chunk、关键词检索、BM25-style hybrid 检索、轻量 reranker wrapper 和 extractive RAG baseline 放在 `src/retrieval/`，deterministic router 和 baseline orchestrator 放在 `src/agent/`，评测集读取、指标和 baseline runner 放在 `src/evaluation/`，FastAPI 服务雏形放在 `src/api/`，Streamlit demo 放在 `app/`。
+**架构：** 共享 schema 放在 `src/core/`，BEAR 标准化逻辑放在 `src/ingestion/`，确定性时序分析工具放在 `src/tools/`，policy adapter 放在 `src/policies/`，文档加载、chunk、关键词检索、BM25-style hybrid 检索、metadata-aware 轻量 reranker wrapper 和 extractive RAG baseline 放在 `src/retrieval/`，deterministic router 和 baseline orchestrator 放在 `src/agent/`，评测集读取、指标和 baseline runner 放在 `src/evaluation/`，FastAPI 服务雏形放在 `src/api/`，Streamlit demo 放在 `app/`。
 
 **技术栈：** Python 3.10+、pandas、numpy、pydantic、matplotlib、pytest。
 
-**第二阶段起步更新：** API、orchestrator 和 Streamlit demo 已能展示当前 demo 轨迹数据源；评测 runner 已提供 `llm_only`、`rag_keyword`、`rag_hybrid`、`rag_hybrid_rerank`、`rag`、`rag_tool_agent` 多组 baseline comparison summary 和按任务类型分组指标；`data/eval/hvac_eval.jsonl` 已扩展到 37 条第一版样例，且全部样例包含人工维护的 `expected_keywords`；demo RAG 已支持加载 `data/documents/` 下的多篇 UTF-8 Markdown/TXT 文档，并补充了相似主题内部文档和长噪声/短目标文档对，用于早期检索压力测试；Streamlit demo 已扩展为 Copilot / 评测摘要双页，支持展示 route、tools、citations、tool results、metric summary、时序趋势图和 eval metrics。
+**第二阶段起步更新：** API、orchestrator 和 Streamlit demo 已能展示当前 demo 轨迹数据源；评测 runner 已提供 `llm_only`、`rag_keyword`、`rag_hybrid`、`rag_hybrid_rerank`、`rag`、`rag_tool_agent` 多组 baseline comparison summary 和按任务类型分组指标；`data/eval/hvac_eval.jsonl` 已扩展到 49 条样例，且全部样例包含人工维护的 `expected_keywords`；demo RAG 已支持加载 `data/documents/` 下的多篇 UTF-8 Markdown/TXT 文档，并补充了相似主题内部文档、长噪声/短目标文档对和 metadata-aware reranking 压力文档，用于早期检索压力测试；Streamlit demo 已扩展为 Copilot / 评测摘要双页，支持展示 route、tools、citations、tool results、metric summary、时序趋势图和 eval metrics。
 
 ---
 
@@ -93,7 +93,7 @@
 
 **完成内容：**
 
-- [x] 添加 37 条 JSONL 第一版样例。
+- [x] 添加 49 条 JSONL 样例。
 - [x] 覆盖文档问答、时序查询、异常诊断和策略建议。
 - [x] 每条样例包含 `question`、`task_type`、`gold_answer`、`required_tools`、`required_documents`、`expected_output_format` 和人工维护的 `expected_keywords`。
 
@@ -116,8 +116,8 @@
 - [x] 实现基础 word-based chunker。
 - [x] 实现可替换的 `KeywordRetriever` top-k baseline。
 - [x] 实现轻量 `HybridRetriever`，使用 BM25-style 长度归一化并标记 `retrieval_mode = hybrid_bm25`。
-- [x] 实现轻量 `RerankingRetriever` wrapper，基于候选检索结果做短语命中、查询覆盖率和原始分数重排，并标记 `retrieval_mode = rerank_keyword_overlap`。
-- [x] 添加 9 篇项目内部可追溯 Markdown 样例文档，其中包含相似主题的 containment / setpoint tradeoff 压力测试文档，以及一组 long-noise / short-target 检索压力文档。
+- [x] 实现轻量 `RerankingRetriever` wrapper，基于候选检索结果做短语命中、查询覆盖率、citation metadata 命中和原始分数重排，并标记 `retrieval_mode = rerank_keyword_overlap`。
+- [x] 添加 13 篇项目内部可追溯 Markdown 样例文档，其中包含相似主题的 containment / setpoint tradeoff 压力测试文档、long-noise / short-target 检索压力文档，以及 supply air reset、sensor drift、return air delta-t 等 metadata-aware reranking 压力文档。
 - [x] demo RAG 从 `data/documents/` 加载全部 `.md` / `.txt` 文档。
 - [x] 添加检索链路单元测试。
 
@@ -286,7 +286,7 @@
 - `src/retrieval/schemas.py`：文档、chunk 和 citation metadata 数据结构。
 - `src/retrieval/loader.py`：UTF-8 Markdown / text 文档加载。
 - `src/retrieval/chunking.py`：基础文档 chunker。
-- `src/retrieval/retriever.py`：轻量关键词 top-k 检索 baseline、BM25-style hybrid 检索 baseline 和 lightweight reranker wrapper。
+- `src/retrieval/retriever.py`：轻量关键词 top-k 检索 baseline、BM25-style hybrid 检索 baseline 和 metadata-aware lightweight reranker wrapper。
 - `src/retrieval/rag.py`：extractive RAG baseline，返回回答、引用和检索上下文。
 - `src/agent/router.py`：确定性任务路由。
 - `src/agent/orchestrator.py`：baseline orchestrator，串联 RAG、时序工具和 policy fallback，并在输出中携带 `data_source`。
@@ -301,7 +301,7 @@
 - `scripts/run_eval.py`：运行 baseline eval，写出 baseline comparison summary / by-task-type JSON，并生成 Markdown 实验报告。
 - `scripts/export_bear_data.py`：从外部 BEAR 仓库导出标准化 rollout CSV。
 - `data/documents/*.md`：用于开发和测试的项目内部 HVAC / 控制 / 评测 / 数据边界样例文档，以及相似主题和长噪声/短目标检索压力测试文档。
-- `data/eval/hvac_eval.jsonl`：37 条第一版评测 JSONL 样例，全部包含人工维护的 `expected_keywords`。
+- `data/eval/hvac_eval.jsonl`：49 条评测 JSONL 样例，全部包含人工维护的 `expected_keywords`。
 - `tests/test_bear_schema.py`：BEAR 字段来源和标准化测试。
 - `tests/test_timeseries_tools.py`：时序查询、周期对比、异常检测、能耗拆分和趋势数据测试。
 - `tests/test_policies.py`：policy fallback、diffusion adapter 和 offline replay 测试。
@@ -326,12 +326,12 @@ python -m pytest
 当前验证结果：
 
 ```text
-57 passed
+60 passed
 ```
 
 最近一次 Streamlit smoke test 使用 `streamlit run app/streamlit_app.py --server.headless true --server.port 8502` 启动后，HTTP 访问 `http://127.0.0.1:8502` 返回 200；FastAPI smoke test 中 `/health` 返回 `ok`，`/ask` 的时序查询返回 route=`timeseries_query` 且 tools=`query_metric`。
 
-当前 `scripts/run_eval.py` 会生成 37 条样例的 baseline comparison，并在 `baseline_comparison.json` 中保存整体 `summary` 和 `by_task_type`。最新报告中 `rag_keyword` 的 `citation_hit_rate` / `context_recall` 为 0.533，`rag_hybrid` 为 0.600，说明长噪声/短目标压力样例已经能体现 BM25-style hybrid 检索优势。`rag_hybrid_rerank` 已纳入表格，当前指标与 `rag_hybrid` 持平，说明轻量重排接口已具备，但还需要更强重排策略或更多重排压力样例。`rag_tool_agent` 的 `tool_selection_accuracy` 和 `tool_execution_success_rate` 为 1.000，`evidence_coverage` 为 0.865。按任务类型表显示，工具类任务的 tool selection / execution 已达 1.000，文档问答主要受 citation/context 和回答覆盖率限制。
+当前 `scripts/run_eval.py` 会生成 49 条样例的 baseline comparison，并在 `baseline_comparison.json` 中保存整体 `summary` 和 `by_task_type`。最新报告中 `rag_keyword` 的 `citation_hit_rate` / `context_recall` 为 0.519，`rag_hybrid` 为 0.593，说明长噪声/短目标压力样例继续体现 BM25-style hybrid 检索优势。`rag_hybrid_rerank` 的 citation/context 指标提升到 0.630，说明 metadata-aware 轻量重排已能在当前压力样例中拉开与 `rag_hybrid` 的差异。`rag_tool_agent` 的 `tool_selection_accuracy` 和 `tool_execution_success_rate` 为 1.000，`evidence_coverage` 为 0.878。按任务类型表显示，工具类任务的 tool selection / execution 已达 1.000，文档问答主要受 citation/context 和回答覆盖率限制。
 
 ## 本阶段尚未实现
 
@@ -351,8 +351,8 @@ python -m pytest
 
 - [x] 在现有相似主题文档基础上增加近义/噪声压力问题，观察到 `rag_keyword` 与 `rag_hybrid` 的 context/citation 指标差异。
 - [x] 接入轻量 reranker wrapper，并纳入 `rag_hybrid_rerank` baseline comparison。
-- [ ] 继续增加更多真实领域风格的近义问题，避免当前差异只来自人工构造的长噪声样例。
-- [ ] 继续设计能区分 `rag_hybrid` 与 `rag_hybrid_rerank` 的真实领域压力样例，或替换为 cross-encoder / LLM reranker。
+- [x] 继续增加更多真实领域风格的近义问题，避免当前差异只来自人工构造的长噪声样例。
+- [x] 继续设计能区分 `rag_hybrid` 与 `rag_hybrid_rerank` 的真实领域压力样例，或替换为 cross-encoder / LLM reranker。
 - [ ] 增加基于人工标注或 LLM judge 的 correctness / faithfulness，避免只依赖 extractive coverage。
 - [ ] 后续将评测集扩展到 100 条以上，并补充更细的回答质量人工标注。
 - [x] 增加按任务类型分组的 baseline 指标表，便于说明文档问答、时序工具、异常诊断和策略建议各自瓶颈。

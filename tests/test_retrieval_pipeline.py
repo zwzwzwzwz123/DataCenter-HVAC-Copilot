@@ -154,6 +154,53 @@ def test_reranking_retriever_promotes_exact_phrase_and_labels_mode():
     assert results[0]["rerank_score"] > 0
 
 
+def test_reranking_retriever_uses_citation_metadata_for_tie_breaking():
+    target_metadata = DocumentMetadata(
+        source_id="supply_air_reset_risk_note",
+        title="Supply Air Reset Risk Note",
+        source_path="memory",
+        published_at="2026",
+        category="internal_note",
+    )
+    noise_metadata = DocumentMetadata(
+        source_id="cooling_airflow_noise_long_note",
+        title="Cooling Airflow Noise Long Note",
+        source_path="memory",
+        published_at="2026",
+        category="internal_note",
+    )
+    chunks = [
+        noise_metadata.to_chunk(
+            chunk_id="cooling_airflow_noise_long_note::chunk_0000",
+            text=(
+                "supply air reset risk comfort violation policy evidence "
+                "cooling airflow repeated repeated repeated repeated repeated"
+            ),
+            section="General Cooling Noise",
+            start_word=0,
+            end_word=13,
+        ),
+        target_metadata.to_chunk(
+            chunk_id="supply_air_reset_risk_note::chunk_0000",
+            text="supply air reset risk comfort violation policy evidence",
+            section="Supply Air Reset Risk",
+            start_word=0,
+            end_word=7,
+        ),
+    ]
+
+    retriever = RerankingRetriever(
+        KeywordRetriever(chunks),
+        candidate_k=2,
+        base_score_weight=0.0,
+        metadata_weight=2.0,
+    )
+    results = retriever.search("supply air reset risk note", top_k=1)
+
+    assert results[0]["chunk_id"] == "supply_air_reset_risk_note::chunk_0000"
+    assert results[0]["metadata_score"] > 0
+
+
 def test_load_text_documents_loads_supported_files(tmp_path: Path):
     (tmp_path / "doc_a.md").write_text("# Cooling\n\nCooling saves energy.", encoding="utf-8")
     (tmp_path / "doc_b.txt").write_text("HVAC alarms need evidence.", encoding="utf-8")
@@ -171,4 +218,8 @@ def test_demo_documents_include_similar_theme_pressure_notes():
     assert {
         "airflow_containment_operations_note",
         "setpoint_tradeoff_operations_note",
+        "supply_air_reset_risk_note",
+        "sensor_drift_alarm_boundary_note",
+        "return_air_delta_t_operations_note",
+        "cooling_airflow_noise_long_note",
     }.issubset(source_ids)
