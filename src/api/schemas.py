@@ -12,6 +12,8 @@ class AskResponse(BaseModel):
     question: str
     route: str
     answer: str
+    answer_generator: str | None = None
+    answer_audit: dict = Field(default_factory=dict)
     tools: list[str] = Field(default_factory=list)
     citations: list[dict] = Field(default_factory=list)
     retrieved_contexts: list[dict] = Field(default_factory=list)

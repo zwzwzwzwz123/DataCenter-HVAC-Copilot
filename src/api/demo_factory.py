@@ -4,7 +4,12 @@ from pathlib import Path
 
 import pandas as pd
 
+from src.agent.deepseek_generator import build_answer_generator_from_env
+from src.agent.answer_generator import DeterministicAnswerGenerator
 from src.agent.orchestrator import BaselineOrchestrator
+from src.policies.dropt_adapter import DROPTCheckpointPolicy
+from src.policies.offline_replay import OfflineReplayPolicy
+from src.policies.rule_based import run_rule_based_policy
 from src.ingestion.bear_sample_loader import load_bear_sample_timeseries
 from src.ingestion.processed_loader import load_processed_bear_trajectory
 from src.retrieval.chunking import chunk_document
@@ -13,7 +18,11 @@ from src.retrieval.rag import ExtractiveRAGPipeline
 from src.retrieval.retriever import HybridRetriever
 
 
-def build_demo_orchestrator(project_root: Path | None = None) -> BaselineOrchestrator:
+def build_demo_orchestrator(
+    project_root: Path | None = None,
+    use_env_answer_generator: bool = True,
+    use_dropt_policy: bool = False,
+) -> BaselineOrchestrator:
     """Build a demo orchestrator from sample docs and mock trajectory data."""
 
     project_root = project_root or Path(__file__).resolve().parents[2]
@@ -26,6 +35,12 @@ def build_demo_orchestrator(project_root: Path | None = None) -> BaselineOrchest
         rag_pipeline=rag,
         trajectory=trajectory,
         data_source=trajectory.attrs["data_source"],
+        answer_generator=(
+            build_answer_generator_from_env(project_root=project_root)
+            if use_env_answer_generator
+            else DeterministicAnswerGenerator()
+        ),
+        policy_runner=_build_policy_runner(project_root, use_dropt_policy=use_dropt_policy),
     )
 
 
@@ -89,3 +104,26 @@ def _load_demo_trajectory(project_root: Path | None = None) -> pd.DataFrame:
         "path": "built-in demo trajectory",
     }
     return frame
+
+
+def _build_policy_runner(project_root: Path, *, use_dropt_policy: bool = False):
+    dropt_path = project_root / "policy_best_fno_guided.pth"
+    if use_dropt_policy and dropt_path.exists():
+        dropt_policy = DROPTCheckpointPolicy(dropt_path)
+
+        def run_dropt_policy(state: dict):
+            return dropt_policy.run(state)
+
+        return run_dropt_policy
+    replay_path = project_root / "data" / "eval" / "offline_policy_replay.json"
+    if replay_path.exists():
+        replay_policy = OfflineReplayPolicy(replay_path)
+
+        def run_replay_policy(state: dict):
+            try:
+                return replay_policy.run(state)
+            except KeyError:
+                return run_rule_based_policy(state)
+
+        return run_replay_policy
+    return run_rule_based_policy

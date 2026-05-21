@@ -1,29 +1,95 @@
 # DataCenter-HVAC Copilot
 
-DataCenter-HVAC Copilot is a staged Python project for building a RAG + Agent + tool-calling system around BEAR HVAC simulation trajectories. BEAR data is treated as a controllable simulation source for data-center-cooling style analysis, not as real production data center telemetry.
+面向 **BEAR HVAC 物理仿真轨迹** 的 RAG + Tool Agent + Evaluation 项目，用于演示数据中心冷却优化类问题中的文档检索、时序分析、异常诊断、策略建议和可复现评测。
 
-## Current Scope
+> 重要边界：BEAR 在本项目中只能表述为 HVAC 仿真环境 / 可控代理场景，不能伪装成真实数据中心生产遥测。LLM / Agent 只负责任务路由、证据整合和解释生成，不直接生成或写回控制动作。
 
-This first stage builds the project foundation:
+## 项目亮点
 
-- BEAR trajectory schema and field provenance rules
-- Time-series analysis tool interfaces
-- Policy adapter interfaces for rule-based, MPC-like, diffusion, and offline replay policies
-- UTF-8 Markdown/text document loading, citation-preserving chunks, keyword retrieval, a lightweight BM25-style hybrid retrieval baseline, and a metadata-aware lexical reranker wrapper
-- Extractive RAG baseline with citations
-- A 100-record evaluation JSONL sample with curated expected keywords and representative quality-proxy annotations
-- Evaluation dataset loader and citation/tool/evidence plus lightweight correctness/faithfulness proxy metrics
-- Deterministic router, baseline orchestrator, and baseline eval runner
-- Demo data-source metadata for processed BEAR CSV, BEAR sample CSV, or mock fallback
-- A first reproducible comparison summary for LLM-only, keyword RAG, hybrid RAG, hybrid RAG + reranker, and RAG + Tool Agent baselines, including overall and per-task-type metrics
-- A Streamlit demo with Copilot and evaluation-summary tabs, route/tool/citation display, grouped eval metrics, prediction evidence preview fields, and trend charts for tool results
-- Tests for retrieval, evaluation, API, BEAR ingestion, time-series, and policy behavior
+- **不是普通 ChatPDF**：系统同时支持文档问答、BEAR-like 时序查询、异常诊断和策略建议。
+- **RAG + Tool Agent 闭环**：问题先路由，再检索文档、调用时序工具或 policy 工具，最后基于证据生成回答。
+- **DeepSeek 可选接入**：配置 `DEEPSEEK_API_KEY` 后，`/ask` 可使用 DeepSeek 做 evidence-grounded answer generation；未配置或调用失败时自动回退 deterministic generator。
+- **控制边界清晰**：控制建议只来自 rule-based、MPC-like、DiffFNO / Guided-DiffFNO adapter 或 offline replay 等工具，LLM 不直接控制环境。
+- **Safety Audit**：每个回答都会进行确定性安全审计，检查生产遥测误述、LLM 直接控制声明和未验证策略动作。
+- **可复现评测**：内置 100 条 JSONL 评测集，覆盖文档问答、时序查询、异常诊断和策略建议，并生成 baseline comparison 和实验报告。
+- **可展示 Demo**：FastAPI + Streamlit，包含典型案例 walkthrough、execution timeline、评测摘要和 prediction preview。
 
-Full vector RAG, LangGraph Agent orchestration, richer production-grade UI polish, and real DiffFNO / Guided-DiffFNO integration are planned for later stages.
+## 当前成熟度
 
-## Environment
+项目已经超过 MVP 阶段，当前可以端到端运行：
 
-Recommended conda setup:
+- 文档加载、chunk、检索、rerank
+- BEAR schema、processed CSV / BEAR sample CSV / mock fallback
+- 时序工具和 policy adapter
+- DeepSeek / deterministic answer generator
+- answer safety audit
+- FastAPI 服务
+- Streamlit demo
+- 100 条评测集和 baseline comparison
+
+当前更适合继续补的是展示材料、截图、人工标注扩展和更强检索/工作流增强，而不是重写核心架构。
+
+## 系统架构
+
+```text
+用户问题
+  |
+  v
+Deterministic Router
+  |
+  +-- document_qa ---------> RAG Retriever / Reranker ----+
+  |                                                       |
+  +-- timeseries_query ----> Time-Series Tools -----------+
+  |                                                       |
+  +-- anomaly_diagnosis ---> Anomaly Tool ----------------+
+  |                                                       |
+  +-- policy_recommendation -> Policy Adapter ------------+
+                                                          |
+                                                          v
+                                      Evidence-Grounded Answer Generator
+                                                          |
+                                                          v
+                                               Answer Safety Audit
+                                                          |
+                                                          v
+                                           FastAPI / Streamlit Demo
+```
+
+核心模块：
+
+```text
+src/core/          共享 schema、字段来源、env loader
+src/ingestion/     BEAR 轨迹标准化、BEAR adapter、processed/sample loader
+src/retrieval/     文档加载、chunk、keyword / hybrid / rerank 检索、RAG baseline
+src/tools/         时序查询、周期对比、异常检测、能耗拆分、趋势数据
+src/policies/      rule-based、MPC-like、diffusion adapter、DROPT checkpoint adapter、offline replay
+src/agent/         router、orchestrator、answer generator、DeepSeek adapter、answer audit
+src/evaluation/    eval loader、metrics、baseline runner、report、可选 judge adapter
+src/api/           FastAPI 服务
+app/               Streamlit demo
+scripts/           评测和 BEAR 导出脚本
+tests/             单元测试和 smoke tests
+```
+
+## 数据边界
+
+当前 demo 轨迹数据按以下优先级加载：
+
+1. `data/bear_processed/bear_rollout.csv`
+2. `BEAR/BEAR/Data/Exercise2A-mytest.csv`
+3. built-in mock trajectory
+
+API 会返回只读 `data_source`，用于展示当前数据来自 processed CSV、BEAR sample CSV 还是 mock fallback。
+
+字段使用原则：
+
+- `zone_temperature`、`outdoor_temp`、`solar_irradiance`、`ground_temp`、`internal_load`、`control_action`、`reward`、`comfort_violation` 可来自 BEAR 或由 BEAR 轨迹可重复计算。
+- `pue`、`humidity`、`it_load`、`chiller_power` 等不能默认视为 BEAR 原生字段。
+- 没有可复现映射时，optional 字段不能编造。
+
+## 环境安装
+
+推荐使用 conda：
 
 ```bash
 conda create -n hvac-copilot python=3.12
@@ -31,33 +97,198 @@ conda activate hvac-copilot
 pip install -e ".[dev]"
 ```
 
-If you already have a suitable Python environment, install only the project dependencies:
+如果已有 Python 环境：
 
 ```bash
 pip install -e ".[dev]"
 ```
 
-## Run Tests
+可选 FAISS dense retrieval：
 
 ```bash
-python -m pytest
+pip install -e ".[dev,dense]"
 ```
 
-Run the current baseline evaluation demo:
+FAISS 是本地向量索引库，本身不需要 API 或按次付费；`sentence-transformers` 会在本地生成 embedding，首次使用可能下载模型。Qdrant 更偏生产化向量数据库和服务部署，当前保留在 Roadmap。
+
+## 可选 DROPT / Guided-DiffFNO 策略后端
+
+项目已支持本地 `policy_best_fno_guided.pth` checkpoint 的可选推理适配器：
+
+- 代码入口：`src/policies/dropt_adapter.py`
+- 策略名称：`dropt_guided_diffno_checkpoint`
+- 输入要求：显式 20 维 BEAR state vector，布局为 `[zone_temperature(6), outdoor_temp(1), solar_irradiance(6), ground_temp(1), internal_load(6)]`
+- 默认行为：`/eval/run` 和 `scripts/run_eval.py` 仍使用 deterministic rule-based policy，保证评测口径不变。
+- 边界：该后端只作为 HVAC 仿真 / 可控代理场景中的离线策略工具，不是生产控制器；LLM 仍只解释 `policy_result`，不生成或写回控制动作。
+
+代码中可通过 `build_demo_orchestrator(use_dropt_policy=True)` 显式启用该后端；如果 checkpoint 缺失或 state 不完整，会自动回退到 rule-based policy 并在 `notes` 中说明原因。
+
+## DeepSeek 配置
+
+DeepSeek 是可选能力。可在 shell 或项目根目录 `.env` 中配置：
+
+```bash
+DEEPSEEK_API_KEY=your_key_here
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_MODEL=deepseek-chat
+DEEPSEEK_TIMEOUT_SECONDS=30
+```
+
+说明：
+
+- `.env` 会自动加载，但不会覆盖 shell 中已有环境变量。
+- `/ask` 可使用 DeepSeek 生成最终解释。
+- `scripts/run_eval.py` 和 `/eval/run` 默认使用 deterministic generator，避免批量 API 调用影响速度、成本和可复现性。
+- DeepSeek 只基于 `retrieved_contexts`、`citations`、`tool_results`、`policy_result` 和 `data_source` 写回答，不负责控制决策。
+
+## 启动服务
+
+启动 FastAPI：
+
+```bash
+uvicorn src.api.app:app --reload
+```
+
+可用接口：
+
+- `GET /health`
+- `POST /ask`
+- `POST /eval/run`
+
+启动 Streamlit：
+
+```bash
+streamlit run app/streamlit_app.py
+```
+
+Streamlit 包含：
+
+- 专业深色控制台布局：左侧 Mission Control 输入区，右侧 Grounded Answer、状态卡片和结构化证据区，便于面试截图展示。
+- Copilot tab：输入问题、选择任务类型、查看回答、route、tools、answer generator、evidence、audit、data source。
+- 典型案例 walkthrough：BEAR 数据边界、温度时序查询、策略建议边界。
+- Execution Timeline：展示 Route、Retrieval、Tool Call、Answer Generator、Data Boundary。
+- Safety Audit：展示回答是否触发边界风险。
+- 评测摘要 tab：调用 `/eval/run`，展示 Retrieval / Answer / Tool / Quality Proxy 指标和 prediction preview。
+
+## 面试演示路径
+
+推荐 5 到 8 分钟演示顺序：
+
+1. 启动 API 和 Streamlit。
+2. 在 Copilot tab 选择 `BEAR 数据边界`，展示 RAG 引用和数据边界。
+3. 选择 `温度时序查询`，展示 router 调用 `query_metric` 和 metric summary。
+4. 选择 `策略建议边界`，展示 policy tool 输出和 LLM 不直接控制。
+5. 展示 Execution Timeline 和 Safety Audit。
+6. 打开评测摘要 tab，说明 100 条 eval 和 baseline comparison。
+
+详细讲解脚本见：[docs/demo_walkthrough.md](docs/demo_walkthrough.md)
+
+## 测试
+
+日常测试：
+
+```bash
+python -m pytest -q
+```
+
+当前测试覆盖包括：
+
+- BEAR schema / adapter / loader
+- time-series tools
+- policy adapters
+- retrieval / RAG
+- orchestrator
+- DeepSeek answer generator
+- answer safety audit
+- API
+- Streamlit helper
+- evaluation metrics / report
+- optional LLM judge adapter
+
+日常 pytest 使用小型 eval fixture，避免每次开发都运行完整 100 条评测。
+
+## 评测
+
+完整 100 条评测：
 
 ```bash
 python scripts/run_eval.py
 ```
 
-The eval script writes:
+该脚本会生成：
 
 - `data/eval/baseline_predictions.jsonl`
 - `data/eval/baseline_comparison.json`
 - `docs/experiment_report.md`
 
-The current evaluation set contains 100 records across document QA, time-series query, anomaly diagnosis, and policy recommendation tasks, with a 40/20/20/20 task split. All 100 records include curated `expected_keywords`, and representative records include `must_include` / `must_not_include` annotations for deterministic quality proxy metrics. `data/documents/` includes similar-theme internal notes plus long-noise/short-target and metadata-aware reranking pressure notes. The comparison summary currently reports `citation_hit_rate`, `context_recall`, `expected_keyword_coverage`, `lexical_answer_coverage`, `tool_selection_accuracy`, `tool_execution_success_rate`, `evidence_coverage`, `answer_correctness_proxy`, and `faithfulness_proxy` for LLM-only, keyword RAG, hybrid RAG, hybrid RAG + reranker, default RAG, and RAG + Tool Agent modes. `data/eval/baseline_comparison.json` stores both overall `summary` and `by_task_type` metrics, and `docs/experiment_report.md` renders both tables. In the latest run, `rag_hybrid_rerank` improves citation/context metrics to `0.600`, ahead of `rag_hybrid` at `0.585` and `rag_keyword` at `0.554`; `rag_tool_agent` keeps tool selection and execution at `1.000`, with evidence coverage `0.910`, lightweight `answer_correctness_proxy = 0.308`, and `faithfulness_proxy = 0.245`.
+当前评测集包含 100 条样例：
 
-Export a rollout from the real BEAR repository after cloning it outside this project:
+```text
+document_qa:          40
+timeseries_query:     20
+anomaly_diagnosis:    20
+policy_recommendation:20
+```
+
+baseline 包含：
+
+- `llm_only`
+- `rag_keyword`
+- `rag_dense`
+- `rag_hybrid`
+- `rag_hybrid_rerank`
+- `rag`
+- `rag_tool_agent`
+
+核心指标：
+
+- `citation_hit_rate`
+- `context_recall`
+- `expected_keyword_coverage`
+- `lexical_answer_coverage`
+- `tool_selection_accuracy`
+- `tool_execution_success_rate`
+- `evidence_coverage`
+- `answer_correctness_proxy`
+- `faithfulness_proxy`
+
+最新默认评测中，`rag_tool_agent` 结果为：
+
+```text
+tool_selection_accuracy        = 1.000
+tool_execution_success_rate    = 1.000
+evidence_coverage              = 0.910
+expected_keyword_coverage      = 0.618
+answer_correctness_proxy       = 0.547
+faithfulness_proxy             = 0.465
+```
+
+## 可选 LLM Judge
+
+LLM judge adapter 默认关闭。默认报告只使用 deterministic metrics，保证可复现。
+
+显式开启 smoke judge：
+
+```bash
+python scripts/run_eval.py --enable-llm-judge --llm-judge-provider deterministic
+```
+
+开启后会额外输出：
+
+- `llm_judge_correctness`
+- `llm_judge_faithfulness`
+
+注意：当前 `deterministic` provider 只是接口 smoke provider，不替代人工评审，也不作为默认主指标。
+
+## 人工评测校准
+
+`scripts/run_eval.py` 会生成 `data/eval/human_review_sample.jsonl` 和 `data/eval/human_review_annotations.jsonl`。前者是待审样例，后者由人工填写 correctness / faithfulness / safety boundary。标注指南见 `docs/human_evaluation_guide.md`。
+
+在人工填写前，实验报告只显示 `pending_human_review`，不会把 deterministic proxy 或 optional LLM judge 当作人工评审。填写完成后重新运行 `python scripts/run_eval.py`，报告会读取已有 `human_review_annotations.jsonl` 并更新 Human Calibration 小节。
+
+## BEAR Rollout 导出
+
+如果需要从外部 BEAR 仓库导出 rollout：
 
 ```bash
 git clone https://github.com/chz056/BEAR.git ../BEAR
@@ -65,57 +296,56 @@ pip install -r ../BEAR/requirements.txt
 python scripts/export_bear_data.py --bear-root ../BEAR --num-steps 24 --output data/bear_processed/bear_rollout.csv
 ```
 
-The exporter uses `BuildingEnvReal.reset()` and `BuildingEnvReal.step(action)` from BEAR. It maps BEAR state layout `[zone temperatures, outdoor temperature, GHI per zone, ground temperature, occupancy power per zone]` into this project's standardized trajectory schema.
+导出脚本使用：
 
-The repository also includes the upstream BEAR code under `BEAR/`, along with the sample CSV `BEAR/BEAR/Data/Exercise2A-mytest.csv`. The demo factory uses this order by default:
+- `BuildingEnvReal.reset()`
+- `BuildingEnvReal.step(action)`
+- `env.statelist`
+- `env.actionlist`
 
-1. `data/bear_processed/bear_rollout.csv`
-2. `BEAR/BEAR/Data/Exercise2A-mytest.csv`
-3. built-in mock trajectory
-
-Run the API service:
-
-```bash
-uvicorn src.api.app:app --reload
-```
-
-Available starter endpoints:
-
-- `GET /health`
-- `POST /ask`
-- `POST /eval/run`
-
-`/health` and `/ask` include a `data_source` object so the demo can show whether it is using `data/bear_processed/bear_rollout.csv`, the bundled BEAR sample CSV, or the built-in mock trajectory.
-
-Run the Streamlit demo in another terminal after the API is running:
-
-```bash
-streamlit run app/streamlit_app.py
-```
-
-The Streamlit demo includes:
-
-- a Copilot tab for `/ask`, showing route, tools, citations, retrieved contexts, tool results, and the active trajectory `data_source`
-- table and line-chart rendering for time-series tool summaries and records
-- an evaluation-summary tab for `/eval/run`, grouping metrics into Retrieval, Answer, Tool, and Quality Proxy sections, plus a full metric table and prediction previews with citation/tool evidence flags
-
-## Project Layout
+映射的 BEAR state 布局：
 
 ```text
-docs/                  Project design and handoff notes
-data/bear_raw/         Raw BEAR exports, ignored by git
-data/bear_processed/   Standardized BEAR trajectories, ignored by git
-data/documents/        UTF-8 Markdown/TXT domain notes loaded by the demo RAG
-data/eval/             Evaluation JSONL samples and datasets
-src/core/              Shared schemas, result objects, and validation helpers
-src/ingestion/         BEAR trajectory loading and normalization
-src/retrieval/         Document loading, chunking, retrieval, reranking, and RAG baseline
-src/tools/             Time-series analysis tools
-src/agent/             Deterministic routing and baseline evidence synthesis
-src/policies/          Policy adapter interfaces and fallback policies
-src/evaluation/        Evaluation runners, metrics, and report rendering
-src/api/               FastAPI service
-app/                   Streamlit demo
-scripts/               Utility scripts
-tests/                 Unit tests
+[zone_temperature(n), outdoor_temp(1), solar_irradiance/GHI(n), ground_temp(1), occupancy_power(n)]
 ```
+
+## 当前完成情况
+
+已完成：
+
+- BEAR schema 和字段来源约束
+- processed CSV / BEAR sample CSV / mock fallback
+- BEAR adapter 接入真实 `BuildingEnvReal.reset()` / `step()` / `statelist` / `actionlist`
+- 时序工具：`query_metric`、`compare_period`、`detect_anomaly`、`compute_energy_breakdown`、`plot_metric_trend`
+- policy adapter：rule-based、MPC-like placeholder、diffusion adapter 边界、DROPT Guided-DiffFNO checkpoint adapter、offline replay
+- 多文档 RAG：Markdown/TXT loader、chunk、Keyword、Hybrid、Reranking retriever
+- deterministic router + baseline orchestrator
+- DeepSeek evidence-grounded answer generator
+- deterministic fallback answer generator
+- answer safety audit
+- FastAPI `/health`、`/ask`、`/eval/run`
+- Streamlit Copilot / 评测摘要双 tab
+- 100 条 eval JSONL 和 baseline comparison
+- optional LLM judge adapter smoke provider
+- demo walkthrough 文档
+
+## 后续 Roadmap
+
+建议下一步：
+
+- README / demo 截图素材
+- 更完整的人工 correctness / faithfulness 标注
+- 更强 prompt 审计样例
+
+长期加分项：
+
+- 真实 sentence-transformers + FAISS dense retrieval 指标对比
+- Qdrant 向量数据库服务化检索
+- cross-encoder / neural / LLM reranker
+- LangGraph workflow trace
+- 更完整的 DiffFNO / Guided-DiffFNO offline replay 指标和策略对比
+- 150 到 200 条更大规模 eval
+
+## 一句话简历表达
+
+构建 DataCenter-HVAC Copilot：基于 BEAR HVAC 仿真轨迹，设计 RAG + Tool Agent + Evaluation 系统，支持文档问答、时序查询、异常诊断和策略建议；实现 DeepSeek evidence-grounded answer generation、answer safety audit、时序工具、policy adapter 边界、FastAPI/Streamlit demo 和 100 条评测集，并通过多 baseline comparison 验证检索、工具调用、证据覆盖和回答质量代理指标。

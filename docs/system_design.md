@@ -11,12 +11,12 @@
 1. `src/core/` 定义共享 schema、字段来源和结果格式。
 2. `src/ingestion/` 将 BEAR-like 轨迹记录标准化成统一表格格式，并提供 `chz056/BEAR` 的 `BuildingEnvReal` rollout adapter。
 3. `src/tools/` 暴露确定性的时序分析工具函数。
-4. `src/policies/` 定义 policy adapter 边界，避免把尚未接入的模型伪装成可用能力。
+4. `src/policies/` 定义 policy adapter 边界，包含 rule-based、MPC-like、offline replay、diffusion 边界和可选 DROPT Guided-DiffFNO checkpoint 推理适配器，避免把未配置或输入不足的模型伪装成可用能力。
 5. `src/retrieval/` 提供文档 schema、UTF-8 文档加载、chunk、轻量关键词检索、BM25-style hybrid 检索 baseline、metadata-aware lightweight reranker wrapper 和 extractive RAG baseline。
-6. `src/agent/` 提供 deterministic router 和 baseline orchestrator，先串联 RAG、时序工具和 policy fallback，不引入复杂 Agent。
+6. `src/agent/` 提供 deterministic router、baseline orchestrator、evidence-grounded answer generator、answer safety audit，以及可选 DeepSeek 解释生成适配器；当前仍先串联 RAG、时序工具和 policy fallback，不引入复杂 Agent。
 7. `src/evaluation/` 提供 eval JSONL 读取、最小指标计算、轻量回答质量代理指标和 baseline runner。
 8. `src/api/` 提供 FastAPI 服务雏形，暴露 `/health`、`/ask` 和 `/eval/run`。
-9. `app/` 提供 Streamlit demo，调用 API 并展示 route、tools、answer、citations、tool results、时序趋势和评测摘要。
+9. `app/` 提供 Streamlit demo，采用专业深色控制台布局，调用 API 并展示 route、tools、answer、citations、tool results、时序趋势、状态卡片和评测摘要。
 10. `data/eval/hvac_eval.jsonl` 保存 100 条评测样例，按文档问答 40、时序查询 20、异常诊断 20、策略建议 20 覆盖四类任务，全部包含人工维护的 `expected_keywords`，代表性样例包含 `must_include` / `must_not_include` 质量代理标注。
 
 第二阶段起步补充了两个可复现能力：
@@ -24,15 +24,18 @@
 1. API、orchestrator 和 Streamlit demo 会显式返回/展示当前轨迹数据源标签和路径，取值为 `processed_csv`、`bear_sample_csv` 或 `mock`，避免把 BEAR 或 mock 轨迹误表述成真实生产数据。
 2. `src/evaluation/runner.py` 提供 `run_baseline_comparison`，对同一评测集运行 `llm_only`、`rag_keyword`、`rag_hybrid`、`rag_hybrid_rerank`、`rag`、`rag_tool_agent` 多组可替换 baseline，并输出 citation hit rate、context recall、expected keyword coverage、lexical answer coverage、tool selection accuracy、tool execution success rate、evidence coverage、answer correctness proxy 与 faithfulness proxy 的整体 summary 和 `by_task_type` 分组指标。
 3. `src/evaluation/report.py` 将 comparison summary 和按任务类型指标渲染为 `docs/experiment_report.md`，形成可展示的 Markdown 实验表格和数据边界说明。
-4. `app/streamlit_app.py` 提供 Copilot / 评测摘要双页：Copilot 页展示 route、tools、citations、retrieved contexts、tool results、data_source，并将时序 summary / records 渲染为表格和折线图；评测摘要页调用 `/eval/run`，将指标分为 Retrieval、Answer、Tool 和 Quality Proxy 组展示，并在预测预览中展示 citation/tool evidence 标记和 answer length。
+4. `app/streamlit_app.py` 提供 Copilot / 评测摘要双页：Copilot 页采用 Mission Control + Grounded Answer 的深色控制台结构，展示 route、tools、citations、retrieved contexts、tool results、data_source、answer generator、evidence 状态卡片和 execution timeline，并将时序 summary / records 渲染为表格和折线图；评测摘要页调用 `/eval/run`，将指标分为 Retrieval、Answer、Tool 和 Quality Proxy 组展示，并在预测预览中展示 citation/tool/audit evidence 标记和 answer length。
+5. `src/agent/answer_generator.py` 提供确定性证据约束回答生成器，`src/agent/deepseek_generator.py` 在配置 `DEEPSEEK_API_KEY` 后可调用 DeepSeek 生成最终解释；DeepSeek 只读取检索上下文、引用、工具结果、policy result 和数据源，不直接生成控制动作。
+6. `src/agent/answer_audit.py` 对最终回答做确定性安全审计，检查是否把 BEAR 表述为真实生产遥测、是否声称 LLM 直接生成/写回控制动作、以及策略回答中是否出现 policy 工具未返回的动作。
 
 当前 100 条评测集上的 baseline summary 显示：
 
 - `llm_only` 没有引用、检索上下文和工具证据，各项指标均为 0。
 - `rag_keyword` 的 citation/context 指标为 0.554，`rag_hybrid` 为 0.585，长噪声/短目标和领域近义压力样例继续体现 BM25-style hybrid 检索优势。
+- `rag_dense` 已作为 dense retrieval baseline 纳入 comparison；默认使用 deterministic hash embedding，保证不安装 FAISS 或 sentence-transformers 时仍可复现。真实 FAISS dense retrieval 通过 `pip install -e ".[dev,dense]"` 启用，FAISS 本身不需要 API。
 - `rag_hybrid_rerank` 的 citation/context 指标为 0.600，metadata-aware 轻量重排仍能在 100 条样例中拉开与 `rag_hybrid` 的差异。
 - `rag_tool_agent` 在当前确定性路由样例上完成工具选择与执行，tool selection / execution 均为 1.000，并将 evidence coverage 提升到 0.910。
-- 代表性样例已加入 `must_include` / `must_not_include` 标注；最新 `rag_tool_agent` 的 `answer_correctness_proxy` 为 0.308，`faithfulness_proxy` 为 0.245。这是本地确定性代理指标，不等价于完整人工评审或 LLM judge。
+- 代表性样例已加入 `must_include` / `must_not_include` 标注；最新 `rag_tool_agent` 的 `expected_keyword_coverage` 为 0.618，`lexical_answer_coverage` 为 0.285，`answer_correctness_proxy` 为 0.547，`faithfulness_proxy` 为 0.465。这是本地确定性代理指标，不等价于完整人工评审或 LLM judge。
 - 按任务类型表显示，工具类任务的 tool selection / execution 已达到 1.000，文档问答仍主要受 citation/context 和回答覆盖率限制，异常诊断与策略建议的自然语言覆盖仍需更强生成器或人工/LLM judge 指标进一步评估。
 - `expected_keyword_coverage` 使用人工维护的 `expected_keywords`，比直接对 `gold_answer` 做 token 覆盖更适合中文样例；`answer_correctness_proxy` 和 `faithfulness_proxy` 使用代表性样例上的人工轻标注，`lexical_answer_coverage` 仍保留为备用弱监督指标。
 
@@ -87,15 +90,31 @@ Agent 后续负责：
 - 整合证据。
 - 生成解释性回答。
 
-Agent 不负责直接训练模型，也不直接向环境写入控制动作。控制建议必须来自规则策略、MPC-like policy、DiffFNO / Guided-DiffFNO adapter 或 offline replay 等工具。
+Agent 不负责直接训练模型，也不直接向环境写入控制动作。控制建议必须来自规则策略、MPC-like policy、DROPT / DiffFNO / Guided-DiffFNO adapter 或 offline replay 等工具。即使启用 checkpoint policy，LLM 也只解释 `policy_result`，不能自行生成或修改控制动作。
+
+`src/policies/dropt_adapter.py` 可加载本地 `policy_best_fno_guided.pth`，并重建与 DROPT 训练脚本一致的 Guided-DiffFNO 推理骨架。该适配器需要显式 20 维 BEAR state vector，布局为 `[zone_temperature(6), outdoor_temp(1), solar_irradiance(6), ground_temp(1), internal_load(6)]`；当 checkpoint 缺失或 state 不完整时会退回 `rule_based_policy` 并在 `notes` 中说明。该能力默认不进入 `/eval/run` 和 `scripts/run_eval.py`，避免改变 deterministic baseline 指标口径；代码中可通过 `build_demo_orchestrator(use_dropt_policy=True)` 显式启用。
+
+可选 LLM 生成器只负责最终解释生成。它必须基于 `retrieved_contexts`、`citations`、`tool_results`、`policy_result` 和 `data_source`，不能把 BEAR 表述为真实生产遥测，也不能发明新的控制动作。DeepSeek API 未配置或调用失败时，系统回退到 `deterministic_grounded` 生成器。
+
+`/ask` 可在配置 DeepSeek 后使用真实 LLM 解释生成；`scripts/run_eval.py` 和 `/eval/run` 默认关闭 env-driven LLM 生成器，使用 deterministic generator，以避免评测触发批量 API 调用并保持指标可复现。
+
+环境变量可来自 shell 或项目根目录 `.env`。`.env` 加载器不会覆盖 shell 中已有变量，便于本地 demo 与 CI/测试环境分别控制是否启用 DeepSeek。
+
+每个 `/ask` 响应会返回 `answer_audit`。该字段用于演示和调试输出边界，不替代人工审查或完整 LLM judge。
+
+LLM judge adapter 仅作为可选评测辅助，默认关闭。`scripts/run_eval.py` 不带参数时只输出 deterministic metrics；显式传入 `--enable-llm-judge` 时才会额外生成 `llm_judge_correctness` 和 `llm_judge_faithfulness`。当前内置 `deterministic` provider 用于 smoke test 和接口占位，不替代人工评审。
+
+人工评测校准集用于弥补 deterministic proxy 与 optional LLM judge 的可信度边界。`scripts/run_eval.py` 会生成 `data/eval/human_review_sample.jsonl` 和 `data/eval/human_review_annotations.jsonl`；后者只能由人工填写 correctness、faithfulness 和 safety boundary。未填写前，报告仅显示 `pending_human_review`，不能把 proxy 或 judge 结果表述为人工评审。
 
 ## 后续扩展方向
 
 后续阶段可以继续加入：
 
-- FAISS 或 Qdrant 向量检索。
+- 真实 sentence-transformers + FAISS dense retrieval 的完整指标对比。
+- Qdrant 向量数据库服务化检索。
 - 更强的 neural / cross-encoder / LLM reranker，以及更多能检验 reranker 的真实领域压力样例。
-- 真实 LLM 回答生成器。
+- 更强的真实 LLM 回答生成器评测、提示词审计和输出约束。
+- 更完整的 DROPT / Guided-DiffFNO offline replay 指标、state 导出脚本和 policy 对比报告。
 - LangGraph 工作流，用于替换当前 deterministic baseline orchestrator。
 - 更完整的 Streamlit 运行日志、案例 walkthrough 和截图素材。
 - 扩展 LLM-only、RAG、RAG + Tool Agent 三组 baseline 的指标和样本规模。

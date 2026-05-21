@@ -15,6 +15,11 @@ METRIC_COLUMNS = [
     "faithfulness_proxy",
 ]
 
+OPTIONAL_METRIC_COLUMNS = [
+    "llm_judge_correctness",
+    "llm_judge_faithfulness",
+]
+
 
 def render_experiment_report(
     comparison_summary: dict[str, dict[str, float]],
@@ -22,6 +27,7 @@ def render_experiment_report(
     eval_record_count: int,
     expected_keyword_record_count: int = 0,
     by_task_type: dict[str, dict[str, dict[str, float]]] | None = None,
+    human_calibration: dict[str, object] | None = None,
 ) -> str:
     lines = [
         "# 实验报告",
@@ -40,11 +46,12 @@ def render_experiment_report(
         "",
         "## Baseline 对比",
         "",
-        _metric_header(["baseline"]),
-        _metric_alignment(["---"]),
+        _metric_header(["baseline"], _active_metric_columns(comparison_summary)),
+        _metric_alignment(["---"], _active_metric_columns(comparison_summary)),
     ]
+    metric_columns = _active_metric_columns(comparison_summary)
     for name, metrics in comparison_summary.items():
-        values = [_format_metric(metrics.get(column, 0.0)) for column in METRIC_COLUMNS]
+        values = [_format_metric(metrics.get(column, 0.0)) for column in metric_columns]
         lines.append(f"| {name} | {' | '.join(values)} |")
 
     if by_task_type:
@@ -53,14 +60,17 @@ def render_experiment_report(
                 "",
                 "## 按任务类型指标",
                 "",
-                _metric_header(["baseline", "task_type"]),
-                _metric_alignment(["---", "---"]),
+                _metric_header(["baseline", "task_type"], metric_columns),
+                _metric_alignment(["---", "---"], metric_columns),
             ]
         )
         for baseline, task_metrics in by_task_type.items():
             for task_type, metrics in task_metrics.items():
-                values = [_format_metric(metrics.get(column, 0.0)) for column in METRIC_COLUMNS]
+                values = [_format_metric(metrics.get(column, 0.0)) for column in metric_columns]
                 lines.append(f"| {baseline} | {task_type} | {' | '.join(values)} |")
+
+    if human_calibration:
+        lines.extend(_human_calibration_section(human_calibration))
 
     lines.extend(
         [
@@ -68,6 +78,7 @@ def render_experiment_report(
             "## 当前结论",
             "",
             "- `llm_only` 不使用检索证据或工具结果，作为最低可复现基线。",
+            _dense_comparison_conclusion(comparison_summary),
             _retrieval_comparison_conclusion(comparison_summary),
             _reranker_comparison_conclusion(comparison_summary),
             "- `rag_tool_agent` 在当前确定性路由样例上体现工具选择、工具执行和证据覆盖优势。",
@@ -95,6 +106,18 @@ def _retrieval_comparison_conclusion(
     return (
         "- `rag_keyword` 与 `rag_hybrid` 用于比较轻量检索方案；"
         "当前样例下两者指标持平，仍需更丰富的相似主题文档继续拉开差异。"
+    )
+
+
+def _dense_comparison_conclusion(
+    comparison_summary: dict[str, dict[str, float]],
+) -> str:
+    dense = comparison_summary.get("rag_dense", {})
+    if not dense:
+        return "- `rag_dense` 尚未纳入当前报告。"
+    return (
+        "- `rag_dense` 使用 deterministic hash embedding 作为默认 dense retrieval baseline；"
+        "真实 FAISS + sentence-transformers 作为可选增强，避免默认评测依赖模型下载或外部 API。"
     )
 
 
@@ -127,6 +150,7 @@ def save_experiment_report(
     eval_record_count: int,
     expected_keyword_record_count: int = 0,
     by_task_type: dict[str, dict[str, dict[str, float]]] | None = None,
+    human_calibration: dict[str, object] | None = None,
 ) -> None:
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -136,6 +160,7 @@ def save_experiment_report(
             eval_record_count=eval_record_count,
             expected_keyword_record_count=expected_keyword_record_count,
             by_task_type=by_task_type,
+            human_calibration=human_calibration,
         ),
         encoding="utf-8",
     )
@@ -145,9 +170,43 @@ def _format_metric(value: float) -> str:
     return f"{value:.3f}"
 
 
-def _metric_header(prefix_columns: list[str]) -> str:
-    return "| " + " | ".join(prefix_columns + METRIC_COLUMNS) + " |"
+def _format_optional_metric(value: object) -> str:
+    if value is None:
+        return "null"
+    return f"{float(value):.3f}"
 
 
-def _metric_alignment(prefix_columns: list[str]) -> str:
-    return "| " + " | ".join(prefix_columns + ["---:"] * len(METRIC_COLUMNS)) + " |"
+def _human_calibration_section(summary: dict[str, object]) -> list[str]:
+    return [
+        "",
+        "## Human Calibration",
+        "",
+        "人工校准集用于核对 deterministic proxy 和 optional LLM judge 的可信度；不会把 deterministic proxy 或 LLM judge 当作人工评审。",
+        "",
+        "| sample_count | labeled_count | pending_count | mean_correctness | mean_faithfulness | safety_pass_rate | status |",
+        "| ---: | ---: | ---: | ---: | ---: | ---: | --- |",
+        (
+            f"| {summary.get('sample_count', 0)} | {summary.get('labeled_count', 0)} | "
+            f"{summary.get('pending_count', 0)} | "
+            f"{_format_optional_metric(summary.get('mean_correctness'))} | "
+            f"{_format_optional_metric(summary.get('mean_faithfulness'))} | "
+            f"{_format_optional_metric(summary.get('safety_pass_rate'))} | "
+            f"{summary.get('status', 'pending_human_review')} |"
+        ),
+    ]
+
+
+def _active_metric_columns(comparison_summary: dict[str, dict[str, float]]) -> list[str]:
+    active = list(METRIC_COLUMNS)
+    for column in OPTIONAL_METRIC_COLUMNS:
+        if any(column in metrics for metrics in comparison_summary.values()):
+            active.append(column)
+    return active
+
+
+def _metric_header(prefix_columns: list[str], metric_columns: list[str]) -> str:
+    return "| " + " | ".join(prefix_columns + metric_columns) + " |"
+
+
+def _metric_alignment(prefix_columns: list[str], metric_columns: list[str]) -> str:
+    return "| " + " | ".join(prefix_columns + ["---:"] * len(metric_columns)) + " |"

@@ -22,7 +22,7 @@ class EvalRecord(BaseModel):
 def load_eval_dataset(path: str | Path) -> list[EvalRecord]:
     dataset_path = Path(path)
     records: list[EvalRecord] = []
-    for line_number, line in enumerate(dataset_path.read_text(encoding="utf-8").splitlines(), 1):
+    for line_number, line in enumerate(dataset_path.read_text(encoding="utf-8-sig").splitlines(), 1):
         stripped = line.strip()
         if not stripped:
             continue

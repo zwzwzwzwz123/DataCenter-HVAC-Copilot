@@ -1,10 +1,18 @@
 from __future__ import annotations
 
 from typing import Any
+from collections.abc import Callable
 
 import pandas as pd
 
+from src.agent.answer_generator import (
+    AnswerGenerator,
+    AnswerGeneratorInput,
+    DeterministicAnswerGenerator,
+)
+from src.agent.answer_audit import audit_answer
 from src.agent.router import route_task
+from src.policies.base import PolicyResult
 from src.policies.rule_based import run_rule_based_policy
 from src.retrieval.rag import ExtractiveRAGPipeline
 from src.tools.timeseries import (
@@ -24,9 +32,13 @@ class BaselineOrchestrator:
         rag_pipeline: ExtractiveRAGPipeline,
         trajectory: pd.DataFrame,
         data_source: dict[str, str] | None = None,
+        answer_generator: AnswerGenerator | None = None,
+        policy_runner: Callable[[dict[str, Any]], PolicyResult] | None = None,
     ) -> None:
         self.rag_pipeline = rag_pipeline
         self.trajectory = trajectory
+        self.answer_generator = answer_generator or DeterministicAnswerGenerator()
+        self.policy_runner = policy_runner or run_rule_based_policy
         self.data_source = data_source or trajectory.attrs.get(
             "data_source",
             {
@@ -48,14 +60,30 @@ class BaselineOrchestrator:
         raise ValueError(f"Unsupported route: {decision.route}")
 
     def _run_document_qa(self, question: str, reason: str) -> dict[str, Any]:
-        answer = self.rag_pipeline.answer(question, top_k=3)
+        rag_answer = self.rag_pipeline.answer(question, top_k=3)
+        generated = self.answer_generator.generate(
+            AnswerGeneratorInput(
+                question=question,
+                route="document_qa",
+                route_reason=reason,
+                retrieved_contexts=rag_answer.retrieved_contexts,
+                citations=rag_answer.citations,
+                data_source=self.data_source,
+            )
+        )
         return {
             "question": question,
             "route": "document_qa",
             "route_reason": reason,
-            "answer": answer.answer,
-            "citations": answer.citations,
-            "retrieved_contexts": answer.retrieved_contexts,
+            "answer": generated.answer,
+            "answer_generator": generated.generator,
+            "answer_audit": audit_answer(
+                generated.answer,
+                route="document_qa",
+                policy_result=None,
+            ),
+            "citations": rag_answer.citations,
+            "retrieved_contexts": rag_answer.retrieved_contexts,
             "tools": [],
             "tool_results": [],
             "data_source": self.data_source,
@@ -76,7 +104,6 @@ class BaselineOrchestrator:
                 period_b=(midpoint, end_time),
                 zone_id=zone_id,
             )
-            answer = f"{metric_name} 两个时间窗口的均值差为 {result['delta_mean']}。"
         elif tool_name == "plot_metric_trend":
             result = plot_metric_trend(
                 self.trajectory,
@@ -85,14 +112,12 @@ class BaselineOrchestrator:
                 end_time=end_time,
                 zone_id=zone_id,
             )
-            answer = f"已生成 {metric_name} 趋势序列。"
         elif tool_name == "compute_energy_breakdown":
             result = compute_energy_breakdown(
                 self.trajectory,
                 start_time=start_time,
                 end_time=end_time,
             )
-            answer = f"当前可用能耗字段总和为 {result['total']}。"
         else:
             result = query_metric(
                 self.trajectory,
@@ -101,13 +126,28 @@ class BaselineOrchestrator:
                 end_time=end_time,
                 zone_id=zone_id,
             )
-            answer = f"{metric_name} 最大值为 {result['summary']['max']}。"
+        generated = self.answer_generator.generate(
+            AnswerGeneratorInput(
+                question=question,
+                route="timeseries_query",
+                route_reason=reason,
+                tools=[tool_name],
+                tool_results=[result],
+                data_source=self.data_source,
+            )
+        )
 
         return {
             "question": question,
             "route": "timeseries_query",
             "route_reason": reason,
-            "answer": answer,
+            "answer": generated.answer,
+            "answer_generator": generated.generator,
+            "answer_audit": audit_answer(
+                generated.answer,
+                route="timeseries_query",
+                policy_result=None,
+            ),
             "citations": [],
             "retrieved_contexts": [],
             "tools": [tool_name],
@@ -123,12 +163,27 @@ class BaselineOrchestrator:
             threshold=2.0,
             zone_id=_first_zone(self.trajectory),
         )
-        count = len(result["anomalies"])
+        generated = self.answer_generator.generate(
+            AnswerGeneratorInput(
+                question=question,
+                route="anomaly_diagnosis",
+                route_reason=reason,
+                tools=["detect_anomaly"],
+                tool_results=[result],
+                data_source=self.data_source,
+            )
+        )
         return {
             "question": question,
             "route": "anomaly_diagnosis",
             "route_reason": reason,
-            "answer": f"检测到 {count} 个 zone_temperature 异常点。",
+            "answer": generated.answer,
+            "answer_generator": generated.generator,
+            "answer_audit": audit_answer(
+                generated.answer,
+                route="anomaly_diagnosis",
+                policy_result=None,
+            ),
             "citations": [],
             "retrieved_contexts": [],
             "tools": ["detect_anomaly"],
@@ -138,17 +193,36 @@ class BaselineOrchestrator:
 
     def _run_policy_recommendation(self, question: str, reason: str) -> dict[str, Any]:
         state = _latest_state(self.trajectory)
-        policy_result = run_rule_based_policy(state)
+        policy_result = self.policy_runner(state)
+        policy_dump = policy_result.model_dump()
+        tool_name = _policy_tool_name(policy_result)
+        generated = self.answer_generator.generate(
+            AnswerGeneratorInput(
+                question=question,
+                route="policy_recommendation",
+                route_reason=reason,
+                tools=[tool_name],
+                tool_results=[policy_dump],
+                policy_result=policy_dump,
+                data_source=self.data_source,
+            )
+        )
         return {
             "question": question,
             "route": "policy_recommendation",
             "route_reason": reason,
-            "answer": policy_result.notes,
+            "answer": generated.answer,
+            "answer_generator": generated.generator,
+            "answer_audit": audit_answer(
+                generated.answer,
+                route="policy_recommendation",
+                policy_result=policy_dump,
+            ),
             "citations": [],
             "retrieved_contexts": [],
-            "tools": ["rule_based_policy"],
-            "tool_results": [policy_result.model_dump()],
-            "policy_result": policy_result.model_dump(),
+            "tools": [tool_name],
+            "tool_results": [policy_dump],
+            "policy_result": policy_dump,
             "data_source": self.data_source,
         }
 
@@ -172,14 +246,83 @@ def _latest_state(trajectory: pd.DataFrame) -> dict[str, Any]:
             "comfort_upper_bound": 26.0,
             "current_action": [0.0],
         }
-    row = trajectory.sort_values("timestamp").iloc[-1]
+    ordered = trajectory.sort_values("timestamp")
+    row = ordered.iloc[-1]
+    current_action = _latest_control_action(ordered)
+    bear_state_vector = _latest_bear_state_vector(ordered)
     return {
         "state_id": f"{row.get('scenario_id', 'scenario')}_latest",
         "zone_temperature": float(row.get("zone_temperature", 0.0)),
         "comfort_upper_bound": 26.0,
         "comfort_lower_bound": 22.0,
-        "current_action": [0.0, 0.0],
+        "current_action": current_action,
+        **({"bear_state_vector": bear_state_vector} if bear_state_vector is not None else {}),
     }
+
+
+def _policy_tool_name(policy_result: PolicyResult) -> str:
+    if policy_result.policy_name == "rule_based":
+        return "rule_based_policy"
+    return policy_result.policy_name
+
+
+def _latest_bear_state_vector(trajectory: pd.DataFrame) -> list[float] | None:
+    required_columns = {
+        "timestamp",
+        "scenario_id",
+        "zone_id",
+        "zone_temperature",
+        "outdoor_temp",
+        "solar_irradiance",
+        "ground_temp",
+        "internal_load",
+    }
+    if not required_columns.issubset(set(trajectory.columns)):
+        return None
+
+    latest_timestamp = pd.to_datetime(trajectory["timestamp"], utc=True).max()
+    latest_rows = trajectory[pd.to_datetime(trajectory["timestamp"], utc=True) == latest_timestamp].copy()
+    if latest_rows.empty:
+        return None
+
+    latest_scenario = str(latest_rows["scenario_id"].iloc[-1])
+    latest_rows = latest_rows[latest_rows["scenario_id"].astype(str) == latest_scenario]
+    if len(latest_rows) != 6:
+        return None
+
+    latest_rows = latest_rows.sort_values("zone_id")
+
+    def _to_float(value: Any) -> float:
+        if pd.isna(value):
+            raise ValueError
+        return float(value)
+
+    try:
+        zone_temperature = [_to_float(value) for value in latest_rows["zone_temperature"].tolist()]
+        outdoor_temp = _to_float(latest_rows["outdoor_temp"].iloc[0])
+        solar_irradiance = [_to_float(value) for value in latest_rows["solar_irradiance"].tolist()]
+        ground_temp = _to_float(latest_rows["ground_temp"].iloc[0])
+        internal_load = [_to_float(value) for value in latest_rows["internal_load"].tolist()]
+    except (TypeError, ValueError):
+        return None
+
+    return zone_temperature + [outdoor_temp] + solar_irradiance + [ground_temp] + internal_load
+
+
+def _latest_control_action(trajectory: pd.DataFrame) -> list[float]:
+    if "control_action" not in trajectory.columns or trajectory.empty:
+        return [0.0]
+    latest_timestamp = pd.to_datetime(trajectory["timestamp"], utc=True).max()
+    latest_rows = trajectory[pd.to_datetime(trajectory["timestamp"], utc=True) == latest_timestamp].copy()
+    if latest_rows.empty:
+        return [0.0]
+    latest_rows = latest_rows.sort_values("zone_id")
+    values: list[float] = []
+    for value in latest_rows["control_action"].tolist():
+        if pd.isna(value):
+            continue
+        values.append(float(value))
+    return values or [0.0 for _ in range(len(latest_rows))]
 
 
 def _select_timeseries_tool(question: str) -> str:

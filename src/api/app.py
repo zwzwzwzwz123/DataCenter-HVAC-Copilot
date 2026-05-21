@@ -9,9 +9,11 @@ from src.api.schemas import AskRequest, AskResponse, EvalRunRequest, EvalRunResp
 from src.evaluation.runner import run_baseline_eval
 
 
-def create_app() -> FastAPI:
+def create_app(use_env_answer_generator: bool = True) -> FastAPI:
     app = FastAPI(title="DataCenter-HVAC Copilot", version="0.1.0")
-    orchestrator = build_demo_orchestrator()
+    orchestrator = build_demo_orchestrator(
+        use_env_answer_generator=use_env_answer_generator,
+    )
 
     @app.get("/health")
     def health() -> dict[str, Any]:
@@ -27,7 +29,8 @@ def create_app() -> FastAPI:
 
     @app.post("/eval/run", response_model=EvalRunResponse)
     def eval_run(request: EvalRunRequest) -> dict:
-        return run_baseline_eval(request.eval_path, orchestrator)
+        eval_orchestrator = build_demo_orchestrator(use_env_answer_generator=False)
+        return run_baseline_eval(request.eval_path, eval_orchestrator)
 
     return app
 

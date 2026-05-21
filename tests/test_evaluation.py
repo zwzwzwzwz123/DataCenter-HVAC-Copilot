@@ -24,6 +24,20 @@ def test_load_eval_dataset_reads_jsonl_records():
     assert isinstance(records[0].expected_keywords, list)
 
 
+def test_load_eval_dataset_accepts_utf8_bom_jsonl(tmp_path: Path):
+    dataset_path = tmp_path / "eval_bom.jsonl"
+    dataset_path.write_text(
+        '\ufeff{"id":"doc_001","question":"q","task_type":"document_qa",'
+        '"gold_answer":"a","required_tools":[],"required_documents":[],'
+        '"expected_keywords":["q"],"expected_output_format":"answer"}\n',
+        encoding="utf-8",
+    )
+
+    records = load_eval_dataset(dataset_path)
+
+    assert records[0].id == "doc_001"
+
+
 def test_eval_dataset_has_curated_keywords_for_representative_records():
     records = load_eval_dataset(Path("data/eval/hvac_eval.jsonl"))
     keyword_records = [record for record in records if record.expected_keywords]

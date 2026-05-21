@@ -1,7 +1,9 @@
 import json
+from pathlib import Path
 
 import pytest
 
+from src.policies.dropt_adapter import DROPTCheckpointPolicy
 from src.policies.diffusion_adapter import DiffusionPolicyAdapter
 from src.policies.mpc_like import run_mpc_like_policy
 from src.policies.offline_replay import OfflineReplayPolicy
@@ -48,6 +50,62 @@ def test_diffusion_policy_adapter_fails_explicitly_without_backend():
 
     with pytest.raises(NotImplementedError, match="Diffusion policy backend is not configured"):
         adapter.run({"state_id": "episode_001_step_004"})
+
+
+def test_dropt_checkpoint_policy_falls_back_without_checkpoint():
+    policy = DROPTCheckpointPolicy(model_path=None)
+
+    result = policy.run(
+        {
+            "state_id": "episode_001_step_024",
+            "zone_temperature": 29.0,
+            "comfort_upper_bound": 26.0,
+            "current_action": [0.0, 0.0],
+        }
+    )
+
+    assert result.policy_name == "dropt_checkpoint_fallback"
+    assert result.baseline == "rule_based"
+    assert len(result.recommended_action) == 2
+
+
+def test_dropt_checkpoint_policy_loads_real_checkpoint():
+    checkpoint_path = Path("policy_best_fno_guided.pth")
+    assert checkpoint_path.exists()
+
+    policy = DROPTCheckpointPolicy(model_path=checkpoint_path)
+    result = policy.run(
+        {
+            "state_id": "episode_001_step_024",
+            "bear_state_vector": [
+                23.0,
+                23.4,
+                23.8,
+                24.2,
+                24.5,
+                24.8,
+                31.0,
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                0.2,
+                18.0,
+                0.1,
+                0.1,
+                0.1,
+                0.1,
+                0.1,
+                0.1,
+            ],
+            "current_action": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        }
+    )
+
+    assert result.policy_name == "dropt_guided_diffno_checkpoint"
+    assert result.input_state_id == "episode_001_step_024"
+    assert len(result.recommended_action) == 6
 
 
 def test_offline_replay_policy_reads_saved_result(tmp_path):

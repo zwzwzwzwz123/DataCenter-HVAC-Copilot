@@ -1,7 +1,15 @@
 import pytest
 
 from app.api_client import ApiClientError, ask_api, run_eval_api
-from app.streamlit_app import build_prediction_preview, group_eval_metrics
+from app.streamlit_app import (
+    DEMO_WALKTHROUGHS,
+    get_dashboard_copy,
+    build_status_cards,
+    build_execution_timeline,
+    build_safety_audit_rows,
+    build_prediction_preview,
+    group_eval_metrics,
+)
 
 
 class FakeResponse:
@@ -121,6 +129,7 @@ def test_build_prediction_preview_adds_evidence_flags_and_answer_length():
                 "answer": "带引用的回答",
                 "citations": [{"source_id": "doc"}],
                 "tool_results": [],
+                "answer_audit": {"passed": True, "violations": []},
             },
             {
                 "id": "ts_query_001",
@@ -130,6 +139,10 @@ def test_build_prediction_preview_adds_evidence_flags_and_answer_length():
                 "answer": "",
                 "citations": [],
                 "tool_results": [{"summary": {"count": 3}}],
+                "answer_audit": {
+                    "passed": False,
+                    "violations": ["production_telemetry_claim"],
+                },
             },
         ]
     )
@@ -137,5 +150,103 @@ def test_build_prediction_preview_adds_evidence_flags_and_answer_length():
     assert preview[0]["has_citation"] is True
     assert preview[0]["has_tool_result"] is False
     assert preview[0]["answer_length"] == len("带引用的回答")
+    assert preview[0]["audit_passed"] is True
     assert preview[1]["has_citation"] is False
     assert preview[1]["has_tool_result"] is True
+    assert preview[1]["audit_violations"] == "production_telemetry_claim"
+
+
+def test_demo_walkthroughs_cover_core_routes():
+    task_types = {case["task_type"] for case in DEMO_WALKTHROUGHS}
+
+    assert {"document_qa", "timeseries_query", "policy_recommendation"}.issubset(
+        task_types
+    )
+    assert all(case["question"] for case in DEMO_WALKTHROUGHS)
+    assert all(case["why"] for case in DEMO_WALKTHROUGHS)
+
+
+def test_dashboard_copy_uses_control_console_positioning():
+    copy = get_dashboard_copy()
+
+    assert copy["title"] == "DataCenter-HVAC Copilot"
+    assert "RAG + Tool Agent" in copy["subtitle"]
+    assert "HVAC 仿真" in copy["boundary"]
+    assert "LLM 不直接控制" in copy["boundary"]
+
+
+def test_build_status_cards_summarizes_runtime_evidence():
+    cards = build_status_cards(
+        {
+            "route": "policy_recommendation",
+            "tools": ["rule_based_policy"],
+            "answer_generator": "deterministic_grounded",
+            "data_source": {"kind": "bear_sample_csv"},
+            "answer_audit": {"passed": True},
+            "citations": [{"source_id": "doc"}],
+            "tool_results": [{"policy_name": "rule_based"}],
+        }
+    )
+
+    assert [card["label"] for card in cards] == [
+        "Route",
+        "Policy / Tools",
+        "Generator",
+        "Evidence",
+        "Audit",
+        "Data Source",
+    ]
+    assert cards[0]["value"] == "policy_recommendation"
+    assert cards[1]["value"] == "rule_based_policy"
+    assert cards[3]["value"] == "1 citations / 1 tool results"
+    assert cards[4]["value"] == "passed"
+    assert cards[5]["value"] == "bear_sample_csv"
+
+
+def test_build_execution_timeline_summarizes_route_tools_generator_and_data_source():
+    timeline = build_execution_timeline(
+        {
+            "route": "timeseries_query",
+            "route_reason": "explicit task type",
+            "tools": ["query_metric"],
+            "citations": [{"source_id": "doc"}],
+            "retrieved_contexts": [{"source_id": "doc"}],
+            "tool_results": [{"summary": {"max": 30.0}}],
+            "answer_generator": "deepseek:deepseek-v4-flash",
+            "data_source": {
+                "kind": "bear_sample_csv",
+                "path": "BEAR/BEAR/Data/Exercise2A-mytest.csv",
+            },
+        }
+    )
+
+    assert [item["stage"] for item in timeline] == [
+        "Route",
+        "Retrieval",
+        "Tool Call",
+        "Answer Generator",
+        "Data Boundary",
+    ]
+    assert timeline[0]["status"] == "timeseries_query"
+    assert "query_metric" in timeline[2]["detail"]
+    assert "deepseek:deepseek-v4-flash" in timeline[3]["detail"]
+    assert "HVAC 仿真" in timeline[4]["detail"]
+
+
+def test_build_safety_audit_rows_exposes_passed_and_violations():
+    rows = build_safety_audit_rows(
+        {
+            "answer_audit": {
+                "passed": False,
+                "violations": ["production_telemetry_claim"],
+                "checks": [
+                    "production_telemetry_claim",
+                    "llm_direct_control_claim",
+                ],
+            }
+        }
+    )
+
+    assert rows[0]["check"] == "production_telemetry_claim"
+    assert rows[0]["status"] == "violation"
+    assert rows[1]["status"] == "passed"
