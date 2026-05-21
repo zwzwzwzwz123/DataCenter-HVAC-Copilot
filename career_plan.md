@@ -16,15 +16,19 @@
 | **大模型** | 了解概念，未实操过 | ⚠️ **核心技术栈空白，需要从零建设** |
 | **实习** | 零经历 | ⚠️ **需要尽快补上** |
 | **GPU** | 个人 RTX 3070 (8GB) + 实验室服务器 | ⭐⭐⭐ 够用，微调用服务器即可 |
-| **时间** | 每周 10-20h，2028.6 毕业 | ⭐⭐⭐⭐ 还有 2 年，时间充裕 |
+| **时间** | 每周 10-20h，2028.6 毕业，**但 2027 年初需找实习** | ⚠️ **实际只有约半年准备时间，非常紧迫！** |
+| **在研项目** | 基于 BEAR 仿真环境的能耗优化 Agent（LLM + RL/扩散模型） | ⭐⭐⭐⭐⭐ **核心资产，需重点打造** |
 | **目标** | 江浙沪 / 大厂或央国企 / 年薪 40w+ | 需要顶级实习 + 扎实项目组合 |
 
 ### 🔍 核心差距分析
 
 > [!IMPORTANT]
-> **你的优势**：南大学历 + RL/扩散模型科研经验 + 挑战杯国一 + 有论文  
+> **你的优势**：南大学历 + RL/扩散模型科研经验 + 挑战杯国一 + 有论文 + **正在做的 BEAR Agent 项目**  
 > **你的差距**：①编程工程能力弱 ②大模型技术栈空白 ③无实习 ④无 Web/工程项目  
-> **关键结论**：你的「科研素养 + 学历」是你的护城河，但「工程能力 + 大模型实操」是你需要跨过的门槛。好消息是你有 2 年时间，完全来得及。
+> **关键结论**：你的「科研素养 + 学历」是你的护城河，但「工程能力 + 大模型实操」是你需要跨过的门槛。
+
+> [!CAUTION]
+> **时间警报**：虽然 2028 年毕业，但 **2027 年初就需要开始投递实习**，这意味着你实际只有 **约 7 个月**（2026.5 ~ 2026.12）来完成所有准备工作。必须采取「压缩式学习 + 项目实战并行」的策略，不能按部就班地线性推进。你正在做的 BEAR Agent 项目是最大的加速器——它既是课题进展，也是求职项目，一石二鸟。
 
 ---
 
@@ -53,57 +57,147 @@
 
 ## 三、分阶段学习路线图
 
-### 📅 第一阶段：基础补齐期（2026.5 ~ 2026.8，暑假前后）
+### 📅 第一阶段：极速补基础 + 启动项目（2026.5 ~ 2026.8，3 个月）
 
-> **目标**：补齐 Python 工程能力 + 大模型基础认知
+> **目标**：补齐 Python 工程能力 + 大模型基础 + **BEAR Agent 项目启动**（三线并行）
 
-#### 3.1 Python 工程能力提升（每周 5h，持续 6 周）
+> [!WARNING]
+> 时间极度紧张！不能像传统规划一样「先学完再做项目」。必须采用「边学边做」的策略：上午学基础，下午/晚上推进 BEAR Agent 项目，在项目中巩固所学。
 
-现在的"入门级"水平是最需要优先解决的问题。大模型应用岗面试一定会考代码。
-
-| 周次 | 学习内容 | 产出 |
-|---|---|---|
-| 第 1-2 周 | Python 进阶：面向对象、装饰器、生成器、异步基础 | 完成 20 道 LeetCode Easy |
-| 第 3-4 周 | 数据处理：Pandas 高级操作、JSON/CSV 处理、正则表达式 | 用你课题的数据做一个完整的数据清洗脚本 |
-| 第 5-6 周 | Web 基础：FastAPI 入门、REST API 设计、请求/响应处理 | 写一个简单的 API 服务 |
-
-**推荐资源**：
-- 《流畅的 Python》选读（第 7, 14, 17 章）
-- FastAPI 官方文档 Tutorial（非常友好）
-- LeetCode 每天 1 题（只刷 Easy + 部分 Medium，重点刷字符串、哈希、链表）
-
-#### 3.2 大模型基础认知（每周 5h，持续 4 周）
+#### 3.1 Python 工程能力提升（每周 4h，持续 4 周，压缩版）
 
 | 周次 | 学习内容 | 产出 |
 |---|---|---|
-| 第 1 周 | Transformer 架构精读：Attention 机制、位置编码、KV Cache | 手写 Attention 的简单实现 |
-| 第 2 周 | 大模型训练范式：Pretraining → SFT → RLHF/DPO 全流程理解 | 整理笔记 |
-| 第 3 周 | Prompt Engineering 系统学习：Few-shot、CoT、ReAct、Tool Use | 用 API 实现 3 个不同 prompting 策略 |
-| 第 4 周 | 主流模型横向对比：GPT-4 / Claude / Qwen / DeepSeek / LLaMA | 写一篇对比总结 |
+| 第 1 周 | Python 进阶：面向对象、装饰器、生成器 | 完成 10 道 LeetCode Easy |
+| 第 2 周 | 数据处理：Pandas、JSON/CSV、正则 | 用课题数据做一个清洗脚本 |
+| 第 3 周 | Web 基础：FastAPI 入门、REST API | 为 BEAR Agent 写一个 API 接口 |
+| 第 4 周 | Git + Docker 基础 | 把 BEAR Agent 项目容器化 |
+
+> [!TIP]
+> LeetCode 贯穿全程，每天 1 题，重点刷 Easy + 部分 Medium（字符串/哈希/双指针），不需要集中刷题阶段。
+
+#### 3.2 大模型基础（每周 4h，持续 3 周，与 3.1 并行）
+
+| 周次 | 学习内容 | 产出 |
+|---|---|---|
+| 第 1 周 | Transformer 精读 + Attention 机制 + KV Cache | 手写简单 Attention |
+| 第 2 周 | 大模型训练范式（Pretraining → SFT → RLHF/DPO）+ Prompt Engineering | 用 API 实现 3 种 prompting 策略 |
+| 第 3 周 | Agent 核心概念：ReAct、Tool Use、Function Calling | **直接应用到 BEAR Agent 项目中** |
+
+#### 3.3 🔥 BEAR 仿真环境 Agent 项目（2026.6 开始，与上面并行）
+
+> [!IMPORTANT]
+> **这是你最核心的项目**，它同时是你的课题进展和求职王牌。详见下方「第二阶段」完整描述。在第一阶段，你需要完成项目的基础框架搭建。
 
 **推荐资源**：
 - Andrej Karpathy 的 YouTube 系列（尤其是 "Let's build GPT"）
 - 李宏毅老师的生成式 AI 课程（B站有）
 - OpenAI Cookbook（GitHub）
 - Anthropic 的 Prompt Engineering 文档
+- **LangGraph 官方教程**（你做 Agent 项目会直接用到）
 
 ---
 
-### 📅 第二阶段：项目实战期（2026.9 ~ 2027.2，研一下学期）
+### 📅 第二阶段：双项目冲刺期（2026.8 ~ 2026.12，4 个月决胜）
 
-> **目标**：完成 2 个高质量项目，形成可展示的作品集
+> **目标**：完成 2 个高质量项目，形成可展示的作品集，为 2027 年初投递做好准备
 
-#### 项目一：智能知识库问答系统（RAG）🔥🔥🔥
+> [!CAUTION]
+> **2026 年底是你的 deadline！** 2027 年初就要开始投递实习，所以所有项目必须在 12 月底前达到可展示状态。
+
+#### 项目一（核心）：DataCenter-HVAC Copilot — BEAR 仿真环境 RAG + Tool Agent 系统 🔥🔥🔥🔥🔥
 
 > [!IMPORTANT]
-> **这是最重要的项目**，面试出现率 > 80%，几乎每个大模型应用岗都会问 RAG。
+> **这是你最核心的杀手级项目**，已经完成了超 MVP 的端到端实现。它融合了你的论文方向（RL + 扩散模型优化能耗）和大模型应用（RAG + Agent + 工具调用 + 评测），是你区别于所有其他候选人的最大差异化武器。
 
-**项目描述**：搭建一个针对数据中心运维文档的智能问答系统
+**项目描述**：构建面向 BEAR HVAC 物理仿真轨迹的 RAG + Tool Agent + Evaluation 系统，支持文档问答、时序查询、异常诊断和策略建议四类任务。Agent 根据问题类型路由到不同工具链（文档检索、时序分析、策略工具），基于结构化证据生成回答，并通过 Safety Audit 确保控制边界——LLM 只做证据整合和解释生成，控制动作必须来自 RL/扩散策略工具。
 
-**为什么选这个方向**：
-1. 可以结合你的课题领域（数据中心），面试时展示领域理解
-2. RAG 是大模型应用岗的核心技能
-3. 技术栈完整，从数据处理到模型部署全覆盖
+**为什么这个项目是你的王牌**：
+1. 🎯 **课题强绑定**：直接推进你的论文进展（DROPT/Guided-DiffFNO 策略适配器），一举两得
+2. 🤖 **Agent 热点**：2025-2026 年最火的大模型应用方向，且不是普通 ChatPDF
+3. 📚 **RAG 深度**：Hybrid 检索 + Rerank + Evidence-Grounded Generation，覆盖面试必问知识点
+4. 🧠 **RL + LLM 融合**：Agent 调度 RL/扩散策略工具的架构在业界极度稀缺
+5. 🏗️ **工程完整**：API + Demo + 评测闭环 + 7 组 baseline 对比 + 23 个测试文件
+6. 📊 **可量化结果**：100 条评测集 + 9 项指标 + 实验报告，不只是 demo
+
+**系统架构**（已实现）：
+```
+用户问题
+  |
+  v
+Deterministic Router（意图识别：关键词 → 4 类任务）
+  |
+  +-- document_qa ---------> RAG Retriever / Reranker ----+
+  |                                                       |
+  +-- timeseries_query ----> Time-Series Tools -----------+
+  |   (query_metric / compare_period / detect_anomaly     |
+  |    / compute_energy_breakdown / plot_metric_trend)     |
+  +-- anomaly_diagnosis ---> Anomaly Tool ----------------+
+  |                                                       |
+  +-- policy_recommendation -> Policy Adapter ------------+
+  |   (rule_based / MPC-like / DROPT Guided-DiffFNO       |
+  |    checkpoint / offline_replay)                        |
+  |                                                       v
+  |                        Evidence-Grounded Answer Generator
+  |                        (Deterministic 模板 / DeepSeek API)
+  |                                                       |
+  |                                                       v
+  |                                            Answer Safety Audit
+  |                        (生产遥测误述 / LLM 直接控制 / 未验证动作)
+  |                                                       |
+  |                                                       v
+  +---------------> FastAPI (/health, /ask, /eval/run)
+                          |
+                          v
+              Streamlit Demo（深色控制台布局）
+              - Copilot Tab: walkthrough + 状态卡片 + 执行时间线
+              - 评测摘要 Tab: baseline 对比 + 指标分组
+```
+
+**当前完成情况**（✅ 已完成 / 🔲 待改进）：
+
+| 阶段 | 任务 | 状态 | 技术栈 |
+|---|---|---|---|
+| BEAR 数据接入 | Schema 定义、字段来源约束、轨迹标准化、BuildingEnvReal adapter | ✅ 完成 | BEAR, Pandas, Pydantic |
+| HVAC 文档 RAG | 19 篇领域文档入库、chunk、Keyword/Hybrid/Rerank 检索 | ✅ 完成 | 自建 BM25-style + Reranker |
+| Dense Retrieval | Hash embedding baseline + 可选 FAISS/Sentence-Transformers | ✅ 完成（待启用真实 embedding） | FAISS, sentence-transformers |
+| Agent 路由 | Deterministic router → 4 类任务处理器 | ✅ 完成（待升级 LangGraph） | Python |
+| 时序工具 | 5 个确定性时序分析工具 | ✅ 完成 | Pandas, NumPy |
+| 策略工具 | rule-based + MPC-like + DROPT checkpoint adapter + offline replay | ✅ 完成 | PyTorch, NumPy |
+| 回答生成 | Deterministic 模板 + DeepSeek API 可选接入 | ✅ 完成 | DeepSeek API / urllib |
+| Safety Audit | 3 类边界检查（生产遥测/直接控制/未验证动作） | ✅ 完成 | 确定性规则 |
+| 评测体系 | 100 条 JSONL + 7 baseline + 9 指标 + 实验报告 | ✅ 完成 | 自建评测框架 |
+| Demo 展示 | FastAPI 后端 + Streamlit 深色控制台前端 | ✅ 完成 | FastAPI + Streamlit |
+| 测试覆盖 | 23 个测试文件覆盖全部模块 | ✅ 完成 | pytest |
+| LangGraph 工作流 | 替换 deterministic router 为 LLM 驱动工作流 | 🔲 后续升级 | LangGraph |
+| Docker 容器化 | Dockerfile + docker-compose | 🔲 后续补充 | Docker |
+
+**核心评测数据**（来自 100 条评测集）：
+
+| Baseline | 工具选择准确率 | 工具执行成功率 | 证据覆盖率 | 检索召回率 | 回答正确性代理 |
+|---|---|---|---|---|---|
+| llm_only | 0.000 | 0.000 | 0.000 | 0.000 | 0.022 |
+| rag_keyword | 0.000 | 0.000 | 0.590 | 0.554 | 0.475 |
+| rag_hybrid | 0.000 | 0.000 | 0.590 | 0.585 | 0.478 |
+| rag_hybrid_rerank | 0.000 | 0.000 | 0.590 | 0.600 | 0.500 |
+| **rag_tool_agent** | **1.000** | **1.000** | **0.910** | 0.385 | **0.547** |
+
+**面试亮点设计**（简历和面试中重点展示）：
+- 🎯 构建 RAG + Tool Agent 系统，支持文档问答/时序查询/异常诊断/策略建议 4 类任务
+- 📚 实现 Hybrid 检索（BM25-style + Rerank），检索召回率从 keyword 的 55.4% 提升到 60.0%
+- 🔧 工具路由准确率和执行成功率均为 100%，证据覆盖率达 91.0%
+- 🔄 设计「LLM 解释 + 策略工具执行」的分工范式，集成 DROPT/Guided-DiffFNO checkpoint 推理适配器
+- 📊 100 条评测集 + 7 组 baseline 对比 + Safety Audit 边界保障
+- 🖥️ FastAPI + Streamlit 专业深色控制台 Demo，含 3 个典型案例 walkthrough
+
+---
+
+#### 项目二：数据中心智能知识库问答系统（RAG）🔥🔥🔥
+
+> [!IMPORTANT]
+> RAG 面试出现率 > 80%。**BEAR Agent 项目中的 HVAC 文档检索模块可以复用/扩展为这个独立项目**，省时省力。
+
+**项目描述**：搭建一个针对数据中心运维文档的智能问答系统（从 BEAR Agent 的 HVAC 文档模块扩展而来）
 
 **技术架构**：
 ```
@@ -122,60 +216,34 @@
 
 | 阶段 | 任务 | 时间 | 技术栈 |
 |---|---|---|---|
-| 数据准备 | 收集数据中心运维手册、设备说明书、故障排查文档 | 1 周 | PyMuPDF, Unstructured |
+| 数据准备 | 扩展 HVAC 文档库 + 收集运维手册、设备说明书、故障文档 | 1 周 | PyMuPDF, Unstructured |
 | 文档解析 | PDF/Word 解析、表格提取、图片 OCR | 1 周 | Unstructured, PaddleOCR |
 | 分块策略 | 实验对比：固定长度 / 语义分块 / 递归分块 | 1 周 | LangChain TextSplitters |
-| 向量化 | 测试多种 Embedding 模型（BGE / text-embedding-3） | 1 周 | Sentence-Transformers |
-| 检索系统 | 向量检索 + BM25 混合检索 + Rerank | 2 周 | Chroma/Milvus + BGE-Reranker |
-| 生成模块 | Prompt 设计、幻觉控制、来源标注 | 1 周 | Qwen API / DeepSeek API |
-| 前后端 | FastAPI 后端 + 简单前端（Gradio/Streamlit） | 1 周 | FastAPI + Gradio |
-| 评测优化 | 构建评测集、对比实验、迭代优化 | 2 周 | RAGAS / 自建评测 |
-
-**面试亮点设计**（这些是你在简历和面试中要重点展示的）：
-- 对比了 X 种分块策略，发现语义分块在 Y 场景下效果提升 Z%
-- 混合检索 vs 纯向量检索的 Recall 提升数据
-- 幻觉率如何从 X% 降到 Y%
-- 针对数据中心领域的特殊优化（如设备型号匹配、参数表格理解）
-
-#### 项目二：领域微调 + Agent 应用
-
-**项目描述**：基于 Qwen2.5 进行数据中心运维领域的 LoRA 微调，并构建一个具备工具调用能力的运维 Agent
-
-**为什么选这个**：
-1. 微调是面试第二高频话题
-2. Agent 是 2025-2026 年最热的方向
-3. 和你的课题强相关，一举两得
-
-**分两个子模块**：
-
-**子模块 A：领域微调**
-| 步骤 | 内容 | 时间 |
-|---|---|---|
-| 数据构造 | 从运维日志/手册构造 SFT 数据（instruction-response 对） | 2 周 |
-| 数据质量 | 数据清洗、去重、质量打分、多样性控制 | 1 周 |
-| 模型训练 | 用 LLaMA-Factory 做 Qwen2.5-7B 的 LoRA 微调 | 1 周 |
-| 评测对比 | 基座 vs 微调模型在领域任务上的表现对比 | 1 周 |
+| 检索优化 | 复用 BEAR Agent 的检索模块，进一步优化 | 1 周 | Chroma/Milvus + Reranker |
+| 前后端 | FastAPI 后端 + Gradio 前端 | 1 周 | FastAPI + Gradio |
+| 评测优化 | 构建评测集、对比实验 | 1 周 | RAGAS / 自建评测 |
 
 > [!TIP]
-> **数据构造是微调的灵魂**。面试官最关心的不是你用了什么训练框架，而是你怎么构造高质量数据的。花 70% 的时间在数据上，30% 在训练上。
+> **省时策略**：RAG 项目中的很多组件（文档解析、向量检索、Rerank）都可以直接从 BEAR Agent 项目中复用。先做好 BEAR Agent 的 HVAC 文档模块，再扩展成独立的 RAG 项目，事半功倍。
 
-**子模块 B：运维 Agent**
-| 步骤 | 内容 | 时间 |
-|---|---|---|
-| 工具定义 | 定义 3-5 个工具：查询设备状态、查询历史告警、计算 PUE、生成报告 | 1 周 |
-| Agent 框架 | 用 LangGraph 实现 ReAct 范式的 Agent | 2 周 |
-| 多轮对话 | 加入对话记忆和上下文管理 | 1 周 |
-| 演示 Demo | 做一个完整的交互式 Demo | 1 周 |
+**面试亮点设计**：
+- 对比了 X 种分块策略，语义分块效果提升 Z%
+- 混合检索 vs 纯向量检索的 Recall 提升数据
+- 幻觉率从 X% 降到 Y%
+- 针对数据中心领域的特殊优化（设备型号匹配、HVAC 参数表格理解）
 
-**技术栈**：LLaMA-Factory + LangGraph + FastAPI + Gradio
+**技术栈**：LangChain + Milvus/Chroma + BGE + Qwen/DeepSeek + FastAPI + Gradio
 
 ---
 
-### 📅 第三阶段：实习冲刺期（2027.2 ~ 2027.6）
+### 📅 第三阶段：实习冲刺期（2027.1 ~ 2027.3，提前启动！）
 
-> **目标**：拿到一段大厂/知名 AI 公司的实习
+> **目标**：**2027 年初立即开始投递**，拿到一段大厂/知名 AI 公司的实习
 
-#### 3.1 简历打磨
+> [!WARNING]
+> 原计划是 2027.2 开始投递，但考虑到你的时间约束，**建议 2027 年 1 月就开始投递日常实习**。很多大厂的日常实习是滚动招聘的，越早投越好。面试准备要在 2026.12 之前基本完成。
+
+#### 3.1 简历打磨（2026.12 完成第一版）
 
 你的简历需要突出以下几点：
 
@@ -190,24 +258,25 @@ XXX（强化学习 + 扩散模型优化数据中心能耗）
 【竞赛】
 挑战杯 · 国家一等奖（AI 应用方向）
 
-【项目经历】（核心展示区域）
-项目一：数据中心智能知识库问答系统（RAG）
-  - 构建了面向数据中心运维场景的 RAG 系统，支持多种文档格式解析
-  - 实现混合检索（向量 + BM25）+ Rerank 架构，检索召回率达到 XX%
-  - 设计领域特化的 Prompt 策略，幻觉率从 X% 降至 Y%
-  - 技术栈：LangChain + Milvus + Qwen + FastAPI
+【项目经历】（核心展示区域 — 注意项目一是你的王牌！）
+项目一：DataCenter-HVAC Copilot — 基于 BEAR 仿真环境的 RAG + Tool Agent 系统 ⭐
+  - 构建面向 BEAR HVAC 物理仿真轨迹的 RAG + Tool Agent + Evaluation 系统，支持文档问答、时序查询、异常诊断、策略建议 4 类任务
+  - 实现 Hybrid 检索（BM25-style + Rerank）+ Evidence-Grounded Generation，工具路由准确率 100%，证据覆盖率 91.0%
+  - 集成 DROPT/Guided-DiffFNO checkpoint 推理适配器，设计「LLM 解释 + 策略工具执行」分工范式，含 Safety Audit 边界保障
+  - 100 条评测集 + 7 组 baseline 对比 + 人工校准，FastAPI + Streamlit 专业 Demo
+  - 技术栈：Python / FastAPI / Streamlit / PyTorch / FAISS / DeepSeek / Pydantic / pytest
 
-项目二：数据中心运维 Agent 系统
-  - 基于 Qwen2.5-7B 进行 LoRA 微调，构造 XX 条领域 SFT 数据
-  - 实现具备工具调用能力的 ReAct Agent，支持设备查询/告警分析/PUE计算
-  - 微调后模型在领域测试集上准确率提升 XX%
-  - 技术栈：LLaMA-Factory + LangGraph + FastAPI
+项目二：数据中心智能知识库问答系统（RAG，从项目一的检索模块扩展）
+  - 从项目一的 HVAC 文档检索模块扩展为独立 RAG 系统
+  - 实现 Keyword → Dense → Hybrid → Hybrid+Rerank 的渐进式检索增强
+  - 对比 7 组检索方案的召回率和回答质量指标
+  - 技术栈：FAISS / sentence-transformers / BGE / FastAPI
 
 【技术栈】
-Python / PyTorch / LangChain / LangGraph / RAG / LoRA / FastAPI / Docker
+Python / PyTorch / FastAPI / Streamlit / FAISS / DeepSeek / RAG / RL / Diffusion Model / Docker
 ```
 
-#### 3.2 面试准备
+#### 3.2 面试准备（2026.11 ~ 2026.12 集中突破）
 
 **八股文必备清单**（按优先级排序）：
 
@@ -217,21 +286,25 @@ Python / PyTorch / LangChain / LangGraph / RAG / LoRA / FastAPI / Docker
 | **大模型训练** | Pretraining → SFT → RLHF/DPO 全流程、LoRA 原理、量化（GPTQ/AWQ）|
 | **RAG** | 分块策略对比、Embedding 模型选型、混合检索、Rerank、幻觉控制、评测方法 |
 | **Agent** | ReAct 范式、Function Calling 原理、Planning 策略、Memory 机制 |
+| **RL + LLM** | 你的论文方向！RL 基础（PPO/SAC）、扩散模型、LLM 与 RL 的结合 |
 | **Prompt Engineering** | CoT、Few-shot、Self-consistency、Tool Use Prompt 设计 |
 | **工程基础** | Python 基础（装饰器/生成器/GIL）、HTTP 基础、Docker 基础 |
 | **算法题** | LeetCode Easy 全部 + Medium 的字符串/哈希/双指针/BFS/DFS |
 
 **模拟面试建议**：
 - 找同学或 AI 工具模拟面试（可以直接让我帮你模拟！）
-- 每个项目准备 3 分钟的简洁讲述版本
-- 准备好每个技术选型的 "为什么选 A 不选 B" 的理由
+- **DataCenter-HVAC Copilot 项目准备 5 分钟深度讲述版本**（这是你的核心差异化）
+- RAG 检索增强部分准备 3 分钟简洁版本（从项目中的 baseline 对比讲起）
+- 准备好每个技术选型的 "为什么选 A 不选 B" 的理由（如：为什么用 BM25-style hybrid 而非纯 dense？为什么用 deterministic router 作为 baseline？）
+- **准备好 「为什么让 LLM 做解释而不是直接控制 HVAC」 这个关键问题的回答**（答：控制是高风险决策，必须来自可验证策略工具，LLM 只做证据整合 + Safety Audit 保障边界）
 
-#### 3.3 投递策略
+#### 3.3 投递策略（提前至 2027 年 1 月！）
 
 | 批次 | 时间 | 目标 | 说明 |
 |---|---|---|---|
-| **春招实习** | 2027.2-4 月 | 大厂日常实习 | 字节/阿里/腾讯/百度的大模型应用组 |
-| **暑期实习** | 2027.4-5 月 | 头部 AI 公司 | DeepSeek/智谱/MiniMax 等 |
+| **日常实习（抢先）** | 2027.1 月起 | 大厂日常实习 | 字节/阿里/腾讯/百度的大模型应用组，**滚动招聘，尽早投** |
+| **春招实习** | 2027.2-4 月 | 头部 AI 公司 | DeepSeek/智谱/MiniMax 等 |
+| **暑期实习** | 2027.4-5 月 | 补投 | 如果前面没拿到满意 offer |
 | **备选** | 滚动投递 | 创业公司/国企 | 保底选项 |
 
 **重点投递的岗位关键词**：
@@ -239,6 +312,7 @@ Python / PyTorch / LangChain / LangGraph / RAG / LoRA / FastAPI / Docker
 - "RAG" / "知识库" / "智能问答"
 - "Agent" / "AI 应用"
 - "智慧建筑" / "智慧能源" / "数据中心"（结合你的领域）
+- "强化学习" / "RL" / "能耗优化"（结合你的论文方向）
 
 ---
 
@@ -280,33 +354,38 @@ Python / PyTorch / LangChain / LangGraph / RAG / LoRA / FastAPI / Docker
 
 ### 你的三张王牌
 
-1. **🏢 领域知识**：数据中心 + 暖通空调 + PUE 优化，这是纯 CS 同学完全不具备的
+1. **🏢 领域知识**：数据中心 + 暖通空调（HVAC）+ PUE 优化，这是纯 CS 同学完全不具备的
 2. **🧠 AI 方法论**：RL + 扩散模型的科研经验，证明你有 AI 基本功
 3. **📄 学术背景**：南大本硕 + 论文 + 挑战杯国一
+4. **🤖 独特项目**：DataCenter-HVAC Copilot 展示了「RAG + Tool Agent + RL/扩散策略工具 + 可复现评测」的融合能力，这是绝大多数候选人都没有的
 
 ### 如何在面试中讲好你的故事
 
-> "我的研究方向是用 AI 优化数据中心能耗，这让我对 AI 落地有了深刻理解。我发现真正的挑战不在算法本身，而在于如何让 AI 真正解决业务问题。所以我开始关注大模型应用，因为大模型在「理解领域知识」和「辅助决策」方面有巨大潜力。我做了 XXX 项目和 YYY 项目，验证了大模型在垂直领域的落地可行性。"
+> "我的研究方向是用 RL 和扩散模型优化数据中心能耗。在研究过程中，我发现纯 RL 策略虽然在仿真环境中效果不错，但在实际运维场景中，工程师不仅需要控制动作，还需要理解异常原因、查阅技术文档、对比历史数据。这启发我构建了 DataCenter-HVAC Copilot：一个 RAG + Tool Agent 系统，它可以路由不同类型的问题到对应的工具链——文档检索、时序分析、或策略推荐。关键设计是，LLM 只做证据整合和解释生成，控制动作必须来自我论文中训练的 Guided-DiffFNO 策略工具，再加上 Safety Audit 保障边界。我在 100 条评测集上对比了 7 组 baseline，工具路由准确率 100%，证据覆盖率 91%。这个项目本质上就是大模型应用在垂直领域落地的典型模式：RAG 提供知识，工具提供能力，Agent 编排流程，评测保证可信。"
 
-这个叙事逻辑：**领域痛点 → AI 研究 → 发现大模型的机会 → 主动转型 → 项目验证**，比"我觉得大模型很火所以我学了"要高级得多。
+这个叙事逻辑：**领域痛点 → 运维场景的多元需求 → RAG + Tool Agent 的设计 → 与论文方向的策略工具集成 → 可量化的评测结果**，既展示了深度思考，又展示了实际动手能力和工程闭环意识，远比「我觉得大模型很火所以我学了」要高级得多。
 
 ---
 
-## 五、每月里程碑检查表
+## 五、每月里程碑检查表（压缩版时间线）
+
+> [!CAUTION]
+> 关键 deadline：**2026.12 底前所有项目和面试准备必须就绪，2027.1 开始投递实习！**
 
 | 时间 | 里程碑 | 自检标准 |
 |---|---|---|
-| **2026.06** | Python 进阶完成 | 能流畅写面向对象代码，LeetCode 做了 30 题 |
-| **2026.07** | 大模型基础学完 | 能清楚讲解 Transformer、能用 API 做简单应用 |
-| **2026.08** | FastAPI 入门完成 | 能独立写一个 REST API 服务 |
-| **2026.10** | RAG 项目 MVP 完成 | 基本功能跑通，能 Demo 展示 |
-| **2026.12** | RAG 项目完善 + 评测 | 有对比实验数据，有评测报告 |
-| **2027.01** | 微调项目完成 | LoRA 微调跑通，有基线对比 |
-| **2027.02** | Agent 项目完成 | Agent Demo 可交互，有完整展示 |
-| **2027.02** | 简历完成第一版 | 项目描述清晰，技术栈完整 |
-| **2027.03** | 开始投递实习 | 海投 + 精投结合 |
-| **2027.05** | 拿到实习 offer | 至少拿到 1 个大模型相关实习 |
-| **2027.06-09** | 实习中 | 积累实战经验 |
+| **2026.05** ✅ | DataCenter-HVAC Copilot 超 MVP 完成 | RAG + Tool Agent + 评测闭环已跑通，Streamlit Demo 已就绪 |
+| **2026.06** | 项目升级：LangGraph + 真实 Embedding + Docker | Agent 从 deterministic router 升级为 LLM 工作流，启用 FAISS 真实语义检索 |
+| **2026.07** | 项目打磨：截图/架构图 + 人工标注 + Git 规范 | README 有截图，评测有人工校准，代码有 CI |
+| **2026.08** | 项目完成面试就绪状态 + Python 工程能力巩固 | 项目讲述流畅，能应对所有技术追问 |
+| **2026.09** | RAG 独立项目（从 Copilot 检索模块扩展） | Query Rewrite + HyDE + 更大评测集 |
+| **2026.10** | 八股文集中突破 + 项目叙事打磨 | 核心知识点能流畅回答，5 分钟项目讲述 |
+| **2026.11** | 模拟面试 + 简历定稿 | 至少完成 5 次模拟面试 |
+| **2026.12** | 最终检查 + 查漏补缺 | 所有项目可展示，所有面试问题有准备 |
+| **2027.01** | 🚀 **开始投递实习！** | 日常实习先投，春招紧跟 |
+| **2027.02-03** | 春招高峰投递 | 海投 + 精投结合 |
+| **2027.03-04** | 拿到实习 offer | 至少拿到 1 个大模型相关实习 |
+| **2027.05-09** | 实习中 | 积累实战经验 |
 | **2027.08** | 秋招简历更新 | 加入实习经历 |
 | **2027.09-11** | 秋招高峰 | 面试冲刺 |
 | **2027.12** | 拿到满意 offer | 🎉 |
@@ -332,17 +411,18 @@ Python / PyTorch / LangChain / LangGraph / RAG / LoRA / FastAPI / Docker
 ### 🛠 工具栈速查
 
 ```
-大模型 API：    Qwen (阿里) / DeepSeek / OpenAI
-RAG 框架：      LangChain / LlamaIndex
-向量数据库：    Chroma (入门) → Milvus (进阶)
-Embedding：     BGE-base-zh / text-embedding-3-small
-Rerank：        BGE-Reranker / Cohere Rerank
+大模型 API：    DeepSeek（项目已接入）/ Qwen (阿里) / OpenAI
+RAG 框架：      项目自建 Hybrid Retrieval + Rerank（已实现）/ LangChain / LlamaIndex
+向量数据库：    FAISS（项目已集成）→ Qdrant (生产化方向)
+Embedding：     sentence-transformers / BGE-small-zh（项目可选启用）
+Rerank：        项目自建 metadata-aware reranker（已实现）/ BGE-Reranker / Cohere Rerank
 微调工具：      LLaMA-Factory / Unsloth
-Agent 框架：    LangGraph / CrewAI
+Agent 框架：    LangGraph（项目后续升级方向）/ CrewAI
 推理部署：      Ollama (本地) / vLLM (服务器)
-后端框架：      FastAPI
-前端展示：      Gradio / Streamlit
-容器化：        Docker
+后端框架：      FastAPI（项目已实现）
+前端展示：      Streamlit（项目已实现深色控制台 Demo）/ Gradio
+容器化：        Docker（项目后续补充）
+评测框架：      项目自建 100 条 JSONL 评测 + 7 baseline comparison（已实现）
 ```
 
 ---
@@ -350,11 +430,12 @@ Agent 框架：    LangGraph / CrewAI
 ## 七、⚠️ 关键风险提醒
 
 > [!WARNING]
-> 1. **不要贪多**：不需要学完所有东西。RAG + 微调 + Agent 三板斧打天下，先做深再做广
-> 2. **不要只学不做**：看完教程就动手写代码，一个能跑的 Demo 胜过 10 篇笔记
-> 3. **不要忽视课题**：课题是你的饭碗，实习和求职准备要和课题进度协调好
-> 4. **不要忽视面试八股**：再好的项目，面试基础题答不上来也会挂
+> 1. **不要贪多**：时间有限！聚焦 BEAR Agent + RAG 两个项目，做深做透
+> 2. **不要只学不做**：你的优势是「边做课题边学大模型」，BEAR Agent 项目就是你的最佳练习场
+> 3. **不要忽视课题**：BEAR Agent 项目本身就是推进课题，但要注意平衡论文进度
+> 4. **不要忽视面试八股**：再好的项目，面试基础题答不上来也会挂。**11-12 月必须集中突破**
 > 5. **不要闭门造车**：多看别人的项目、面经、博客，保持技术敏感度
+> 6. **⚠️ 不要拖延投递**：2027 年 1 月就要开始投递，不要等到「准备好了再投」——边投边改进才是最优策略
 
 > [!CAUTION]
 > **40w+ 年薪的现实对标**：
@@ -378,4 +459,118 @@ Agent 框架：    LangGraph / CrewAI
 
 ---
 
-*最后更新：2026.05.20 | 祝你一切顺利 💪*
+## 九、📌 2026.05.21 项目审查后的重要提醒与行动建议
+
+> **背景**：完成了 DataCenter-HVAC Copilot 全部代码的逐文件审查后，针对当前状态给出以下坦诚建议。
+
+### 🚨 最重要的一件事：真正"拥有"你的项目
+
+> [!CAUTION]
+> 项目的 Git 历史只有 **10 个 commit**，代码风格高度一致、模块划分极度工整——这些特征在有经验的面试官眼中是非常明显的信号。不管项目是怎么来的，你必须做到以下三点，否则面试时会非常被动：
+
+1. **能脱口说出每个模块的设计决策**
+   - 为什么 router 用关键词匹配而不是 LLM？→ 作为 deterministic baseline，可复现、零成本、后续可对比
+   - 为什么 reranker 用 metadata-aware 而不是 cross-encoder？→ 轻量、无外部依赖、足够拉开 hybrid 差异
+   - 为什么 Safety Audit 用确定性规则而不是 LLM？→ 安全边界不能依赖概率模型，必须可审计
+
+2. **能手写核心逻辑**
+   - 面试官让你在白板上写一个 BM25 检索 / z-score 异常检测 / 简单 policy adapter，你能写出来吗？
+   - **具体行动**：花 2-3 天，**不看代码，从零手写** `retriever.py`、`timeseries.py`、`orchestrator.py` 的核心逻辑。写不出来的地方就是你还没真正理解的地方
+
+3. **能回答 "如果重新做一遍，你会改什么"**
+   - 这个问题能瞬间区分真正做过的人和只是拥有代码的人
+   - 参考回答方向：会用 LangGraph 替换 deterministic router、会用真实 embedding 替换 hash 占位、会更早做 Docker 和 CI
+
+---
+
+### 🔧 编程能力是你真正的瓶颈
+
+> [!WARNING]
+> 项目再漂亮，面试时写不出代码就是致命的。面试 coding 环节挂掉的概率，比项目讲不好的概率高得多。
+
+| 时间线 | 行动 | 目标 |
+|---|---|---|
+| **现在起每天** | LeetCode 1 题（Easy 为主，逐步加 Medium） | 到投递前至少 **150 题** |
+| **6 月** | 精读项目中每个 `.py` 文件，理解每行代码的含义 | 能独立修改和扩展任何模块 |
+| **7-8 月** | **自己动手做 P0 改进**（LangGraph、FAISS 接入、Docker），用写代码而非 AI 生成的方式完成 | 建立真正的工程能力 |
+| **9-10 月** | 每周手写一个小工具（爬虫、数据清洗、API 服务） | 建立"写代码的肌肉记忆" |
+
+---
+
+### 💼 实习比任何项目都重要
+
+> [!IMPORTANT]
+> 校招时，**一段大厂实习经历 > 两个个人项目**。这是现实。
+
+**实习策略调整**：
+1. **2026 年 10-11 月就开始投日常实习**（比原规划提前 2 个月）！很多大厂日常实习全年滚动
+2. **优先投递目标**：
+   - 字节跳动-豆包/Coze 团队（Agent 方向和你的项目高度匹配）
+   - 阿里云-通义实验室（大模型应用）
+   - 国家电网/南方电网的 AI 实验室（你的领域背景是**降维打击**）
+   - 智谱 AI / DeepSeek / MiniMax（AI 公司对南大硕士友好）
+3. **降低预期先上车**：第一段实习不一定要大厂 SP，能做大模型相关就行。有了第一段，第二段才能挑
+
+---
+
+### 🎤 打磨你的差异化叙事
+
+你的「数据中心能耗优化 + RL + 扩散模型 + RAG Agent」组合是**极度稀缺**的。大多数候选人的项目都是「用 LangChain 做了个 PDF 问答」，你的项目有仿真环境、策略工具、物理约束和可复现评测——这些是编不出来的。
+
+**准备三个版本的项目讲述**：
+
+| 版本 | 时长 | 用途 | 重点 |
+|---|---|---|---|
+| **电梯版** | 30 秒 | 简历筛选/自我介绍 | 一句话说清问题 + 方法 + 结果 |
+| **标准版** | 3 分钟 | 面试项目介绍 | 架构 + 技术亮点 + 评测数据 |
+| **深度版** | 5-8 分钟 | 面试深入追问 / Demo 演示 | 完整 demo + 技术深度 + 设计权衡 |
+
+**5 个面试必被追问的问题（提前准备好回答）**：
+
+1. 「你的检索用了什么方案？对比过哪些？」→ 展示 keyword vs dense vs hybrid vs hybrid+rerank 的实验数据
+2. 「你的 Agent 是怎么做路由的？」→ 讲 deterministic baseline + 后续 LangGraph 升级思路
+3. 「为什么不让 LLM 直接控制 HVAC？」→ 高风险决策 + Safety Audit + policy adapter 架构
+4. 「你的评测怎么保证可信？」→ deterministic metrics + human calibration + 可选 LLM judge 三层
+5. 「你的扩散模型/RL 在这里什么角色？」→ DROPT adapter 如何将论文模型封装为工具，被 Agent 调度
+
+---
+
+### ✍️ 从今天开始写技术博客
+
+每周 1 篇，记录项目中的技术思考。推荐平台：**知乎专栏或掘金**（大模型方向流量大）。
+
+**推荐选题**（都来自你的项目，不需要额外学习）：
+- 「为什么 BM25-style hybrid 比纯 dense 在中文 HVAC 场景效果好」
+- 「如何设计 LLM 不能直接控制 HVAC 的 Safety Audit 机制」
+- 「100 条评测集 + 7 组 baseline：如何构建 RAG 系统的可复现评测」
+- 「BEAR 仿真环境的 state 怎么映射到标准化轨迹字段」
+
+**好处**：
+- 面试官看简历时，附上博客链接，印象分直接加一档
+- 写博客会逼你真正理解每个技术细节
+- 积累下来就是你的技术影响力资产
+
+---
+
+### 📊 当前优先级矩阵
+
+```
+     紧急且重要                │  重要但不紧急
+  ───────────────────────────┼────────────────────────────
+  ① 刷题（每天 1 题）          │  ④ 技术博客（每周 1 篇）
+  ② 精读项目代码，确保能讲     │  ⑤ 八股文系统学习（9-10月集中）
+  ③ P0 项目改进（LangGraph /   │  ⑥ RAG 独立项目扩展
+     真实 Embedding / Docker） │  ⑦ 面试模拟（11月起）
+  ───────────────────────────┼────────────────────────────
+     紧急但不重要              │  不紧急也不重要
+  ───────────────────────────┼────────────────────────────
+     （尽量避免）              │  追最新论文/框架
+                              │  学很多但不用的技术
+```
+
+> [!TIP]
+> **最后一句话**：你的起点比你想象的好——南大本硕 + 论文 + 挑战杯 + 一个已经超过 MVP 的完整项目。差距只在工程能力和面试准备。这些是可以用半年时间弥补的，但必须**从今天开始、每天执行**。
+
+---
+
+*最后更新：2026.05.21（v3.1 - 新增项目审查后的重要提醒与行动建议） | 祝你一切顺利 💪*
