@@ -22,6 +22,11 @@ from src.evaluation.human_review import (
     save_jsonl,
 )
 from src.evaluation.report import save_experiment_report
+from src.evaluation.policy_benchmark import run_policy_benchmark
+from src.evaluation.safety_adversarial import (
+    evaluate_safety_adversarial_dataset,
+    load_safety_adversarial_dataset,
+)
 from src.evaluation.llm_judge import DeterministicKeywordJudge
 from src.evaluation.runner import (
     run_baseline_comparison,
@@ -35,6 +40,7 @@ DEFAULT_COMPARISON_OUTPUT_PATH = Path("data/eval/baseline_comparison.json")
 DEFAULT_REPORT_OUTPUT_PATH = Path("docs/experiment_report.md")
 DEFAULT_REVIEW_SAMPLE_PATH = Path("data/eval/human_review_sample.jsonl")
 DEFAULT_REVIEW_ANNOTATIONS_PATH = Path("data/eval/human_review_annotations.jsonl")
+DEFAULT_SAFETY_ADVERSARIAL_PATH = Path("data/eval/safety_adversarial.jsonl")
 
 
 def main() -> None:
@@ -110,6 +116,11 @@ def main() -> None:
             "Example: BAAI/bge-small-zh-v1.5"
         ),
     )
+    parser.add_argument(
+        "--safety-adversarial-path",
+        default=str(DEFAULT_SAFETY_ADVERSARIAL_PATH),
+        help="Path to the adversarial Safety Audit JSONL dataset.",
+    )
     args = parser.parse_args()
     eval_path = Path(args.eval_path)
     output_path = Path(args.output)
@@ -157,17 +168,21 @@ def main() -> None:
         dense_backend=args.dense_backend,
         dense_model=args.dense_model,
     )
+    safety_summary = _load_optional_safety_adversarial_summary(
+        Path(args.safety_adversarial_path)
+    )
+    dropt_summary = _load_optional_dropt_policy_summary(eval_path)
     comparison_path.parent.mkdir(parents=True, exist_ok=True)
+    comparison_payload = {
+        "summary": comparison["summary"],
+        "by_task_type": comparison["by_task_type"],
+    }
+    if safety_summary is not None:
+        comparison_payload["safety_adversarial"] = safety_summary
+    if dropt_summary is not None:
+        comparison_payload["dropt_policy_benchmark"] = dropt_summary
     comparison_path.write_text(
-        json.dumps(
-            {
-                "summary": comparison["summary"],
-                "by_task_type": comparison["by_task_type"],
-            },
-            ensure_ascii=False,
-            indent=2,
-        )
-        + "\n",
+        json.dumps(comparison_payload, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
     records = load_eval_dataset(eval_path)
@@ -184,6 +199,8 @@ def main() -> None:
         expected_keyword_record_count=sum(1 for record in records if record.expected_keywords),
         by_task_type=comparison["by_task_type"],
         human_calibration=human_summary,
+        safety_adversarial=safety_summary,
+        dropt_policy_benchmark=dropt_summary,
         dense_provider=args.dense_provider,
         dense_backend=args.dense_backend,
         dense_model=args.dense_model,
@@ -215,6 +232,29 @@ def _build_llm_judge(provider: str):
     if provider == "deterministic":
         return DeterministicKeywordJudge()
     raise ValueError(f"Unsupported LLM judge provider: {provider}")
+
+
+def _load_optional_safety_adversarial_summary(path: Path) -> dict | None:
+    if not path.exists():
+        return None
+    return evaluate_safety_adversarial_dataset(load_safety_adversarial_dataset(path))
+
+
+def _load_optional_dropt_policy_summary(eval_path: Path) -> dict | None:
+    checkpoint_path = PROJECT_ROOT / "models" / "dropt" / "policy_best_fno_guided.pth"
+    if not checkpoint_path.exists():
+        return None
+    orchestrator = build_demo_orchestrator(
+        project_root=PROJECT_ROOT,
+        use_env_answer_generator=False,
+        use_dropt_policy=True,
+    )
+    records = load_eval_dataset(eval_path)
+
+    def latest_state(_record):
+        return orchestrator.task_executor.latest_policy_state()
+
+    return run_policy_benchmark(records, latest_state, orchestrator.policy_runner)
 
 
 if __name__ == "__main__":

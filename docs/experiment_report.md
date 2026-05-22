@@ -2,8 +2,8 @@
 
 ## 数据与边界
 
-当前评测集包含 100 条样例，覆盖文档问答、时序查询、异常诊断和策略建议。轨迹数据来自 BEAR 仿真轨迹、BEAR 样例 CSV 或 mock fallback，不能表述为真实数据中心生产遥测。
-其中 100 条样例包含人工维护的 expected_keywords，用于计算中文回答要点覆盖率。
+当前评测集包含 108 条样例，覆盖文档问答、时序查询、异常诊断和策略建议。轨迹数据来自 BEAR 仿真轨迹、BEAR 样例 CSV 或 mock fallback，不能表述为真实数据中心生产遥测。
+其中 108 条样例包含人工维护的 expected_keywords，用于计算中文回答要点覆盖率。
 
 ## 运行配置
 
@@ -13,68 +13,88 @@
 
 ## Baseline 对比
 
-| baseline | citation_hit_rate | context_recall | expected_keyword_coverage | lexical_answer_coverage | tool_selection_accuracy | tool_execution_success_rate | evidence_coverage | answer_correctness_proxy | faithfulness_proxy |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| llm_only | 0.000 | 0.000 | 0.007 | 0.000 | 0.000 | 0.000 | 0.000 | 0.022 | 0.022 |
-| rag_keyword | 0.554 | 0.554 | 0.372 | 0.173 | 0.000 | 0.000 | 0.590 | 0.475 | 0.418 |
-| rag_dense | 0.692 | 0.692 | 0.528 | 0.240 | 0.000 | 0.000 | 1.000 | 0.654 | 0.566 |
-| rag_hybrid | 0.585 | 0.585 | 0.382 | 0.182 | 0.000 | 0.000 | 0.590 | 0.478 | 0.396 |
-| rag_hybrid_rerank | 0.600 | 0.600 | 0.398 | 0.189 | 0.000 | 0.000 | 0.590 | 0.500 | 0.412 |
-| rag_rewrite | 0.646 | 0.646 | 0.584 | 0.279 | 0.000 | 0.000 | 1.000 | 0.601 | 0.500 |
-| rag_hyde | 0.246 | 0.246 | 0.182 | 0.112 | 0.000 | 0.000 | 1.000 | 0.233 | 0.214 |
-| rag_hyde_rerank | 0.338 | 0.338 | 0.195 | 0.128 | 0.000 | 0.000 | 1.000 | 0.242 | 0.204 |
-| rag | 0.585 | 0.585 | 0.382 | 0.182 | 0.000 | 0.000 | 0.590 | 0.478 | 0.396 |
-| rag_tool_agent | 0.385 | 0.385 | 0.618 | 0.283 | 1.000 | 1.000 | 0.910 | 0.547 | 0.465 |
-| langgraph_tool_agent | 0.385 | 0.385 | 0.618 | 0.283 | 1.000 | 1.000 | 0.910 | 0.547 | 0.465 |
+| baseline | citation_hit_rate | context_recall | expected_keyword_coverage | lexical_answer_coverage | tool_selection_accuracy | tool_execution_success_rate | evidence_coverage | answer_correctness_proxy | faithfulness_proxy | grounding_rate |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| llm_only | 0.000 | 0.000 | 0.006 | 0.000 | 0.000 | 0.000 | 0.000 | 0.019 | 0.019 | 0.000 |
+| rag_keyword | 0.554 | 0.554 | 0.353 | 0.179 | 0.000 | 0.000 | 0.620 | 0.413 | 0.363 | 0.000 |
+| rag_keyword_grounded | 0.554 | 0.554 | 0.344 | 0.176 | 0.000 | 0.000 | 0.620 | 0.314 | 0.260 | 0.708 |
+| rag_dense | 0.692 | 0.692 | 0.502 | 0.244 | 0.000 | 0.000 | 1.000 | 0.568 | 0.492 | 0.000 |
+| rag_dense_grounded | 0.692 | 0.692 | 0.492 | 0.223 | 0.000 | 0.000 | 1.000 | 0.478 | 0.413 | 1.000 |
+| rag_hybrid | 0.585 | 0.585 | 0.360 | 0.189 | 0.000 | 0.000 | 0.620 | 0.415 | 0.344 | 0.000 |
+| rag_hybrid_rerank | 0.600 | 0.600 | 0.378 | 0.199 | 0.000 | 0.000 | 0.620 | 0.434 | 0.358 | 0.000 |
+| rag_rewrite | 0.646 | 0.646 | 0.566 | 0.282 | 0.000 | 0.000 | 1.000 | 0.546 | 0.459 | 0.000 |
+| rag_rewrite_grounded | 0.646 | 0.646 | 0.477 | 0.219 | 0.000 | 0.000 | 1.000 | 0.434 | 0.347 | 1.000 |
+| rag_hyde | 0.246 | 0.246 | 0.174 | 0.127 | 0.000 | 0.000 | 1.000 | 0.202 | 0.186 | 0.000 |
+| rag_hyde_rerank | 0.338 | 0.338 | 0.187 | 0.138 | 0.000 | 0.000 | 1.000 | 0.210 | 0.178 | 0.000 |
+| rag | 0.585 | 0.585 | 0.360 | 0.189 | 0.000 | 0.000 | 0.620 | 0.415 | 0.344 | 0.000 |
+| rag_tool_agent | 0.385 | 0.385 | 0.622 | 0.296 | 0.882 | 1.000 | 0.917 | 0.541 | 0.470 | 0.477 |
+| langgraph_tool_agent | 0.385 | 0.385 | 0.622 | 0.296 | 0.882 | 1.000 | 0.917 | 0.541 | 0.470 | 0.477 |
+| react_agent | 0.385 | 0.385 | 0.637 | 0.301 | 0.956 | 1.000 | 0.917 | 0.582 | 0.511 | 0.477 |
 
 ## 按任务类型指标
 
-| baseline | task_type | citation_hit_rate | context_recall | expected_keyword_coverage | lexical_answer_coverage | tool_selection_accuracy | tool_execution_success_rate | evidence_coverage | answer_correctness_proxy | faithfulness_proxy |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| llm_only | anomaly_diagnosis | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
-| llm_only | document_qa | 0.000 | 0.000 | 0.017 | 0.000 | 0.000 | 0.000 | 0.000 | 0.028 | 0.028 |
-| llm_only | policy_recommendation | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.031 | 0.031 |
-| llm_only | timeseries_query | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
-| rag_keyword | anomaly_diagnosis | 0.333 | 0.333 | 0.167 | 0.092 | 0.000 | 0.000 | 0.300 | 0.183 | 0.183 |
-| rag_keyword | document_qa | 0.600 | 0.600 | 0.596 | 0.234 | 0.000 | 0.000 | 0.775 | 0.681 | 0.569 |
-| rag_keyword | policy_recommendation | 0.615 | 0.615 | 0.300 | 0.190 | 0.000 | 0.000 | 0.550 | 0.438 | 0.417 |
-| rag_keyword | timeseries_query | 0.000 | 0.000 | 0.200 | 0.117 | 0.000 | 0.000 | 0.550 | 0.000 | 0.000 |
-| rag_dense | anomaly_diagnosis | 0.750 | 0.750 | 0.567 | 0.268 | 0.000 | 0.000 | 1.000 | 0.750 | 0.750 |
-| rag_dense | document_qa | 0.600 | 0.600 | 0.704 | 0.260 | 0.000 | 0.000 | 1.000 | 0.750 | 0.556 |
-| rag_dense | policy_recommendation | 0.923 | 0.923 | 0.417 | 0.292 | 0.000 | 0.000 | 1.000 | 0.573 | 0.573 |
-| rag_dense | timeseries_query | 0.000 | 0.000 | 0.250 | 0.118 | 0.000 | 0.000 | 1.000 | 0.000 | 0.000 |
-| rag_hybrid | anomaly_diagnosis | 0.333 | 0.333 | 0.167 | 0.092 | 0.000 | 0.000 | 0.300 | 0.183 | 0.183 |
-| rag_hybrid | document_qa | 0.625 | 0.625 | 0.604 | 0.246 | 0.000 | 0.000 | 0.775 | 0.667 | 0.528 |
-| rag_hybrid | policy_recommendation | 0.692 | 0.692 | 0.300 | 0.200 | 0.000 | 0.000 | 0.550 | 0.438 | 0.375 |
-| rag_hybrid | timeseries_query | 0.000 | 0.000 | 0.233 | 0.124 | 0.000 | 0.000 | 0.550 | 0.167 | 0.167 |
-| rag_hybrid_rerank | anomaly_diagnosis | 0.417 | 0.417 | 0.183 | 0.114 | 0.000 | 0.000 | 0.300 | 0.233 | 0.233 |
-| rag_hybrid_rerank | document_qa | 0.625 | 0.625 | 0.637 | 0.255 | 0.000 | 0.000 | 0.775 | 0.694 | 0.542 |
-| rag_hybrid_rerank | policy_recommendation | 0.692 | 0.692 | 0.300 | 0.200 | 0.000 | 0.000 | 0.550 | 0.438 | 0.375 |
-| rag_hybrid_rerank | timeseries_query | 0.000 | 0.000 | 0.233 | 0.124 | 0.000 | 0.000 | 0.550 | 0.167 | 0.167 |
-| rag_rewrite | anomaly_diagnosis | 0.500 | 0.500 | 0.583 | 0.309 | 0.000 | 0.000 | 1.000 | 0.450 | 0.450 |
-| rag_rewrite | document_qa | 0.675 | 0.675 | 0.677 | 0.260 | 0.000 | 0.000 | 1.000 | 0.722 | 0.542 |
-| rag_rewrite | policy_recommendation | 0.692 | 0.692 | 0.450 | 0.286 | 0.000 | 0.000 | 1.000 | 0.542 | 0.479 |
-| rag_rewrite | timeseries_query | 0.000 | 0.000 | 0.533 | 0.279 | 0.000 | 0.000 | 1.000 | 0.444 | 0.444 |
-| rag_hyde | anomaly_diagnosis | 0.000 | 0.000 | 0.117 | 0.060 | 0.000 | 0.000 | 1.000 | 0.217 | 0.217 |
-| rag_hyde | document_qa | 0.300 | 0.300 | 0.237 | 0.112 | 0.000 | 0.000 | 1.000 | 0.222 | 0.181 |
-| rag_hyde | policy_recommendation | 0.308 | 0.308 | 0.267 | 0.243 | 0.000 | 0.000 | 1.000 | 0.281 | 0.281 |
-| rag_hyde | timeseries_query | 0.000 | 0.000 | 0.050 | 0.032 | 0.000 | 0.000 | 1.000 | 0.111 | 0.111 |
-| rag_hyde_rerank | anomaly_diagnosis | 0.000 | 0.000 | 0.017 | 0.018 | 0.000 | 0.000 | 1.000 | 0.033 | 0.033 |
-| rag_hyde_rerank | document_qa | 0.425 | 0.425 | 0.287 | 0.156 | 0.000 | 0.000 | 1.000 | 0.264 | 0.222 |
-| rag_hyde_rerank | policy_recommendation | 0.385 | 0.385 | 0.367 | 0.286 | 0.000 | 0.000 | 1.000 | 0.365 | 0.302 |
-| rag_hyde_rerank | timeseries_query | 0.000 | 0.000 | 0.017 | 0.023 | 0.000 | 0.000 | 1.000 | 0.111 | 0.111 |
-| rag | anomaly_diagnosis | 0.333 | 0.333 | 0.167 | 0.092 | 0.000 | 0.000 | 0.300 | 0.183 | 0.183 |
-| rag | document_qa | 0.625 | 0.625 | 0.604 | 0.246 | 0.000 | 0.000 | 0.775 | 0.667 | 0.528 |
-| rag | policy_recommendation | 0.692 | 0.692 | 0.300 | 0.200 | 0.000 | 0.000 | 0.550 | 0.438 | 0.375 |
-| rag | timeseries_query | 0.000 | 0.000 | 0.233 | 0.124 | 0.000 | 0.000 | 0.550 | 0.167 | 0.167 |
-| rag_tool_agent | anomaly_diagnosis | 0.000 | 0.000 | 0.533 | 0.242 | 1.000 | 1.000 | 1.000 | 0.367 | 0.367 |
-| rag_tool_agent | document_qa | 0.625 | 0.625 | 0.629 | 0.269 | 0.000 | 0.000 | 0.775 | 0.597 | 0.444 |
-| rag_tool_agent | policy_recommendation | 0.000 | 0.000 | 0.517 | 0.254 | 1.000 | 1.000 | 1.000 | 0.531 | 0.490 |
-| rag_tool_agent | timeseries_query | 0.000 | 0.000 | 0.783 | 0.381 | 1.000 | 1.000 | 1.000 | 0.833 | 0.833 |
-| langgraph_tool_agent | anomaly_diagnosis | 0.000 | 0.000 | 0.533 | 0.242 | 1.000 | 1.000 | 1.000 | 0.367 | 0.367 |
-| langgraph_tool_agent | document_qa | 0.625 | 0.625 | 0.629 | 0.269 | 0.000 | 0.000 | 0.775 | 0.597 | 0.444 |
-| langgraph_tool_agent | policy_recommendation | 0.000 | 0.000 | 0.517 | 0.254 | 1.000 | 1.000 | 1.000 | 0.531 | 0.490 |
-| langgraph_tool_agent | timeseries_query | 0.000 | 0.000 | 0.783 | 0.381 | 1.000 | 1.000 | 1.000 | 0.833 | 0.833 |
+| baseline | task_type | citation_hit_rate | context_recall | expected_keyword_coverage | lexical_answer_coverage | tool_selection_accuracy | tool_execution_success_rate | evidence_coverage | answer_correctness_proxy | faithfulness_proxy | grounding_rate |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| llm_only | anomaly_diagnosis | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
+| llm_only | document_qa | 0.000 | 0.000 | 0.017 | 0.000 | 0.000 | 0.000 | 0.000 | 0.028 | 0.028 | 0.000 |
+| llm_only | policy_recommendation | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.021 | 0.021 | 0.000 |
+| llm_only | timeseries_query | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
+| rag_keyword | anomaly_diagnosis | 0.333 | 0.333 | 0.167 | 0.092 | 0.000 | 0.000 | 0.300 | 0.183 | 0.183 | 0.000 |
+| rag_keyword | document_qa | 0.600 | 0.600 | 0.596 | 0.234 | 0.000 | 0.000 | 0.775 | 0.681 | 0.569 | 0.000 |
+| rag_keyword | policy_recommendation | 0.615 | 0.615 | 0.250 | 0.208 | 0.000 | 0.000 | 0.679 | 0.292 | 0.278 | 0.000 |
+| rag_keyword | timeseries_query | 0.000 | 0.000 | 0.200 | 0.117 | 0.000 | 0.000 | 0.550 | 0.000 | 0.000 | 0.000 |
+| rag_keyword_grounded | anomaly_diagnosis | 0.333 | 0.333 | 0.117 | 0.065 | 0.000 | 0.000 | 0.300 | 0.100 | 0.100 | 0.500 |
+| rag_keyword_grounded | document_qa | 0.600 | 0.600 | 0.512 | 0.240 | 0.000 | 0.000 | 0.775 | 0.486 | 0.403 | 0.775 |
+| rag_keyword_grounded | policy_recommendation | 0.615 | 0.615 | 0.321 | 0.226 | 0.000 | 0.000 | 0.679 | 0.250 | 0.194 | 0.692 |
+| rag_keyword_grounded | timeseries_query | 0.000 | 0.000 | 0.267 | 0.086 | 0.000 | 0.000 | 0.550 | 0.167 | 0.167 | 0.000 |
+| rag_dense | anomaly_diagnosis | 0.750 | 0.750 | 0.567 | 0.268 | 0.000 | 0.000 | 1.000 | 0.750 | 0.750 | 0.000 |
+| rag_dense | document_qa | 0.600 | 0.600 | 0.704 | 0.260 | 0.000 | 0.000 | 1.000 | 0.750 | 0.556 | 0.000 |
+| rag_dense | policy_recommendation | 0.923 | 0.923 | 0.345 | 0.295 | 0.000 | 0.000 | 1.000 | 0.382 | 0.382 | 0.000 |
+| rag_dense | timeseries_query | 0.000 | 0.000 | 0.250 | 0.118 | 0.000 | 0.000 | 1.000 | 0.000 | 0.000 | 0.000 |
+| rag_dense_grounded | anomaly_diagnosis | 0.750 | 0.750 | 0.333 | 0.144 | 0.000 | 0.000 | 1.000 | 0.467 | 0.467 | 1.000 |
+| rag_dense_grounded | document_qa | 0.600 | 0.600 | 0.679 | 0.282 | 0.000 | 0.000 | 1.000 | 0.611 | 0.486 | 1.000 |
+| rag_dense_grounded | policy_recommendation | 0.923 | 0.923 | 0.429 | 0.280 | 0.000 | 0.000 | 1.000 | 0.389 | 0.347 | 1.000 |
+| rag_dense_grounded | timeseries_query | 0.000 | 0.000 | 0.367 | 0.104 | 0.000 | 0.000 | 1.000 | 0.167 | 0.167 | 0.000 |
+| rag_hybrid | anomaly_diagnosis | 0.333 | 0.333 | 0.167 | 0.092 | 0.000 | 0.000 | 0.300 | 0.183 | 0.183 | 0.000 |
+| rag_hybrid | document_qa | 0.625 | 0.625 | 0.604 | 0.246 | 0.000 | 0.000 | 0.775 | 0.667 | 0.528 | 0.000 |
+| rag_hybrid | policy_recommendation | 0.692 | 0.692 | 0.238 | 0.223 | 0.000 | 0.000 | 0.679 | 0.292 | 0.250 | 0.000 |
+| rag_hybrid | timeseries_query | 0.000 | 0.000 | 0.233 | 0.124 | 0.000 | 0.000 | 0.550 | 0.167 | 0.167 | 0.000 |
+| rag_hybrid_rerank | anomaly_diagnosis | 0.417 | 0.417 | 0.183 | 0.114 | 0.000 | 0.000 | 0.300 | 0.233 | 0.233 | 0.000 |
+| rag_hybrid_rerank | document_qa | 0.625 | 0.625 | 0.637 | 0.255 | 0.000 | 0.000 | 0.775 | 0.694 | 0.542 | 0.000 |
+| rag_hybrid_rerank | policy_recommendation | 0.692 | 0.692 | 0.250 | 0.234 | 0.000 | 0.000 | 0.679 | 0.292 | 0.250 | 0.000 |
+| rag_hybrid_rerank | timeseries_query | 0.000 | 0.000 | 0.233 | 0.124 | 0.000 | 0.000 | 0.550 | 0.167 | 0.167 | 0.000 |
+| rag_rewrite | anomaly_diagnosis | 0.500 | 0.500 | 0.583 | 0.309 | 0.000 | 0.000 | 1.000 | 0.450 | 0.450 | 0.000 |
+| rag_rewrite | document_qa | 0.675 | 0.675 | 0.677 | 0.260 | 0.000 | 0.000 | 1.000 | 0.722 | 0.542 | 0.000 |
+| rag_rewrite | policy_recommendation | 0.692 | 0.692 | 0.417 | 0.295 | 0.000 | 0.000 | 1.000 | 0.424 | 0.382 | 0.000 |
+| rag_rewrite | timeseries_query | 0.000 | 0.000 | 0.533 | 0.279 | 0.000 | 0.000 | 1.000 | 0.444 | 0.444 | 0.000 |
+| rag_rewrite_grounded | anomaly_diagnosis | 0.500 | 0.500 | 0.250 | 0.100 | 0.000 | 0.000 | 1.000 | 0.333 | 0.333 | 1.000 |
+| rag_rewrite_grounded | document_qa | 0.675 | 0.675 | 0.629 | 0.266 | 0.000 | 0.000 | 1.000 | 0.569 | 0.431 | 1.000 |
+| rag_rewrite_grounded | policy_recommendation | 0.692 | 0.692 | 0.452 | 0.288 | 0.000 | 0.000 | 1.000 | 0.375 | 0.292 | 1.000 |
+| rag_rewrite_grounded | timeseries_query | 0.000 | 0.000 | 0.433 | 0.148 | 0.000 | 0.000 | 1.000 | 0.167 | 0.167 | 0.000 |
+| rag_hyde | anomaly_diagnosis | 0.000 | 0.000 | 0.117 | 0.060 | 0.000 | 0.000 | 1.000 | 0.217 | 0.217 | 0.000 |
+| rag_hyde | document_qa | 0.300 | 0.300 | 0.237 | 0.112 | 0.000 | 0.000 | 1.000 | 0.222 | 0.181 | 0.000 |
+| rag_hyde | policy_recommendation | 0.308 | 0.308 | 0.214 | 0.265 | 0.000 | 0.000 | 1.000 | 0.188 | 0.188 | 0.000 |
+| rag_hyde | timeseries_query | 0.000 | 0.000 | 0.050 | 0.032 | 0.000 | 0.000 | 1.000 | 0.111 | 0.111 | 0.000 |
+| rag_hyde_rerank | anomaly_diagnosis | 0.000 | 0.000 | 0.017 | 0.018 | 0.000 | 0.000 | 1.000 | 0.033 | 0.033 | 0.000 |
+| rag_hyde_rerank | document_qa | 0.425 | 0.425 | 0.287 | 0.156 | 0.000 | 0.000 | 1.000 | 0.264 | 0.222 | 0.000 |
+| rag_hyde_rerank | policy_recommendation | 0.385 | 0.385 | 0.286 | 0.280 | 0.000 | 0.000 | 1.000 | 0.243 | 0.201 | 0.000 |
+| rag_hyde_rerank | timeseries_query | 0.000 | 0.000 | 0.017 | 0.023 | 0.000 | 0.000 | 1.000 | 0.111 | 0.111 | 0.000 |
+| rag | anomaly_diagnosis | 0.333 | 0.333 | 0.167 | 0.092 | 0.000 | 0.000 | 0.300 | 0.183 | 0.183 | 0.000 |
+| rag | document_qa | 0.625 | 0.625 | 0.604 | 0.246 | 0.000 | 0.000 | 0.775 | 0.667 | 0.528 | 0.000 |
+| rag | policy_recommendation | 0.692 | 0.692 | 0.238 | 0.223 | 0.000 | 0.000 | 0.679 | 0.292 | 0.250 | 0.000 |
+| rag | timeseries_query | 0.000 | 0.000 | 0.233 | 0.124 | 0.000 | 0.000 | 0.550 | 0.167 | 0.167 | 0.000 |
+| rag_tool_agent | anomaly_diagnosis | 0.000 | 0.000 | 0.533 | 0.242 | 1.000 | 1.000 | 1.000 | 0.367 | 0.367 | 0.000 |
+| rag_tool_agent | document_qa | 0.625 | 0.625 | 0.629 | 0.269 | 0.000 | 0.000 | 0.775 | 0.597 | 0.444 | 0.775 |
+| rag_tool_agent | policy_recommendation | 0.000 | 0.000 | 0.560 | 0.312 | 0.714 | 1.000 | 1.000 | 0.521 | 0.493 | 0.000 |
+| rag_tool_agent | timeseries_query | 0.000 | 0.000 | 0.783 | 0.381 | 1.000 | 1.000 | 1.000 | 0.833 | 0.833 | 0.000 |
+| langgraph_tool_agent | anomaly_diagnosis | 0.000 | 0.000 | 0.533 | 0.242 | 1.000 | 1.000 | 1.000 | 0.367 | 0.367 | 0.000 |
+| langgraph_tool_agent | document_qa | 0.625 | 0.625 | 0.629 | 0.269 | 0.000 | 0.000 | 0.775 | 0.597 | 0.444 | 0.775 |
+| langgraph_tool_agent | policy_recommendation | 0.000 | 0.000 | 0.560 | 0.312 | 0.714 | 1.000 | 1.000 | 0.521 | 0.493 | 0.000 |
+| langgraph_tool_agent | timeseries_query | 0.000 | 0.000 | 0.783 | 0.381 | 1.000 | 1.000 | 1.000 | 0.833 | 0.833 | 0.000 |
+| react_agent | anomaly_diagnosis | 0.000 | 0.000 | 0.533 | 0.242 | 1.000 | 1.000 | 1.000 | 0.367 | 0.367 | 0.000 |
+| react_agent | document_qa | 0.625 | 0.625 | 0.629 | 0.269 | 0.000 | 0.000 | 0.775 | 0.597 | 0.444 | 0.775 |
+| react_agent | policy_recommendation | 0.000 | 0.000 | 0.619 | 0.333 | 0.893 | 1.000 | 1.000 | 0.625 | 0.597 | 0.000 |
+| react_agent | timeseries_query | 0.000 | 0.000 | 0.783 | 0.381 | 1.000 | 1.000 | 1.000 | 0.833 | 0.833 | 0.000 |
 
 ## Human Calibration
 
@@ -84,13 +104,41 @@
 | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | 24 | 0 | 24 | null | null | null | pending_human_review |
 
+## Safety Audit 对抗鲁棒性测试
+
+该测试使用人工构造的 unsafe answer variant 检查确定性 Safety Audit 对生产遥测误述、LLM 直接控制和未验证动作表述的召回。
+
+- sample_count = 29
+- overall_hit_rate = 0.586
+
+| category | sample_count | hit_count | hit_rate |
+| --- | ---: | ---: | ---: |
+| indirect | 6 | 2 | 0.333 |
+| jailbreak | 6 | 4 | 0.667 |
+| mixed | 5 | 3 | 0.600 |
+| paraphrase | 8 | 8 | 1.000 |
+| translation | 4 | 0 | 0.000 |
+
+主要漏报样例：`adv_translation_01`, `adv_translation_02`, `adv_indirect_01`, `adv_indirect_02`, `adv_jailbreak_01`, `adv_mix_03`, `adv_indirect_03`, `adv_jailbreak_03`, `adv_translation_03`, `adv_translation_04`
+
+## DROPT Policy Benchmark
+
+该基准只评测 policy_recommendation 样例上的策略后端推理，不把它混入文档问答 baseline。
+
+| sample_count | success_count | fallback_count | avg_latency_ms | avg_action_dim | avg_abs_action |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 28 | 28 | 0 | 6.555 | 6.000 | 0.951 |
+
 ## 当前结论
 
 - `llm_only` 不使用检索证据或工具结果，作为最低可复现基线。
 - `rag_dense` 使用真实 sentence-transformers embedding + FAISS 本地向量索引；该运行可用于面试中说明真实语义检索 baseline，但仍需结合 hybrid/rerank 指标判断中文 HVAC 场景效果。
+- `rag_keyword_grounded` / `rag_dense_grounded` / `rag_rewrite_grounded` 把 extractive vs grounded generation 做成成对对比；当前 `grounding_rate` 最高的是 `rag_dense_grounded`=1.000。
 - `rag_keyword` 与 `rag_hybrid` 用于比较轻量检索方案；`rag_hybrid` 在 citation/context 指标上优于 `rag_keyword`，说明 BM25-style 长度归一化在当前压力样例中有效。
 - `rag_hybrid_rerank` 在当前评测中进一步提升 citation/context 指标，可作为后续替换为 cross-encoder 或 LLM reranker 的接口基线。
 - Query Rewrite / HyDE 已作为 deterministic query expansion baseline 纳入对比；当前 context_recall 最高的是 `rag_rewrite`，可用于评估 raw query、rewrite 和 template HyDE 在 HVAC/BEAR 领域检索中的收益，再决定是否替换为 DeepSeek/Ollama HyDE generator。
 - `rag_tool_agent` 在当前确定性路由样例上体现工具选择、工具执行和证据覆盖优势。
 - `langgraph_tool_agent` 保留与 deterministic `rag_tool_agent` 一致的工具行为和指标，用于展示 StateGraph 编排、workflow trace 和可选 DeepSeek/Ollama LLM intent classifier，而不是改变当前可复现评测口径。
+- `react_agent` baseline 用于对比 single-step workflow vs deterministic multi-step planner；新增 multi-hop policy 样例后，policy 子集 tool_selection_accuracy 从 `0.714` 提升到 `0.893`，answer_correctness_proxy 从 `0.521` 提升到 `0.625`。
+- `DROPT` / Guided-DiffFNO checkpoint 作为可选策略后端已接通：checkpoint 可加载、20 维 BEAR state 可推理，缺失或不完整时会明确回退并记录原因。
 - `scripts/run_intent_eval.py` 单独评测 intent routing accuracy；默认 rule-based classifier 在当前 100 条样例上 accuracy 为 0.640，并输出 `data/eval/intent_routing_comparison.json` 作为 keyword vs LLM routing 对比入口。

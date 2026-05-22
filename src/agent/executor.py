@@ -179,7 +179,7 @@ class AgentTaskExecutor:
         }
 
     def run_policy_recommendation(self, question: str, reason: str) -> dict[str, Any]:
-        state = _latest_state(self.trajectory)
+        state = self.latest_policy_state()
         policy_result = self.policy_runner(state)
         policy_dump = policy_result.model_dump()
         tool_name = _policy_tool_name(policy_result)
@@ -212,6 +212,9 @@ class AgentTaskExecutor:
             "policy_result": policy_dump,
             "data_source": self.data_source,
         }
+
+    def latest_policy_state(self) -> dict[str, Any]:
+        return _latest_state(self.trajectory)
 
 
 def _trajectory_bounds(trajectory: pd.DataFrame) -> tuple[pd.Timestamp, pd.Timestamp]:

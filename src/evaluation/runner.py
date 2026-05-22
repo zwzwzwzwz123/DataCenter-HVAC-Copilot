@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from src.agent.orchestrator import BaselineOrchestrator
+from src.agent.react_agent import ReActOrchestrator
 from src.agent.langgraph_workflow import LangGraphOrchestrator
 from src.evaluation.dataset import load_eval_dataset
 from src.evaluation.dataset import EvalRecord
@@ -15,19 +16,25 @@ from src.evaluation.metrics import (
     context_recall,
     evidence_coverage,
     expected_keyword_coverage,
+    grounding_rate,
     faithfulness_proxy,
     lexical_answer_coverage,
     tool_execution_success_rate,
     tool_selection_accuracy,
 )
 from src.retrieval.rag import ExtractiveRAGPipeline
+from src.retrieval.rag import GroundedRAGPipeline
 from src.retrieval.dense import DenseRetriever
 from src.retrieval.embeddings import (
     DeterministicHashEmbeddingProvider,
     SentenceTransformerEmbeddingProvider,
 )
 from src.retrieval.faiss_retriever import FaissDenseRetriever
-from src.retrieval.query_rewrite import HyDERAGPipeline, RewriteRAGPipeline
+from src.retrieval.query_rewrite import (
+    HyDERAGPipeline,
+    RewriteRAGPipeline,
+    RuleBasedHVACQueryRewriter,
+)
 from src.retrieval.schemas import DocumentChunk
 from src.retrieval.retriever import HybridRetriever, KeywordRetriever, RerankingRetriever
 
@@ -85,7 +92,14 @@ def run_baseline_comparison(
     records = load_eval_dataset(eval_path)
     chunks = getattr(orchestrator.rag_pipeline.retriever, "chunks", [])
     keyword_rag = ExtractiveRAGPipeline(KeywordRetriever(chunks))
+    keyword_grounded_rag = GroundedRAGPipeline(KeywordRetriever(chunks))
     dense_rag = build_dense_rag_pipeline(
+        chunks,
+        provider=dense_provider,
+        backend=dense_backend,
+        model_name=dense_model,
+    )
+    dense_grounded_rag = build_grounded_rag_pipeline(
         chunks,
         provider=dense_provider,
         backend=dense_backend,
@@ -96,6 +110,9 @@ def run_baseline_comparison(
         RerankingRetriever(HybridRetriever(chunks), candidate_k=10)
     )
     rewrite_rag = RewriteRAGPipeline(HybridRetriever(chunks))
+    rewrite_grounded_rag = GroundedRAGPipeline(
+        RewritingSearcher(HybridRetriever(chunks))
+    )
     hyde_rag = HyDERAGPipeline(HybridRetriever(chunks))
     hyde_rerank_rag = HyDERAGPipeline(
         RerankingRetriever(HybridRetriever(chunks), candidate_k=10)
@@ -108,9 +125,19 @@ def run_baseline_comparison(
             _run_rag_only(records, keyword_rag),
         ),
         _evaluate_predictions(
+            "rag_keyword_grounded",
+            records,
+            _run_rag_only(records, keyword_grounded_rag),
+        ),
+        _evaluate_predictions(
             "rag_dense",
             records,
             _run_rag_only(records, dense_rag),
+        ),
+        _evaluate_predictions(
+            "rag_dense_grounded",
+            records,
+            _run_rag_only(records, dense_grounded_rag),
         ),
         _evaluate_predictions(
             "rag_hybrid",
@@ -126,6 +153,11 @@ def run_baseline_comparison(
             "rag_rewrite",
             records,
             _run_rag_only(records, rewrite_rag),
+        ),
+        _evaluate_predictions(
+            "rag_rewrite_grounded",
+            records,
+            _run_rag_only(records, rewrite_grounded_rag),
         ),
         _evaluate_predictions(
             "rag_hyde",
@@ -162,6 +194,18 @@ def run_baseline_comparison(
             "predictions": langgraph_run["predictions"],
             "metrics": langgraph_run["metrics"],
             "by_task_type": langgraph_run["by_task_type"],
+        }
+    )
+    react_run = run_baseline_eval(
+        eval_path,
+        ReActOrchestrator(orchestrator),
+    )
+    runs.append(
+        {
+            "mode": "react_agent",
+            "predictions": react_run["predictions"],
+            "metrics": react_run["metrics"],
+            "by_task_type": react_run["by_task_type"],
         }
     )
     return {
@@ -215,6 +259,48 @@ def build_dense_rag_pipeline(
     return ExtractiveRAGPipeline(retriever)
 
 
+def build_grounded_rag_pipeline(
+    chunks: list[DocumentChunk],
+    *,
+    provider: str = "deterministic",
+    backend: str = "memory",
+    model_name: str | None = None,
+) -> GroundedRAGPipeline:
+    if provider == "deterministic":
+        embedding_provider = DeterministicHashEmbeddingProvider()
+    elif provider == "sentence-transformers":
+        embedding_provider = SentenceTransformerEmbeddingProvider(
+            model_name=model_name or "sentence-transformers/all-MiniLM-L6-v2"
+        )
+    else:
+        raise ValueError(f"Unsupported dense embedding provider: {provider}")
+
+    if backend == "memory":
+        retriever = DenseRetriever(chunks, embedding_provider=embedding_provider)
+    elif backend == "faiss":
+        retriever = FaissDenseRetriever(chunks, embedding_provider=embedding_provider)
+    else:
+        raise ValueError(f"Unsupported dense retrieval backend: {backend}")
+    return GroundedRAGPipeline(retriever)
+
+
+class RewritingSearcher:
+    def __init__(self, retriever, query_rewriter: RuleBasedHVACQueryRewriter | None = None) -> None:
+        self.retriever = retriever
+        self.query_rewriter = query_rewriter or RuleBasedHVACQueryRewriter()
+
+    def search(self, query: str, top_k: int = 5) -> list[dict]:
+        rewritten = self.query_rewriter.rewrite(query)
+        return [
+            {
+                **context,
+                "retrieval_query": rewritten.rewritten_query,
+                "retrieval_query_strategy": rewritten.strategy,
+            }
+            for context in self.retriever.search(rewritten.rewritten_query, top_k=top_k)
+        ]
+
+
 def _run_rag_only(
     records: list[EvalRecord],
     rag_pipeline: ExtractiveRAGPipeline,
@@ -263,6 +349,7 @@ def _compute_metrics(records: list[EvalRecord], prediction_map: dict[str, dict])
         "evidence_coverage": evidence_coverage(records, prediction_map),
         "answer_correctness_proxy": answer_correctness_proxy(records, prediction_map),
         "faithfulness_proxy": faithfulness_proxy(records, prediction_map),
+        "grounding_rate": grounding_rate(records, prediction_map),
     }
 
 

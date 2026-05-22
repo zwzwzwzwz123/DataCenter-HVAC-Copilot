@@ -13,6 +13,7 @@ METRIC_COLUMNS = [
     "evidence_coverage",
     "answer_correctness_proxy",
     "faithfulness_proxy",
+    "grounding_rate",
 ]
 
 OPTIONAL_METRIC_COLUMNS = [
@@ -28,6 +29,8 @@ def render_experiment_report(
     expected_keyword_record_count: int = 0,
     by_task_type: dict[str, dict[str, dict[str, float]]] | None = None,
     human_calibration: dict[str, object] | None = None,
+    safety_adversarial: dict[str, object] | None = None,
+    dropt_policy_benchmark: dict[str, object] | None = None,
     dense_provider: str = "deterministic",
     dense_backend: str = "memory",
     dense_model: str | None = None,
@@ -81,6 +84,12 @@ def render_experiment_report(
     if human_calibration:
         lines.extend(_human_calibration_section(human_calibration))
 
+    if safety_adversarial:
+        lines.extend(_safety_adversarial_section(safety_adversarial))
+
+    if dropt_policy_benchmark:
+        lines.extend(_dropt_policy_benchmark_section(dropt_policy_benchmark))
+
     lines.extend(
         [
             "",
@@ -92,11 +101,14 @@ def render_experiment_report(
                 dense_provider=dense_provider,
                 dense_backend=dense_backend,
             ),
+            _grounded_comparison_conclusion(comparison_summary),
             _retrieval_comparison_conclusion(comparison_summary),
             _reranker_comparison_conclusion(comparison_summary),
             _query_rewrite_hyde_conclusion(comparison_summary),
             "- `rag_tool_agent` 在当前确定性路由样例上体现工具选择、工具执行和证据覆盖优势。",
             _langgraph_comparison_conclusion(comparison_summary),
+            _react_comparison_conclusion(comparison_summary, by_task_type or {}),
+            "- `DROPT` / Guided-DiffFNO checkpoint 作为可选策略后端已接通：checkpoint 可加载、20 维 BEAR state 可推理，缺失或不完整时会明确回退并记录原因。",
             _intent_routing_conclusion(),
             "",
         ]
@@ -211,6 +223,66 @@ def _langgraph_comparison_conclusion(
     )
 
 
+def _react_comparison_conclusion(
+    comparison_summary: dict[str, dict[str, float]],
+    by_task_type: dict[str, dict[str, dict[str, float]]],
+) -> str:
+    react_policy = by_task_type.get("react_agent", {}).get("policy_recommendation", {})
+    langgraph_policy = by_task_type.get("langgraph_tool_agent", {}).get(
+        "policy_recommendation", {}
+    )
+    if react_policy and langgraph_policy:
+        react_tool = react_policy.get("tool_selection_accuracy", 0.0)
+        langgraph_tool = langgraph_policy.get("tool_selection_accuracy", 0.0)
+        react_correctness = react_policy.get("answer_correctness_proxy", 0.0)
+        langgraph_correctness = langgraph_policy.get("answer_correctness_proxy", 0.0)
+        if react_tool > langgraph_tool or react_correctness > langgraph_correctness:
+            return (
+                "- `react_agent` baseline 用于对比 single-step workflow vs deterministic multi-step planner；"
+                f"新增 multi-hop policy 样例后，policy 子集 tool_selection_accuracy "
+                f"从 `{_format_metric(langgraph_tool)}` 提升到 `{_format_metric(react_tool)}`，"
+                f"answer_correctness_proxy 从 `{_format_metric(langgraph_correctness)}` "
+                f"提升到 `{_format_metric(react_correctness)}`。"
+            )
+    if "react_agent" in comparison_summary:
+        return (
+            "- `react_agent` baseline 用来对比 workflow vs multi-step agent："
+            "在需要先收集时序上下文再给策略建议的样例上，可以显式展示多步 trace。"
+        )
+    return "- `react_agent` 尚未纳入当前报告。"
+
+
+def _grounded_comparison_conclusion(
+    comparison_summary: dict[str, dict[str, float]],
+) -> str:
+    grounded_modes = [
+        name
+        for name in [
+            "rag_keyword_grounded",
+            "rag_dense_grounded",
+            "rag_rewrite_grounded",
+        ]
+        if name in comparison_summary
+    ]
+    if not grounded_modes:
+        return "- grounded RAG paired baselines 尚未纳入当前报告。"
+    best_name = max(
+        grounded_modes,
+        key=lambda name: comparison_summary[name].get("grounding_rate", 0.0),
+    )
+    best_rate = comparison_summary[best_name].get("grounding_rate", 0.0)
+    if best_rate > 0.0:
+        return (
+            "- `rag_keyword_grounded` / `rag_dense_grounded` / `rag_rewrite_grounded` "
+            "把 extractive vs grounded generation 做成成对对比；"
+            f"当前 `grounding_rate` 最高的是 `{best_name}`={_format_metric(best_rate)}。"
+        )
+    return (
+        "- grounded RAG paired baselines 已纳入对比；`grounding_rate` 仍需结合 "
+        "answer correctness 一起看，以区分检索失败和生成漂移。"
+    )
+
+
 def _intent_routing_conclusion() -> str:
     return (
         "- `scripts/run_intent_eval.py` 单独评测 intent routing accuracy；默认 rule-based classifier "
@@ -227,6 +299,8 @@ def save_experiment_report(
     expected_keyword_record_count: int = 0,
     by_task_type: dict[str, dict[str, dict[str, float]]] | None = None,
     human_calibration: dict[str, object] | None = None,
+    safety_adversarial: dict[str, object] | None = None,
+    dropt_policy_benchmark: dict[str, object] | None = None,
     dense_provider: str = "deterministic",
     dense_backend: str = "memory",
     dense_model: str | None = None,
@@ -240,6 +314,8 @@ def save_experiment_report(
             expected_keyword_record_count=expected_keyword_record_count,
             by_task_type=by_task_type,
             human_calibration=human_calibration,
+            safety_adversarial=safety_adversarial,
+            dropt_policy_benchmark=dropt_policy_benchmark,
             dense_provider=dense_provider,
             dense_backend=dense_backend,
             dense_model=dense_model,
@@ -274,6 +350,61 @@ def _human_calibration_section(summary: dict[str, object]) -> list[str]:
             f"{_format_optional_metric(summary.get('mean_faithfulness'))} | "
             f"{_format_optional_metric(summary.get('safety_pass_rate'))} | "
             f"{summary.get('status', 'pending_human_review')} |"
+        ),
+    ]
+
+
+def _safety_adversarial_section(summary: dict[str, object]) -> list[str]:
+    by_category = summary.get("by_category", {})
+    lines = [
+        "",
+        "## Safety Audit 对抗鲁棒性测试",
+        "",
+        (
+            "该测试使用人工构造的 unsafe answer variant 检查确定性 Safety Audit "
+            "对生产遥测误述、LLM 直接控制和未验证动作表述的召回。"
+        ),
+        "",
+        f"- sample_count = {summary.get('sample_count', 0)}",
+        f"- overall_hit_rate = {_format_metric(float(summary.get('overall_hit_rate', 0.0)))}",
+        "",
+        "| category | sample_count | hit_count | hit_rate |",
+        "| --- | ---: | ---: | ---: |",
+    ]
+    if isinstance(by_category, dict):
+        for category, metrics in by_category.items():
+            if not isinstance(metrics, dict):
+                continue
+            lines.append(
+                (
+                    f"| {category} | {metrics.get('sample_count', 0)} | "
+                    f"{metrics.get('hit_count', 0)} | "
+                    f"{_format_metric(float(metrics.get('hit_rate', 0.0)))} |"
+                )
+            )
+    missed_ids = summary.get("missed_ids", [])
+    if missed_ids:
+        formatted = ", ".join(f"`{missed_id}`" for missed_id in list(missed_ids)[:10])
+        lines.extend(["", f"主要漏报样例：{formatted}"])
+    return lines
+
+
+def _dropt_policy_benchmark_section(summary: dict[str, object]) -> list[str]:
+    return [
+        "",
+        "## DROPT Policy Benchmark",
+        "",
+        "该基准只评测 policy_recommendation 样例上的策略后端推理，不把它混入文档问答 baseline。",
+        "",
+        "| sample_count | success_count | fallback_count | avg_latency_ms | avg_action_dim | avg_abs_action |",
+        "| ---: | ---: | ---: | ---: | ---: | ---: |",
+        (
+            f"| {summary.get('sample_count', 0)} | "
+            f"{summary.get('success_count', 0)} | "
+            f"{summary.get('fallback_count', 0)} | "
+            f"{_format_metric(float(summary.get('avg_latency_ms', 0.0)))} | "
+            f"{_format_metric(float(summary.get('avg_action_dim', 0.0)))} | "
+            f"{_format_metric(float(summary.get('avg_abs_action', 0.0)))} |"
         ),
     ]
 
