@@ -42,8 +42,8 @@ def test_eval_dataset_has_curated_keywords_for_representative_records():
     records = load_eval_dataset(Path("data/eval/hvac_eval.jsonl"))
     keyword_records = [record for record in records if record.expected_keywords]
 
-    assert len(records) == 100
-    assert len(keyword_records) == 100
+    assert len(records) == 108
+    assert len(keyword_records) == 108
     assert {"document_qa", "timeseries_query", "anomaly_diagnosis", "policy_recommendation"}.issubset(
         {record.task_type for record in keyword_records}
     )
@@ -74,7 +74,9 @@ def test_eval_dataset_task_type_distribution_matches_stage_target():
         "document_qa": 40,
         "timeseries_query": 20,
         "anomaly_diagnosis": 20,
-        "policy_recommendation": 20,
+        # 20 original policy records plus 8 multi-hop policy records used to
+        # distinguish single-step workflow from deterministic ReAct planning.
+        "policy_recommendation": 28,
     }
 
 

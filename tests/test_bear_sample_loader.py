@@ -1,7 +1,5 @@
 from pathlib import Path
 
-import pandas as pd
-
 from src.api.demo_factory import build_demo_orchestrator
 from src.ingestion.bear_sample_loader import load_bear_sample_timeseries
 
