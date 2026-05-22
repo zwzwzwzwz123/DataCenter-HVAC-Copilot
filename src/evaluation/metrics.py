@@ -163,3 +163,42 @@ def evidence_coverage(records: list[EvalRecord], predictions: dict[str, dict]) -
         if has_citation or has_tool_result:
             hits += 1
     return hits / len(evidence_required_records)
+
+
+def grounding_rate(records: list[EvalRecord], predictions: dict[str, dict]) -> float:
+    grounded_records = [record for record in records if record.required_documents]
+    if not grounded_records:
+        return 0.0
+
+    hits = 0
+    for record in grounded_records:
+        predicted = predictions.get(record.id, {})
+        retrieved_contexts = [
+            context
+            for context in predicted.get("retrieved_contexts", [])
+            if isinstance(context, dict)
+        ]
+        citation_ids = {
+            context.get("citation", {}).get("source_id")
+            for context in retrieved_contexts
+            if isinstance(context.get("citation"), dict)
+        }
+        answer = str(predicted.get("answer", ""))
+        answer_citation_ids = _extract_answer_citation_ids(answer)
+        if answer_citation_ids and answer_citation_ids.issubset(citation_ids):
+            hits += 1
+    return hits / len(grounded_records)
+
+
+def _extract_answer_citation_ids(answer: str) -> set[str]:
+    citation_ids: set[str] = set()
+    in_citation_section = False
+    for line in answer.splitlines():
+        stripped = line.strip()
+        if stripped in {"引用：", "Citations:"}:
+            in_citation_section = True
+            continue
+        if in_citation_section and stripped.startswith("- ") and ":" in stripped:
+            head, _ = stripped[2:].split(":", 1)
+            citation_ids.add(head.strip())
+    return citation_ids
