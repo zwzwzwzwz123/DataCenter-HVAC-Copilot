@@ -3,8 +3,8 @@
 ## LangGraph Trace Demo
 
 - Copilot tab now lets you switch between `Deterministic baseline` and `LangGraph workflow`.
-- Selecting `LangGraph workflow` makes `/ask` return `workflow_engine=langgraph` plus the real `workflow_trace`.
-- Streamlit shows a `LangGraph Workflow Trace` panel summarizing step / node / route / tools / evidence / audit.
+- `/ask` and Streamlit default to `workflow_engine=langgraph`, returning the real `workflow_trace`; `Deterministic baseline` remains selectable for comparison.
+- Streamlit shows a `LangGraph Workflow Trace` panel summarizing step / node / route / classifier / tools / evidence / audit.
 
 面向 **BEAR HVAC 物理仿真轨迹** 的 RAG + Tool Agent + Evaluation 项目，用于演示数据中心冷却优化类问题中的文档检索、时序分析、异常诊断、策略建议和可复现评测。
 
@@ -14,7 +14,7 @@
 
 - **不是普通 ChatPDF**：系统同时支持文档问答、BEAR-like 时序查询、异常诊断和策略建议。
 - **RAG + Tool Agent 闭环**：问题先路由，再检索文档、调用时序工具或 policy 工具，最后基于证据生成回答。
-- **DeepSeek 可选接入**：配置 `DEEPSEEK_API_KEY` 后，`/ask` 可使用 DeepSeek 做 evidence-grounded answer generation；未配置或调用失败时自动回退 deterministic generator。
+- **多 LLM 后端可选接入**：`/ask` 支持 deterministic fallback、DeepSeek 和本地 Ollama evidence-grounded answer generation；未配置或调用失败时自动回退 deterministic generator。
 - **控制边界清晰**：控制建议只来自 rule-based、MPC-like、DiffFNO / Guided-DiffFNO adapter 或 offline replay 等工具，LLM 不直接控制环境。
 - **Safety Audit**：每个回答都会进行确定性安全审计，检查生产遥测误述、LLM 直接控制声明和未验证策略动作。
 - **可复现评测**：内置 100 条 JSONL 评测集，覆盖文档问答、时序查询、异常诊断和策略建议，并生成 baseline comparison 和实验报告。
@@ -27,7 +27,7 @@
 - 文档加载、chunk、检索、rerank
 - BEAR schema、processed CSV / BEAR sample CSV / mock fallback
 - 时序工具和 policy adapter
-- DeepSeek / deterministic answer generator
+- DeepSeek / Ollama / deterministic answer generator
 - answer safety audit
 - FastAPI 服务
 - Streamlit demo
@@ -61,7 +61,7 @@ Deterministic Router
                                           FastAPI / Streamlit Demo
 ```
 
-Stage 2 增加了 LangGraph workflow，但保留 deterministic router 作为可复现 baseline：
+Stage 2 增加了 LangGraph workflow。交互式 `/ask` 和 Streamlit 默认使用 LangGraph 编排；`LANGGRAPH_INTENT_PROVIDER=auto` 时，如果检测到 `DEEPSEEK_API_KEY` 会自动启用 DeepSeek intent classifier，否则回退 rule-based。也可以显式配置 `LANGGRAPH_INTENT_PROVIDER=deepseek`、`ollama` 或 `rule_based`；LLM 输出非法或调用失败时自动回退 rule-based：
 
 ```mermaid
 flowchart TD
@@ -78,7 +78,7 @@ flowchart TD
     H --> I[Grounded Answer + Trace]
 ```
 
-`langgraph_tool_agent` 当前复用 deterministic baseline 的工具和回答生成逻辑，因此指标与 `rag_tool_agent` 对齐；它的价值是展示 StateGraph 编排、workflow trace 和后续可替换节点，而不是改变默认可复现评测口径。
+`langgraph_tool_agent` 与 deterministic `rag_tool_agent` 共享 `AgentTaskExecutor` 工具执行组件，因此默认指标对齐；它的价值是展示 StateGraph 编排、workflow trace，以及可替换的 LLM intent classifier 节点，而不是改变默认可复现评测口径。
 
 核心模块：
 
@@ -88,7 +88,7 @@ src/ingestion/     BEAR 轨迹标准化、BEAR adapter、processed/sample loader
 src/retrieval/     文档加载、chunk、keyword / hybrid / rerank 检索、RAG baseline
 src/tools/         时序查询、周期对比、异常检测、能耗拆分、趋势数据
 src/policies/      rule-based、MPC-like、diffusion adapter、DROPT checkpoint adapter、offline replay
-src/agent/         router、orchestrator、answer generator、DeepSeek adapter、answer audit
+src/agent/         router、intent classifier、shared task executor、orchestrator、answer generator、DeepSeek/Ollama adapter、answer audit
 src/evaluation/    eval loader、metrics、baseline runner、report、可选 judge adapter
 src/api/           FastAPI 服务
 app/               Streamlit demo
@@ -148,23 +148,66 @@ FAISS 是本地向量索引库，本身不需要 API 或按次付费；`sentence
 
 代码中可通过 `build_demo_orchestrator(use_dropt_policy=True)` 显式启用该后端；如果 checkpoint 缺失或 state 不完整，会自动回退到 rule-based policy 并在 `notes` 中说明原因。
 
-## DeepSeek 配置
+## LLM 后端配置
 
-DeepSeek 是可选能力。可在 shell 或项目根目录 `.env` 中配置：
+LLM answer generator 是可选能力。默认不配置时使用 deterministic evidence-grounded fallback；也可以在 shell 或项目根目录 `.env` 中选择 DeepSeek 或本地 Ollama。
+
+DeepSeek 示例：
 
 ```bash
+LLM_PROVIDER=deepseek
 DEEPSEEK_API_KEY=your_key_here
 DEEPSEEK_BASE_URL=https://api.deepseek.com
 DEEPSEEK_MODEL=deepseek-chat
 DEEPSEEK_TIMEOUT_SECONDS=30
 ```
 
+Ollama 示例：
+
+```bash
+LLM_PROVIDER=ollama
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=qwen2.5:7b
+OLLAMA_TIMEOUT_SECONDS=60
+```
+
+LangGraph LLM intent classification 默认 auto：
+
+```bash
+LANGGRAPH_INTENT_PROVIDER=auto
+```
+
+检测到 `DEEPSEEK_API_KEY` 时，auto 会启用 DeepSeek intent classifier；未配置 key 时使用 rule-based。显式 DeepSeek 示例：
+
+```bash
+LANGGRAPH_INTENT_PROVIDER=deepseek
+LANGGRAPH_INTENT_MODEL=deepseek-chat
+LANGGRAPH_INTENT_TIMEOUT_SECONDS=20
+```
+
+本地 Qwen / Ollama intent classification 示例：
+
+```bash
+LANGGRAPH_INTENT_PROVIDER=ollama
+LANGGRAPH_INTENT_MODEL=qwen2.5:7b
+OLLAMA_BASE_URL=http://localhost:11434
+LANGGRAPH_INTENT_TIMEOUT_SECONDS=20
+```
+
+显式使用 deterministic fallback：
+
+```bash
+LLM_PROVIDER=deterministic
+LANGGRAPH_INTENT_PROVIDER=rule_based
+```
+
 说明：
 
 - `.env` 会自动加载，但不会覆盖 shell 中已有环境变量。
-- `/ask` 可使用 DeepSeek 生成最终解释。
+- `/ask` 可使用 DeepSeek 或 Ollama 生成最终解释。
+- `LANGGRAPH_INTENT_PROVIDER` 只影响 `workflow_engine=langgraph` 的意图分类节点；可选值为 `auto`、`rule_based`、`deepseek`、`ollama`。交互式 demo 默认 `auto`，评测脚本仍显式保持可复现口径。
 - `scripts/run_eval.py` 和 `/eval/run` 默认使用 deterministic generator，避免批量 API 调用影响速度、成本和可复现性。
-- DeepSeek 只基于 `retrieved_contexts`、`citations`、`tool_results`、`policy_result` 和 `data_source` 写回答，不负责控制决策。
+- LLM 后端只基于 `retrieved_contexts`、`citations`、`tool_results`、`policy_result` 和 `data_source` 写回答，不负责控制决策。
 
 ## 启动服务
 
@@ -244,7 +287,7 @@ python -m pytest -q
 - policy adapters
 - retrieval / RAG
 - orchestrator
-- DeepSeek answer generator
+- DeepSeek / Ollama answer generator
 - answer safety audit
 - API
 - Streamlit helper
@@ -266,6 +309,26 @@ python scripts/run_eval.py
 ```bash
 python scripts/run_eval.py --dense-provider sentence-transformers --dense-backend faiss --dense-model BAAI/bge-small-zh-v1.5
 ```
+
+Intent routing 单独对比：
+
+```bash
+python scripts/run_intent_eval.py --providers rule_based
+python scripts/run_intent_eval.py --providers rule_based ollama
+python scripts/run_intent_eval.py --providers rule_based deepseek
+```
+
+该脚本输出 `data/eval/intent_routing_comparison.json`，包含 intent routing accuracy、fallback rate、按任务类型分组指标和 confusion matrix。DeepSeek 会在缺少 `DEEPSEEK_API_KEY` 时标记为 skipped；Ollama 调用失败时会回退 rule-based，并通过 `fallback_rate` 暴露出来。
+
+Query Rewrite / HyDE baseline：
+
+当前 `run_eval.py` 已纳入 deterministic query expansion 对比，不依赖 API key 或模型下载：
+
+- `rag_rewrite`：用规则扩展 HVAC/BEAR 查询词，例如 `query_metric`、`zone_temperature`、`policy_result`。
+- `rag_hyde`：用 template HyDE 生成 hypothetical evidence document，再执行检索。
+- `rag_hyde_rerank`：在 template HyDE 检索后复用轻量 reranker。
+
+这些 baseline 用于对比 raw query、rewrite 和 HyDE 的检索效果；后续可以把 template HyDE generator 替换为 DeepSeek / Ollama 生成器。
 
 该脚本会生成：
 
@@ -289,6 +352,9 @@ baseline 包含：
 - `rag_dense`
 - `rag_hybrid`
 - `rag_hybrid_rerank`
+- `rag_rewrite`
+- `rag_hyde`
+- `rag_hyde_rerank`
 - `rag`
 - `rag_tool_agent`
 
@@ -337,7 +403,7 @@ langgraph_tool_agent answer_correctness_proxy     = 0.547
 langgraph_tool_agent faithfulness_proxy           = 0.465
 ```
 
-`langgraph_tool_agent` 与 deterministic `rag_tool_agent` 指标一致，说明 LangGraph 版本没有改变底层工具行为；它用于展示 workflow 编排和 trace。
+`langgraph_tool_agent` 与 deterministic `rag_tool_agent` 指标一致，说明默认 LangGraph 版本没有改变底层工具行为；它用于展示 workflow 编排、trace 和可选 LLM intent classification。独立 intent routing 评测显示，默认 keyword/rule-based classifier 在 100 条样例上 accuracy 为 0.640；这也是需要接入 DeepSeek 或本地 Qwen/Ollama intent classifier 做对比的原因。
 
 ## 评测口径
 
@@ -414,12 +480,14 @@ python scripts/export_bear_data.py --bear-root C:\Users\zouwei\Desktop\PROJECT\_
 - policy adapter：rule-based、MPC-like placeholder、diffusion adapter 边界、DROPT Guided-DiffFNO checkpoint adapter、offline replay
 - 多文档 RAG：Markdown/TXT loader、chunk、Keyword、Hybrid、Reranking retriever
 - deterministic router + baseline orchestrator
-- DeepSeek evidence-grounded answer generator
+- LangGraph StateGraph workflow + DeepSeek/Ollama optional LLM intent classifier
+- shared AgentTaskExecutor for baseline and LangGraph tool execution
+- DeepSeek / Ollama evidence-grounded answer generator
 - deterministic fallback answer generator
 - answer safety audit
 - FastAPI `/health`、`/ask`、`/eval/run`
 - Streamlit Copilot / 评测摘要双 tab
-- 100 条 eval JSONL 和 baseline comparison
+- 100 条 eval JSONL、baseline comparison 和 intent routing comparison
 - optional LLM judge adapter smoke provider
 - demo walkthrough 文档
 

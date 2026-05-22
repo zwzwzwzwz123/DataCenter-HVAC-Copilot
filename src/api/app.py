@@ -4,18 +4,29 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException
 
+from src.agent.intent_classifier import RuleBasedIntentClassifier, build_intent_classifier_from_env
 from src.agent.langgraph_workflow import LangGraphOrchestrator
 from src.api.demo_factory import build_demo_orchestrator
 from src.api.schemas import AskRequest, AskResponse, EvalRunRequest, EvalRunResponse
 from src.evaluation.runner import run_baseline_eval
 
 
-def create_app(use_env_answer_generator: bool = True) -> FastAPI:
+def create_app(
+    use_env_answer_generator: bool = True,
+    use_env_intent_classifier: bool = True,
+) -> FastAPI:
     app = FastAPI(title="DataCenter-HVAC Copilot", version="0.1.0")
     orchestrator = build_demo_orchestrator(
         use_env_answer_generator=use_env_answer_generator,
     )
-    langgraph_orchestrator = LangGraphOrchestrator(orchestrator)
+    langgraph_orchestrator = LangGraphOrchestrator(
+        orchestrator,
+        intent_classifier=(
+            build_intent_classifier_from_env()
+            if use_env_intent_classifier
+            else RuleBasedIntentClassifier()
+        ),
+    )
 
     @app.get("/health")
     def health() -> dict[str, Any]:

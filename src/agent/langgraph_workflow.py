@@ -4,8 +4,9 @@ from typing import Any, TypedDict
 
 from langgraph.graph import END, StateGraph
 
+from src.agent.executor import AgentTaskExecutor
+from src.agent.intent_classifier import IntentClassifier, RuleBasedIntentClassifier
 from src.agent.orchestrator import BaselineOrchestrator
-from src.agent.router import route_task
 
 
 class WorkflowState(TypedDict, total=False):
@@ -18,10 +19,17 @@ class WorkflowState(TypedDict, total=False):
 
 
 class LangGraphOrchestrator:
-    """LangGraph workflow wrapper that preserves the deterministic baseline outputs."""
+    """LangGraph workflow with pluggable intent classification and shared task execution."""
 
-    def __init__(self, baseline: BaselineOrchestrator) -> None:
+    def __init__(
+        self,
+        baseline: BaselineOrchestrator,
+        intent_classifier: IntentClassifier | None = None,
+        task_executor: AgentTaskExecutor | None = None,
+    ) -> None:
         self.baseline = baseline
+        self.task_executor = task_executor or baseline.task_executor
+        self.intent_classifier = intent_classifier or RuleBasedIntentClassifier()
         self.graph = self._build_graph()
 
     def run(self, question: str, task_type: str | None = None) -> dict[str, Any]:
@@ -65,13 +73,19 @@ class LangGraphOrchestrator:
         return graph.compile()
 
     def _intent_classifier(self, state: WorkflowState) -> WorkflowState:
-        decision = route_task(state["question"], task_type=state.get("task_type"))
+        decision = self.intent_classifier.classify(
+            state["question"],
+            task_type=state.get("task_type"),
+        )
         trace = _append_trace(
             state,
             {
                 "node": "intent_classifier",
                 "route": decision.route,
                 "reason": decision.reason,
+                "classifier": decision.classifier,
+                "confidence": decision.confidence,
+                "fallback_used": decision.fallback_used,
             },
         )
         return {
@@ -91,7 +105,7 @@ class LangGraphOrchestrator:
         }[route]
 
     def _run_document_qa(self, state: WorkflowState) -> WorkflowState:
-        result = self.baseline._run_document_qa(state["question"], state["route_reason"])
+        result = self.task_executor.run_document_qa(state["question"], state["route_reason"])
         return _with_result_and_trace(
             state,
             result,
@@ -103,7 +117,7 @@ class LangGraphOrchestrator:
         )
 
     def _run_timeseries_query(self, state: WorkflowState) -> WorkflowState:
-        result = self.baseline._run_timeseries_query(state["question"], state["route_reason"])
+        result = self.task_executor.run_timeseries_query(state["question"], state["route_reason"])
         return _with_result_and_trace(
             state,
             result,
@@ -115,7 +129,7 @@ class LangGraphOrchestrator:
         )
 
     def _run_anomaly_diagnosis(self, state: WorkflowState) -> WorkflowState:
-        result = self.baseline._run_anomaly_diagnosis(state["question"], state["route_reason"])
+        result = self.task_executor.run_anomaly_diagnosis(state["question"], state["route_reason"])
         return _with_result_and_trace(
             state,
             result,
@@ -127,7 +141,7 @@ class LangGraphOrchestrator:
         )
 
     def _run_policy_recommendation(self, state: WorkflowState) -> WorkflowState:
-        result = self.baseline._run_policy_recommendation(
+        result = self.task_executor.run_policy_recommendation(
             state["question"],
             state["route_reason"],
         )

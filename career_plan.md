@@ -160,35 +160,47 @@ Deterministic Router（意图识别：关键词 → 4 类任务）
 |---|---|---|---|
 | BEAR 数据接入 | Schema 定义、字段来源约束、轨迹标准化、BuildingEnvReal adapter | ✅ 完成 | BEAR, Pandas, Pydantic |
 | HVAC 文档 RAG | 19 篇领域文档入库、chunk、Keyword/Hybrid/Rerank 检索 | ✅ 完成 | 自建 BM25-style + Reranker |
-| Dense Retrieval | Hash embedding baseline + 可选 FAISS/Sentence-Transformers | ✅ 完成（待启用真实 embedding） | FAISS, sentence-transformers |
-| Agent 路由 | Deterministic router → 4 类任务处理器 | ✅ 完成（待升级 LangGraph） | Python |
+| Dense Retrieval | BGE-small-zh + FAISS 真实语义检索（hash embedding 作为 fallback） | ✅ 完成（rag_dense citation 0.692 = 当前最强单路） | FAISS, sentence-transformers |
+| Agent 路由 | Deterministic router + LangGraph StateGraph + 可插拔 LLM intent | ✅ 完成 | Python, LangGraph |
 | 时序工具 | 5 个确定性时序分析工具 | ✅ 完成 | Pandas, NumPy |
 | 策略工具 | rule-based + MPC-like + DROPT checkpoint adapter + offline replay | ✅ 完成 | PyTorch, NumPy |
-| 回答生成 | Deterministic 模板 + DeepSeek API 可选接入 | ✅ 完成 | DeepSeek API / urllib |
+| 回答生成 | Deterministic 模板 + DeepSeek + Ollama 三态可选 | ✅ 完成 | DeepSeek API / Ollama |
+| Query Rewrite / HyDE | Rule-based rewrite + template HyDE（发现 HyDE drift 反例） | ✅ 完成 | Python |
 | Safety Audit | 3 类边界检查（生产遥测/直接控制/未验证动作） | ✅ 完成 | 确定性规则 |
-| 评测体系 | 100 条 JSONL + 7 baseline + 9 指标 + 实验报告 | ✅ 完成 | 自建评测框架 |
+| 评测体系 | 100 条 JSONL + 11 组 baseline + 9 指标 + 实验报告 + intent eval | ✅ 完成 | 自建评测框架 |
 | Demo 展示 | FastAPI 后端 + Streamlit 深色控制台前端 | ✅ 完成 | FastAPI + Streamlit |
-| 测试覆盖 | 23 个测试文件覆盖全部模块 | ✅ 完成 | pytest |
-| LangGraph 工作流 | 替换 deterministic router 为 LLM 驱动工作流 | 🔲 后续升级 | LangGraph |
-| Docker 容器化 | Dockerfile + docker-compose | 🔲 后续补充 | Docker |
+| 测试覆盖 | 27 个测试文件覆盖全部模块 | ✅ 完成 | pytest |
+| LangGraph 工作流 | StateGraph 7 节点 + workflow_trace + 可插拔 intent | ✅ 完成 | LangGraph |
+| Docker 容器化 | Dockerfile + docker-compose 双服务 | ✅ 完成（基础版，待加 healthcheck/dense extras） | Docker |
+| 人工评测标注 | 24 条样本人工校准 | 🔲 **未完成（24/24 全 null，是当前最大欠账）** | — |
+| Demo 截图 / 架构图 | README hero 图 + 多 case 截图 | 🔲 未完成 | — |
+| CI / lint / logging | GitHub Actions + ruff + 结构化日志 | 🔲 未完成 | — |
 
-**核心评测数据**（来自 100 条评测集）：
+**核心评测数据**（来自 100 条评测集，11 组 baseline 对比）：
 
-| Baseline | 工具选择准确率 | 工具执行成功率 | 证据覆盖率 | 检索召回率 | 回答正确性代理 |
-|---|---|---|---|---|---|
-| llm_only | 0.000 | 0.000 | 0.000 | 0.000 | 0.022 |
-| rag_keyword | 0.000 | 0.000 | 0.590 | 0.554 | 0.475 |
-| rag_hybrid | 0.000 | 0.000 | 0.590 | 0.585 | 0.478 |
-| rag_hybrid_rerank | 0.000 | 0.000 | 0.590 | 0.600 | 0.500 |
-| **rag_tool_agent** | **1.000** | **1.000** | **0.910** | 0.385 | **0.547** |
+| Baseline | 工具选择准确率 | 工具执行成功率 | 证据覆盖率 | 检索召回率 | 回答正确性代理 | 备注 |
+|---|---|---|---|---|---|---|
+| llm_only | 0.000 | 0.000 | 0.000 | 0.000 | 0.022 | 无检索无工具 |
+| rag_keyword | 0.000 | 0.000 | 0.590 | 0.554 | 0.475 | TF-IDF 变体 |
+| **rag_dense** | 0.000 | 0.000 | **1.000** | **0.692** | **0.654** | BGE-small-zh + FAISS |
+| rag_hybrid | 0.000 | 0.000 | 0.590 | 0.585 | 0.478 | keyword + dense_hash 融合 |
+| rag_hybrid_rerank | 0.000 | 0.000 | 0.590 | 0.600 | 0.500 | + metadata-aware rerank |
+| rag_rewrite | 0.000 | 0.000 | 1.000 | 0.646 | 0.601 | rule-based query expansion |
+| rag_hyde | 0.000 | 0.000 | 1.000 | 0.246 | 0.233 | template HyDE（query drift 反例） |
+| **rag_tool_agent** | **1.000** | **1.000** | **0.910** | 0.385 | 0.547 | deterministic 路由 |
+| **langgraph_tool_agent** | **1.000** | **1.000** | **0.910** | 0.385 | 0.547 | LangGraph StateGraph 编排 |
+
+> **关键发现**：rag_dense (BGE + FAISS) 在检索召回率上以 0.692 大幅领先 keyword 的 0.554；template HyDE 反而掉到 0.246（query drift），证明不能无脑套技巧。
 
 **面试亮点设计**（简历和面试中重点展示）：
 - 🎯 构建 RAG + Tool Agent 系统，支持文档问答/时序查询/异常诊断/策略建议 4 类任务
-- 📚 实现 Hybrid 检索（BM25-style + Rerank），检索召回率从 keyword 的 55.4% 提升到 60.0%
-- 🔧 工具路由准确率和执行成功率均为 100%，证据覆盖率达 91.0%
+- 📚 真实语义检索（BGE-small-zh + FAISS）：检索召回率从 keyword 的 55.4% 提升到 dense 的 69.2%（+14pp）
+- 🧪 11 组 baseline 横向对比，发现 deterministic template HyDE 反而掉到 24.6%（query drift 反例），体现实验判断力
+- 🔧 LangGraph StateGraph 7 节点工作流 + workflow_trace 可观测，intent 节点可插拔切到 DeepSeek/Ollama LLM
+- 🛠️ 工具路由准确率和执行成功率均为 100%，证据覆盖率达 91.0%
 - 🔄 设计「LLM 解释 + 策略工具执行」的分工范式，集成 DROPT/Guided-DiffFNO checkpoint 推理适配器
-- 📊 100 条评测集 + 7 组 baseline 对比 + Safety Audit 边界保障
-- 🖥️ FastAPI + Streamlit 专业深色控制台 Demo，含 3 个典型案例 walkthrough
+- 📊 100 条评测集 + 11 组 baseline 对比 + Safety Audit 边界保障
+- 🖥️ FastAPI + Streamlit 专业深色控制台 Demo + Docker Compose 双服务部署
 
 ---
 
@@ -259,12 +271,15 @@ XXX（强化学习 + 扩散模型优化数据中心能耗）
 挑战杯 · 国家一等奖（AI 应用方向）
 
 【项目经历】（核心展示区域 — 注意项目一是你的王牌！）
-项目一：DataCenter-HVAC Copilot — 基于 BEAR 仿真环境的 RAG + Tool Agent 系统 ⭐
-  - 构建面向 BEAR HVAC 物理仿真轨迹的 RAG + Tool Agent + Evaluation 系统，支持文档问答、时序查询、异常诊断、策略建议 4 类任务
-  - 实现 Hybrid 检索（BM25-style + Rerank）+ Evidence-Grounded Generation，工具路由准确率 100%，证据覆盖率 91.0%
-  - 集成 DROPT/Guided-DiffFNO checkpoint 推理适配器，设计「LLM 解释 + 策略工具执行」分工范式，含 Safety Audit 边界保障
-  - 100 条评测集 + 7 组 baseline 对比 + 人工校准，FastAPI + Streamlit 专业 Demo
-  - 技术栈：Python / FastAPI / Streamlit / PyTorch / FAISS / DeepSeek / Pydantic / pytest
+项目一：DataCenter-HVAC Copilot — 基于 LangGraph 的 RAG + Tool Agent 系统 ⭐
+  - 面向 BEAR HVAC 物理仿真场景，支持文档问答、时序查询、异常诊断、策略建议 4 类任务
+  - LangGraph StateGraph 7 节点工作流 + workflow_trace 可观测，intent 节点可切 rule-based / DeepSeek / Ollama
+  - 真实语义检索（BGE-small-zh + FAISS）使检索召回率从 keyword 的 55.4% 提升到 69.2%
+  - 11 组 baseline 横向对比（含 query rewrite / HyDE），识别出 template HyDE 在中文小语料的 query drift 反例
+  - 工具路由准确率 100%、证据覆盖率 91.0%；集成 DROPT/Guided-DiffFNO checkpoint 推理适配器
+  - 「LLM 解释 + 策略工具执行」分工范式 + Safety Audit 三类边界保障
+  - FastAPI + Streamlit 双服务 Demo，Docker Compose 部署，27 个 pytest 测试文件
+  - 技术栈：Python 3.12 / LangGraph / FAISS / sentence-transformers / DeepSeek API / Ollama / FastAPI / Streamlit / Docker / pytest
 
 项目二：数据中心智能知识库问答系统（RAG，从项目一的检索模块扩展）
   - 从项目一的 HVAC 文档检索模块扩展为独立 RAG 系统
@@ -375,10 +390,12 @@ Python / PyTorch / FastAPI / Streamlit / FAISS / DeepSeek / RAG / RL / Diffusion
 | 时间 | 里程碑 | 自检标准 |
 |---|---|---|
 | **2026.05** ✅ | DataCenter-HVAC Copilot 超 MVP 完成 | RAG + Tool Agent + 评测闭环已跑通，Streamlit Demo 已就绪 |
-| **2026.06** | 项目升级：LangGraph + 真实 Embedding + Docker | Agent 从 deterministic router 升级为 LLM 工作流，启用 FAISS 真实语义检索 |
-| **2026.07** | 项目打磨：截图/架构图 + 人工标注 + Git 规范 | README 有截图，评测有人工校准，代码有 CI |
+| **2026.05** ✅ | LangGraph + 真实 Embedding + Docker（**提前完成原 6 月里程碑**） | StateGraph 7 节点 + BGE/FAISS dense + Docker Compose 双服务 |
+| **2026.05-06** 🔄 | **反向学项目**（W1-W4 学习路线，详见 [learning_plan_8weeks.md](learning_plan_8weeks.md)） | 能不看代码手写 BM25 / mini FAISS / RRF 融合 |
+| **2026.06-07** | 项目打磨：截图 + 人工标注 + CI + logging | README 有截图，24 条人工标注完成，GitHub Actions 跑通 |
+| **2026.07** | **反向学项目**（W5-W8 学习路线） | 能不看代码用 LangGraph 写新场景，3 个版本项目讲述完成 |
 | **2026.08** | 项目完成面试就绪状态 + Python 工程能力巩固 | 项目讲述流畅，能应对所有技术追问 |
-| **2026.09** | RAG 独立项目（从 Copilot 检索模块扩展） | Query Rewrite + HyDE + 更大评测集 |
+| **2026.09** | RAG 独立项目（从 Copilot 检索模块扩展） | Query Rewrite + 真实 LLM HyDE + 更大评测集 |
 | **2026.10** | 八股文集中突破 + 项目叙事打磨 | 核心知识点能流畅回答，5 分钟项目讲述 |
 | **2026.11** | 模拟面试 + 简历定稿 | 至少完成 5 次模拟面试 |
 | **2026.12** | 最终检查 + 查漏补缺 | 所有项目可展示，所有面试问题有准备 |
@@ -573,4 +590,91 @@ Agent 框架：    LangGraph（项目后续升级方向）/ CrewAI
 
 ---
 
-*最后更新：2026.05.21（v3.1 - 新增项目审查后的重要提醒与行动建议） | 祝你一切顺利 💪*
+## 十、📌 2026.05.22 状态更新与反向学习重定向
+
+> **背景**：和你坦诚对齐——项目当前是用 AI 加速搭起来的，你还没有真正读过代码。这一节把"我们要诚实承认这件事"写进规划，并用这件事重塑接下来的学习节奏。
+
+### 🎯 项目实际进展（截至 2026.05.22）
+
+详细评估见 [project_review_2026_05_22.md](project_review_2026_05_22.md)。要点：
+
+| 维度 | 状态 |
+|---|---|
+| 核心代码层（LangGraph / dense / Query Rewrite / Docker） | ✅ 已落地，**比原计划 2026.06 里程碑提前 1 个月** |
+| 评测可信度（人工标注 / DeepSeek intent 真跑） | 🔴 24/24 人工标注全 null，intent_routing 只跑了 rule_based |
+| 展示层（README 截图 / 架构图） | 🔴 完全缺失 |
+| 工程基线（CI / lint / logging / Makefile） | 🔴 几乎全部缺失 |
+| **代码理解度** | 🔴 **真正瓶颈在这里**——你没读过代码，不能讲设计决策 |
+
+### 🔄 节奏重定向：从"做项目"切到"反向学项目"
+
+> [!IMPORTANT]
+> 原 5-7 月规划是"继续推进项目升级"。但项目核心代码层已经够用了——**继续加新功能不会让简历变好，反而会让你越来越拥有不了它**。新节奏：
+
+| 时间 | 原计划 | 新计划 |
+|---|---|---|
+| **2026.05-07（3 个月）** | 升级 LangGraph + 真实 Embedding + Docker | **反向学项目 8 周** + P0 打磨（截图/人工标注/CI） |
+| **2026.08** | 项目面试就绪 | 同上，但加上：能不看代码手写所有核心模块 |
+| **2026.09** | RAG 独立项目扩展 | 改为：写 2-3 篇技术博客（从项目实验里提炼） |
+| **2026.10-12** | 八股 + 模拟面试 | 不变 |
+
+**学习路线 8 周分配**（详见 [learning_plan_8weeks.md](learning_plan_8weeks.md)）：
+
+| 周次 | 主题 | 核心产出 |
+|---|---|---|
+| W1 | 项目跑通 + 心智模型 | 一张架构图 + 30s 讲述 |
+| W2 | RAG 检索基础（BM25） | 手写 BM25 retriever |
+| W3 | Dense 检索 + 向量库 | 手写 mini FAISS-like 索引 |
+| W4 | Hybrid + Rerank + Query Rewrite | 复现 RRF + 写 HyDE drift 实验报告 |
+| W5 | Agent 路由 + 工具调用 | 手写 mini agent loop |
+| W6 | LangGraph 工作流 | 用 LangGraph 写一个全新场景 |
+| W7 | 评测体系 + Safety Audit | **完成 24 条人工标注** + 写评测博客 |
+| W8 | 面试串讲 + 整体优化 | 30s/3min/5min 三个版本讲述 |
+
+### 🛡️ 关于"AI 帮做了多少"这个问题（面试必备态度）
+
+> [!TIP]
+> 这件事处理得好是加分项，处理得不好是炸点。
+
+**不要主动说，但被问到时坦诚回答：**
+
+> "项目架构和初版代码我用 AI 加速搭建，节省了 3-4 周的样板代码时间。之后所有的实验设计、baseline 对比、调试、Safety Audit 规则、HyDE drift 这个反例的发现，都是我自己跑出来的。我做这个选择是因为我清楚自己工程经验不足，与其从零写脚手架花掉所有时间，不如把时间花在'用项目学懂 RAG/Agent/评测'这件更有价值的事上。"
+
+**为什么这个回答好：**
+- 表现出"知道自己不懂什么"——这比假装全会更值钱
+- 强调"实验和判断是我的"——项目的真正价值就在这里
+- 把局限性转化成"清晰的优先级判断"——这本身就是工程能力
+- 直接堵住"是不是项目都是 AI 写的"这个炸点
+
+### 🆕 新一轮的"三张王牌"重排
+
+```
+旧三张牌：领域知识 + AI 方法论 + 学术背景 + 独特项目
+新三张牌：领域知识 + AI 方法论 + 学术背景 + 独特项目 +「真正读懂的能力」
+```
+
+8 周反向学习走完后，你会成为一种很稀缺的候选人：**有完整工程项目 + 能讲清每个设计决策 + 能手写核心模块 + 有反直觉实验故事可讲**。这是大多数"用 AI 搭项目"的同学做不到的——他们停在了"搭起来"。
+
+### 🚦 关键检查点（每周末发我）
+
+```
+W{N} · {主题} · 进度 X%
+✅ 做完了：...
+🟡 卡住的：...
+❓ 想确认的：...
+下周想做：...
+```
+
+### ⚠️ 风险提醒更新
+
+> [!CAUTION]
+> 1. **不要中途加新功能**：8 周里只允许做改进建议清单里的事，新功能等 9 月以后
+> 2. **不要为了赶进度跳过手写环节**：每周的"实操"部分（手写 BM25 / mini FAISS / mini agent / 新 LangGraph 场景）才是真正长肌肉的部分。读 1 小时代码 < 手写 30 分钟
+> 3. **2027.01 投递日不变**：8 周学习计划在 7 月底结束，留 5 个月用于刷题、八股、模拟面试和投递准备
+> 4. **诚实是最大的护城河**：面试官见过太多假装全是自己写的项目，被问 3 个细节就破。坦诚 + 能讲 + 能改写，反而是稀缺的
+
+---
+
+*第十节最后更新：2026.05.22 · 与 [project_review_2026_05_22.md](project_review_2026_05_22.md) / [learning_plan_8weeks.md](learning_plan_8weeks.md) / [project_improvement_suggestions.md](project_improvement_suggestions.md) 配套使用*
+
+*v3.2 - 2026.05.22 - 新增第十节：项目实际进展 + 反向学习重定向 | 祝你一切顺利 💪*

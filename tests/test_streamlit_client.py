@@ -71,7 +71,7 @@ def test_ask_api_posts_question_and_task_type():
     assert http_client.last_json == {
         "question": "q",
         "task_type": "document_qa",
-        "workflow_engine": "deterministic",
+        "workflow_engine": "langgraph",
     }
     assert result["answer"] == "a"
 
@@ -219,8 +219,9 @@ def test_demo_walkthroughs_cover_core_routes():
 
 
 def test_workflow_options_offer_baseline_and_langgraph():
-    assert WORKFLOW_OPTIONS["Deterministic baseline"] == "deterministic"
+    assert list(WORKFLOW_OPTIONS.values())[0] == "langgraph"
     assert WORKFLOW_OPTIONS["LangGraph workflow"] == "langgraph"
+    assert WORKFLOW_OPTIONS["Deterministic baseline"] == "deterministic"
 
 
 def test_build_workflow_trace_rows_summarizes_langgraph_nodes():
@@ -231,6 +232,9 @@ def test_build_workflow_trace_rows_summarizes_langgraph_nodes():
                 {
                     "node": "intent_classifier",
                     "route": "policy_recommendation",
+                    "classifier": "llm:deepseek:intent-test",
+                    "confidence": 0.88,
+                    "fallback_used": False,
                     "tools": [],
                     "citation_count": 0,
                     "tool_result_count": 0,
@@ -253,6 +257,8 @@ def test_build_workflow_trace_rows_summarizes_langgraph_nodes():
             "step": 1,
             "node": "intent_classifier",
             "route": "policy_recommendation",
+            "classifier": "llm:deepseek:intent-test",
+            "fallback": "no",
             "tools": "none",
             "evidence": "0 citations / 0 tool results",
             "audit": "n/a",
@@ -261,6 +267,8 @@ def test_build_workflow_trace_rows_summarizes_langgraph_nodes():
             "step": 2,
             "node": "answer_audit",
             "route": "policy_recommendation",
+            "classifier": "n/a",
+            "fallback": "n/a",
             "tools": "rule_based_policy",
             "evidence": "0 citations / 1 tool results",
             "audit": "passed",

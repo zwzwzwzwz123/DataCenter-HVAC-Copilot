@@ -27,6 +27,7 @@ from src.retrieval.embeddings import (
     SentenceTransformerEmbeddingProvider,
 )
 from src.retrieval.faiss_retriever import FaissDenseRetriever
+from src.retrieval.query_rewrite import HyDERAGPipeline, RewriteRAGPipeline
 from src.retrieval.schemas import DocumentChunk
 from src.retrieval.retriever import HybridRetriever, KeywordRetriever, RerankingRetriever
 
@@ -94,6 +95,11 @@ def run_baseline_comparison(
     hybrid_rerank_rag = ExtractiveRAGPipeline(
         RerankingRetriever(HybridRetriever(chunks), candidate_k=10)
     )
+    rewrite_rag = RewriteRAGPipeline(HybridRetriever(chunks))
+    hyde_rag = HyDERAGPipeline(HybridRetriever(chunks))
+    hyde_rerank_rag = HyDERAGPipeline(
+        RerankingRetriever(HybridRetriever(chunks), candidate_k=10)
+    )
     runs = [
         _evaluate_predictions("llm_only", records, _run_llm_only(records)),
         _evaluate_predictions(
@@ -115,6 +121,21 @@ def run_baseline_comparison(
             "rag_hybrid_rerank",
             records,
             _run_rag_only(records, hybrid_rerank_rag),
+        ),
+        _evaluate_predictions(
+            "rag_rewrite",
+            records,
+            _run_rag_only(records, rewrite_rag),
+        ),
+        _evaluate_predictions(
+            "rag_hyde",
+            records,
+            _run_rag_only(records, hyde_rag),
+        ),
+        _evaluate_predictions(
+            "rag_hyde_rerank",
+            records,
+            _run_rag_only(records, hyde_rerank_rag),
         ),
         _evaluate_predictions(
             "rag",

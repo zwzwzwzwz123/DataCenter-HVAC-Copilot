@@ -49,6 +49,39 @@ def test_render_experiment_report_creates_markdown_table():
             "answer_correctness_proxy": 0.35,
             "faithfulness_proxy": 0.45,
         },
+        "rag_rewrite": {
+            "citation_hit_rate": 0.6,
+            "context_recall": 0.8,
+            "expected_keyword_coverage": 0.55,
+            "lexical_answer_coverage": 0.3,
+            "tool_selection_accuracy": 0.0,
+            "tool_execution_success_rate": 0.0,
+            "evidence_coverage": 0.2,
+            "answer_correctness_proxy": 0.4,
+            "faithfulness_proxy": 0.5,
+        },
+        "rag_hyde": {
+            "citation_hit_rate": 0.62,
+            "context_recall": 0.82,
+            "expected_keyword_coverage": 0.57,
+            "lexical_answer_coverage": 0.31,
+            "tool_selection_accuracy": 0.0,
+            "tool_execution_success_rate": 0.0,
+            "evidence_coverage": 0.2,
+            "answer_correctness_proxy": 0.42,
+            "faithfulness_proxy": 0.52,
+        },
+        "rag_hyde_rerank": {
+            "citation_hit_rate": 0.64,
+            "context_recall": 0.84,
+            "expected_keyword_coverage": 0.59,
+            "lexical_answer_coverage": 0.32,
+            "tool_selection_accuracy": 0.0,
+            "tool_execution_success_rate": 0.0,
+            "evidence_coverage": 0.2,
+            "answer_correctness_proxy": 0.44,
+            "faithfulness_proxy": 0.54,
+        },
         "rag_tool_agent": {
             "citation_hit_rate": 0.5,
             "context_recall": 0.75,
@@ -115,8 +148,16 @@ def test_render_experiment_report_creates_markdown_table():
     assert "rag_hybrid` 在 citation/context 指标上优于 `rag_keyword" in markdown
     assert "rag_dense" in markdown
     assert "rag_hybrid_rerank" in markdown
+    assert "rag_rewrite" in markdown
+    assert "rag_hyde" in markdown
+    assert "rag_hyde_rerank" in markdown
+    assert "Query Rewrite / HyDE" in markdown
+    assert "deterministic query expansion" in markdown
     assert "langgraph_tool_agent" in markdown
     assert "StateGraph 编排" in markdown
+    assert "LLM intent classifier" in markdown
+    assert "DeepSeek/Ollama" in markdown
+    assert "scripts/run_intent_eval.py" in markdown
     assert "## 按任务类型指标" in markdown
     assert "| rag_tool_agent | document_qa | 0.500 | 0.750" in markdown
     assert "| rag_tool_agent | timeseries_query | 0.000 | 0.000" in markdown

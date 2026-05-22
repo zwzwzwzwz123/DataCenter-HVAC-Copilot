@@ -13,7 +13,7 @@ def ask_api(
     api_base_url: str,
     question: str,
     task_type: str | None = None,
-    workflow_engine: str = "deterministic",
+    workflow_engine: str = "langgraph",
     http_client: Any = httpx,
     timeout: float = 30.0,
 ) -> dict[str, Any]:

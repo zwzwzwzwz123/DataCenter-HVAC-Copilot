@@ -12,21 +12,21 @@
 
 | # | 建议项 | 优先级 | 完成状态 | 评分 |
 |---|---|---|---|---|
-| 1 | LangGraph 替换 Deterministic Router | 🔴 P0 | ⚠️ 部分完成 | 6/10 |
+| 1 | LangGraph 替换 Deterministic Router | 🔴 P0 | ✅ 已补齐 | 8/10 |
 | 2 | 启用真实语义检索（Sentence-Transformers + FAISS） | 🔴 P0 | ✅ 完成 | 9/10 |
 | 3 | 补充 Demo 截图和架构图 | 🔴 P0 | ❌ 未完成 | 1/10 |
 | 4 | Docker 容器化 | 🔴 P0 | ⚠️ 基本完成 | 7/10 |
 | 5 | 完成人工评测标注 | 🟡 P1 | ❌ 未完成 | 0/10 |
 | 6 | 生成真实 BEAR Rollout 数据 | 🟡 P1 | ✅ 完成 | 8/10 |
-| 7 | 增强 LLM 回答生成能力 | 🟡 P1 | ⚠️ 部分完成 | 5/10 |
-| 8 | 增加 Query Rewrite / HyDE | 🟡 P1 | ❌ 未完成 | 0/10 |
+| 7 | 增强 LLM 回答生成能力 | 🟡 P1 | ✅ 已补齐基础能力 | 7/10 |
+| 8 | 增加 Query Rewrite / HyDE | 🟡 P1 | ✅ 基础完成 | 7/10 |
 | 9 | 代码质量提升 | 🟢 P2 | ⚠️ 部分完成 | 4/10 |
 | 10 | 扩展评测集到 150-200 条 | 🟢 P2 | ❌ 未完成 | 0/10 |
 | 11 | 添加 API 文档（OpenAPI/Swagger） | 🟢 P2 | ❌ 未完成 | 2/10 |
 | 12 | 完善 Git 历史 | 🟢 P2 | ❌ 未完成 | 2/10 |
 
-**总体进度：2/12 完成，4 项部分完成，6 项未完成**
-**整体评分：44/120（37%）**
+**总体进度：5/12 完成，2 项部分完成，5 项未完成**
+**整体评分：60/120（50%）**
 
 ---
 
@@ -34,10 +34,10 @@
 
 ---
 
-#### ⚠️ 建议 1：LangGraph 替换 Deterministic Router — 6/10
+#### ✅ 建议 1：LangGraph 替换 Deterministic Router — 8/10
 
 > [!IMPORTANT]
-> LangGraph 已集成，但作为 **orchestration wrapper**，底层路由仍是 deterministic keyword matching。
+> 2026-05-22 更新：LangGraph 已从 wrapper 升级为可插拔 workflow。默认仍保留 rule-based classifier 作为可复现 baseline，但已支持 DeepSeek/Ollama LLM intent classification。
 
 **已完成：**
 - ✅ 新增 [langgraph_workflow.py](file:///C:/Users/zouwei/Desktop/PROJECT/DataCenter-HVAC-Copilot/src/agent/langgraph_workflow.py)（189 行），使用 `langgraph.graph.StateGraph`
@@ -48,13 +48,13 @@
 - ✅ Streamlit UI 有工作流选择器
 - ✅ 添加了 `workflow_trace` 可观测数据
 
-**未完成：**
-- ❌ **路由仍用 keyword-based `route_task()` 函数**，不是 LLM 意图判断
-- ❌ 各节点**委托回 `self.baseline._run_*()` 方法**，实际逻辑未改变
-- ❌ 未实现 LLM-based intent classification（`IntentClassifier` 不存在，只有 `router.py` 的关键词匹配）
-- ❌ README 自己也标注这是 wrapper："复用 deterministic baseline 的工具和回答生成逻辑"
+**已补齐：**
+- ✅ 新增 `src/agent/intent_classifier.py`：`RuleBasedIntentClassifier`、DeepSeek/OpenAI-compatible `LLMIntentClassifier`、Ollama/Qwen `OllamaIntentClassifier`
+- ✅ `langgraph_workflow.py` 的 `intent_classifier` 节点可注入 LLM classifier，并在 `workflow_trace` 中记录 `classifier`、`confidence`、`fallback_used`
+- ✅ 新增 `src/agent/executor.py`，Baseline 与 LangGraph 共享 `AgentTaskExecutor`，不再委托 `self.baseline._run_*()` 私有方法
+- ✅ 新增 `scripts/run_intent_eval.py` 和 `data/eval/intent_routing_comparison.json`，可对比 keyword/rule-based 与 DeepSeek/Ollama routing accuracy
 
-**评估**：LangGraph 图结构搭好了，具备了扩展基础和 demo 价值，但核心路由能力未升级。面试时需谨慎表述——可以说"用 LangGraph 编排工作流"，但不能说"用 LLM 做意图路由"。
+**评估**：当前可以说"用 LangGraph 编排工作流，并支持 LLM intent routing"。严谨表述是：默认评测口径仍为 rule-based 以保证可复现；配置 DeepSeek 或本地 Ollama/Qwen 后，LangGraph 的 intent 节点可切换为 LLM 分类。
 
 ---
 
@@ -65,7 +65,7 @@
 - ✅ [faiss_retriever.py](file:///C:/Users/zouwei/Desktop/PROJECT/DataCenter-HVAC-Copilot/src/retrieval/faiss_retriever.py)：`FaissDenseRetriever` 使用 `faiss.IndexFlatIP`
 - ✅ `pyproject.toml` 添加 `[dense]` 可选依赖：`faiss-cpu>=1.8` + `sentence-transformers>=3.0`
 - ✅ 评测已集成：`run_eval.py` 支持 `--dense-provider sentence-transformers --dense-backend faiss --dense-model BAAI/bge-small-zh-v1.5`
-- ✅ [实验报告](file:///C:/Users/zouwei/Desktop/PROJECT/DataCenter-HVAC-Copilot/docs/experiment_report.md) 有真实 dense 检索指标（citation=0.692, context_recall=0.528）
+- ✅ [实验报告](file:///C:/Users/zouwei/Desktop/PROJECT/DataCenter-HVAC-Copilot/docs/experiment_report.md) 有真实 dense 检索指标（citation=0.692, context_recall=0.692）
 - ✅ Hash embedding 保留作为无依赖 fallback
 
 **扣分原因**：dense 和 faiss 是 optional extras 而非默认依赖，Dockerfile 安装 `[dev]` 不包含 dense，Docker 环境下无法使用真实 embedding。
@@ -127,19 +127,26 @@
 - ✅ [deepseek_generator.py](file:///C:/Users/zouwei/Desktop/PROJECT/DataCenter-HVAC-Copilot/src/agent/deepseek_generator.py)（117 行）：DeepSeek API 接入，失败自动降级
 - ✅ [answer_generator.py](file:///C:/Users/zouwei/Desktop/PROJECT/DataCenter-HVAC-Copilot/src/agent/answer_generator.py)：`AnswerGenerator` Protocol 接口定义
 
-**未完成：**
-- ❌ **无 `OllamaAnswerGenerator`**（src/ 中不存在 Ollama 相关代码）
-- ❌ 无 `create_answer_generator()` 工厂函数（只有 `build_answer_generator_from_env()`，仅支持 DeepSeek / Deterministic 二选一）
-- ❌ 无多 LLM 后端对比实验数据
+**已补齐 / 仍需增强：**
+- ✅ 已新增 `src/agent/ollama_generator.py`，`build_answer_generator_from_env()` 支持 `LLM_PROVIDER=ollama`
+- ✅ `.env.example` / README 已补充 `OLLAMA_BASE_URL`、`OLLAMA_MODEL`、`OLLAMA_TIMEOUT_SECONDS`
+- ⚠️ 仍缺少多 LLM 回答质量的真实人工/LLM-as-Judge 对比实验；当前主要完成 answer generator 接口与本地后端接入
 
 ---
 
-#### ❌ 建议 8：增加 Query Rewrite / HyDE — 0/10
+#### ✅ 建议 8：增加 Query Rewrite / HyDE — 7/10
 
-**完全未实现：**
-- ❌ `src/retrieval/` 中无 `query_rewriter.py`
-- ❌ 无 `HyDEQueryRewriter` 类
-- ❌ Career plan 中标注为"规划 September 2026"
+**已完成：**
+- ✅ 新增 `src/retrieval/query_rewrite.py`，包含 `RuleBasedHVACQueryRewriter`、`TemplateHyDEGenerator`、`RewriteRAGPipeline`、`HyDERAGPipeline`
+- ✅ `run_eval.py` / `run_baseline_comparison()` 已纳入 `rag_rewrite`、`rag_hyde`、`rag_hyde_rerank`
+- ✅ [实验报告](file:///C:/Users/zouwei/Desktop/PROJECT/DataCenter-HVAC-Copilot/docs/experiment_report.md) 已展示 raw query、rewrite、template HyDE 的指标对比
+- ✅ 新增 `tests/test_query_rewrite.py` 覆盖改写、template HyDE 和 RAG wrapper 行为
+
+**当前结果：**
+- `rag_rewrite` citation/context 为 0.646，高于 `rag_keyword` 0.554、`rag_hybrid` 0.585、`rag_hybrid_rerank` 0.600
+- `rag_hyde` 与 `rag_hyde_rerank` 指标低于 rewrite，说明当前 template HyDE 会引入查询漂移；这是后续替换为 DeepSeek/Ollama HyDE generator 的实验依据
+
+**扣分原因**：当前是 deterministic template HyDE baseline，不是真实 LLM HyDE；还没有 DeepSeek/Ollama HyDE 质量对比。
 
 ---
 
@@ -199,7 +206,7 @@ graph LR
         B1["5. 人工标注<br/>❌ 0%"]
         B2["6. BEAR 数据<br/>✅ 80%"]
         B3["7. LLM 增强<br/>⚠️ 50%"]
-        B4["8. HyDE<br/>❌ 0%"]
+        B4["8. HyDE<br/>✅ 70%"]
     end
     subgraph "🟢 P2 加分项"
         C1["9. 代码质量<br/>⚠️ 40%"]
@@ -333,48 +340,48 @@ eval:          ## 运行评测
 
 ---
 
-#### 5. 【遗留】LangGraph 路由升级为 LLM-based Intent Classification
+#### 5. 【已完成基础实现】LangGraph 路由升级为 LLM-based Intent Classification
 
 > [!IMPORTANT]
-> 当前 LangGraph 是 wrapper，核心路由仍是 keyword matching。要让 LangGraph 真正有价值，需要将 `route_task()` 替换为 LLM 意图分类。
+> 2026-05-22 更新：该项已完成基础实现。LangGraph intent 节点支持 rule-based / DeepSeek / Ollama 切换，默认保留 rule-based 作为可复现 baseline。
 
 **具体改动：**
-- 在 `src/agent/` 中新增 `intent_classifier.py`
-- 实现 `LLMIntentClassifier`：用 DeepSeek/Ollama 做意图分类（few-shot prompt）
-- 修改 `langgraph_workflow.py` 的 `_intent_classifier` 节点，支持切换 rule-based / LLM
-- 对比实验：keyword routing accuracy vs LLM routing accuracy
+- ✅ 已新增 `src/agent/intent_classifier.py`
+- ✅ 已实现 DeepSeek/OpenAI-compatible `LLMIntentClassifier` 和 Ollama/Qwen `OllamaIntentClassifier`
+- ✅ `langgraph_workflow.py` 已支持注入 rule-based / LLM intent classifier
+- ✅ `scripts/run_intent_eval.py` 已输出 keyword/rule-based routing accuracy、fallback rate、confusion matrix；DeepSeek/Ollama 可在配置后同脚本对比
 
-**面试加分点**：可以展示 LangGraph 从 wrapper → 真正 LLM-driven 的演进过程。
+**面试加分点**：可以展示 LangGraph 从 wrapper → 可插拔 LLM intent classification 的演进过程，并说明默认 rule-based 口径用于可复现评测。
 
-**预估工作量：** 1 天
+**当前状态：** 基础实现已完成；后续可补真实 DeepSeek/Ollama routing accuracy 对比运行结果。
 
 ---
 
-#### 6. 【遗留】实现 OllamaAnswerGenerator
+#### 6. 【已完成基础实现】实现 OllamaAnswerGenerator
 
 **具体改动：**
-- 新增 `src/agent/ollama_generator.py`
-- 实现 `OllamaAnswerGenerator`（调用本地 Ollama API，默认 `qwen2.5:7b`）
-- 更新 `build_answer_generator_from_env()` 为工厂函数，支持 `deterministic` / `deepseek` / `ollama` 三选
-- 添加 `OLLAMA_MODEL`, `OLLAMA_BASE_URL` 环境变量
+- ✅ 已新增 `src/agent/ollama_generator.py`
+- ✅ 已实现 `OllamaAnswerGenerator`（调用本地 Ollama API，默认 `qwen2.5:7b`）
+- ✅ `build_answer_generator_from_env()` 支持 `deterministic` / `deepseek` / `ollama`
+- ✅ 已添加 `OLLAMA_MODEL`, `OLLAMA_BASE_URL`, `OLLAMA_TIMEOUT_SECONDS` 环境变量
 
 **面试加分点**：多 LLM 后端适配设计，展示工程灵活性。
 
-**预估工作量：** 半天
+**当前状态：** 基础实现已完成；后续可补多 LLM 回答质量对比实验。
 
 ---
 
-#### 7. 【遗留】实现 HyDE Query Rewrite
+#### 7. 【已完成基础实现】实现 HyDE Query Rewrite
 
-**具体改动：**
-- 新增 `src/retrieval/query_rewriter.py`
-- 实现 `HyDEQueryRewriter`：template-based（无需 LLM）+ LLM-based（可选）
-- 集成到评测 pipeline，对比 raw query vs HyDE 的检索指标
-- 更新实验报告
+**当前状态：**
+- ✅ 已新增 `src/retrieval/query_rewrite.py`
+- ✅ 已实现 deterministic query rewrite 和 template HyDE baseline
+- ✅ 已集成到评测 pipeline，对比 raw query / rewrite / HyDE / HyDE + rerank
+- ✅ 已更新实验报告
 
-**面试加分点**：RAG 面试高频考点，有实验数据支撑。
+**面试加分点**：RAG 面试高频考点，有实验数据支撑。当前结果说明 query rewrite 有收益，而 template HyDE 并非无脑提升，体现了实验判断能力。
 
-**预估工作量：** 1 天
+**后续增强**：可替换为 DeepSeek/Ollama HyDE generator，并增加 HyDE prompt 审计。
 
 ---
 
@@ -458,9 +465,9 @@ eval:          ## 运行评测
 | 🔴 P0 | 人工评测标注 | 2-3h | ⭐⭐⭐⭐ | 遗留 |
 | 🔴 P0 | CI + Pre-commit | 1h | ⭐⭐⭐⭐ | 遗留 |
 | 🔴 P0 | Makefile | 15min | ⭐⭐⭐ | 遗留 |
-| 🟡 P1 | LLM Intent Classification | 1 天 | ⭐⭐⭐⭐⭐ | 遗留升级 |
-| 🟡 P1 | OllamaAnswerGenerator | 半天 | ⭐⭐⭐ | 遗留 |
-| 🟡 P1 | HyDE Query Rewrite | 1 天 | ⭐⭐⭐⭐ | 遗留 |
+| ✅ Done | LLM Intent Classification 基础实现 | 已完成 | ⭐⭐⭐⭐⭐ | 已补齐 |
+| ✅ Done | OllamaAnswerGenerator 基础实现 | 已完成 | ⭐⭐⭐ | 已补齐 |
+| ✅ Done | HyDE Query Rewrite 基础实现 | 已完成 | ⭐⭐⭐⭐ | 已补齐 |
 | 🟡 P1 | Structured Logging | 半天 | ⭐⭐⭐ | 遗留 |
 | 🟡 P1 | 扩展评测集 150 条 | 半天 | ⭐⭐⭐ | 遗留 |
 | 🟢 P2 | API 文档完善 | 1h | ⭐⭐ | 遗留 |
@@ -489,13 +496,13 @@ eval:          ## 运行评测
 ### 面试时需要谨慎表述的
 
 > [!WARNING]
-> - LangGraph：说"用 LangGraph 编排工作流"，**不能说**"用 LLM 做意图路由"（实际仍是 keyword matching）
+> - LangGraph：可以说"用 LangGraph 编排工作流，并支持 DeepSeek/Ollama LLM intent routing"；同时说明默认评测仍用 rule-based classifier 保证可复现。
 > - 评测：说"100 条评测集"，**不能说**"包含人工标注校准"（人工标注全部 pending）
 > - 检索：说"支持 dense retrieval"，注意 dense 是 optional extra，Docker 镜像默认不含
 
 ### 补齐 P0 后的简历一句话
 
-> 构建 DataCenter-HVAC Copilot：基于 **LangGraph StateGraph** 的 RAG + Tool Agent 系统，面向数据中心 HVAC 仿真场景。集成 **Hybrid 检索**（BM25 + BGE-small-zh + FAISS + Rerank）、时序分析工具、RL/扩散策略推理适配器和 Safety Audit；支持 **DeepSeek 可选接入**。在 **100 条评测集**上对比 7 组 baseline，检索 citation_hit_rate 从 keyword 的 0.596 提升到 dense_real 的 0.692。Docker 容器化部署，FastAPI + Streamlit Demo。
+> 构建 DataCenter-HVAC Copilot：基于 **LangGraph StateGraph** 的 RAG + Tool Agent 系统，面向数据中心 HVAC 仿真场景。集成 **Hybrid 检索**（BM25 + BGE-small-zh + FAISS + Rerank）、Query Rewrite / template HyDE、时序分析工具、RL/扩散策略推理适配器和 Safety Audit；支持 **DeepSeek/Ollama 可选接入**。在 **100 条评测集**上对比 10+ 组 baseline，检索 citation_hit_rate 从 keyword 的 0.554 提升到 dense_real 的 0.692，query rewrite 达到 0.646。Docker 容器化部署，FastAPI + Streamlit Demo。
 
 ---
 

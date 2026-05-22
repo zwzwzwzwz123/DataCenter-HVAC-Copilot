@@ -39,6 +39,8 @@ def test_ask_endpoint_returns_orchestrator_response():
 
     body = response.json()
     assert response.status_code == 200
+    assert body["workflow_engine"] == "langgraph"
+    assert body["workflow_trace"]
     assert body["route"] == "timeseries_query"
     assert body["tools"] == ["query_metric"]
     assert body["data_source"]["kind"] in {"processed_csv", "bear_sample_csv", "mock"}
@@ -68,6 +70,97 @@ def test_ask_endpoint_can_run_langgraph_workflow_trace():
         "answer_audit",
     ]
     assert body["tools"] == ["rule_based_policy"]
+    assert body["workflow_trace"][0]["classifier"] == "rule_based"
+    assert body["workflow_trace"][0]["fallback_used"] is False
+
+
+def test_create_app_can_disable_env_intent_classifier(monkeypatch):
+    monkeypatch.setenv("LANGGRAPH_INTENT_PROVIDER", "deepseek")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "test-key")
+    client = TestClient(
+        create_app(
+            use_env_answer_generator=False,
+            use_env_intent_classifier=False,
+        )
+    )
+
+    response = client.post(
+        "/ask",
+        json={
+            "question": "当前温度超过上限时是否应该调整控制策略？",
+            "workflow_engine": "langgraph",
+        },
+    )
+
+    body = response.json()
+    assert response.status_code == 200
+    assert body["workflow_trace"][0]["classifier"] == "rule_based"
+    monkeypatch.delenv("LANGGRAPH_INTENT_PROVIDER", raising=False)
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+
+
+def test_auto_intent_provider_uses_deepseek_when_key_is_available(monkeypatch):
+    captured = {}
+
+    def fake_transport(url, headers, body, timeout):
+        captured["url"] = url
+        captured["headers"] = headers
+        return {
+            "choices": [
+                {
+                    "message": {
+                        "content": (
+                            '{"route":"policy_recommendation",'
+                            '"confidence":0.91,'
+                            '"reason":"LLM selected policy route."}'
+                        )
+                    }
+                }
+            ]
+        }
+
+    monkeypatch.delenv("LANGGRAPH_INTENT_PROVIDER", raising=False)
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "test-key")
+    monkeypatch.setattr(
+        "src.api.app.build_intent_classifier_from_env",
+        lambda: __import__(
+            "src.agent.intent_classifier",
+            fromlist=["build_intent_classifier_from_env"],
+        ).build_intent_classifier_from_env(transport=fake_transport),
+    )
+    client = TestClient(create_app(use_env_answer_generator=False))
+
+    response = client.post(
+        "/ask",
+        json={"question": "当前温度超过上限时怎么办？"},
+    )
+
+    body = response.json()
+    assert response.status_code == 200
+    assert body["workflow_engine"] == "langgraph"
+    assert body["route"] == "policy_recommendation"
+    assert body["workflow_trace"][0]["classifier"].startswith("llm:deepseek:")
+    assert body["workflow_trace"][0]["fallback_used"] is False
+    assert captured["headers"]["Authorization"] == "Bearer test-key"
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+
+
+def test_intent_provider_can_be_forced_to_rule_based(monkeypatch):
+    monkeypatch.setenv("LANGGRAPH_INTENT_PROVIDER", "rule_based")
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+    client = TestClient(create_app(use_env_answer_generator=False))
+
+    response = client.post(
+        "/ask",
+        json={"question": "当前温度超过上限时怎么办？"},
+    )
+
+    body = response.json()
+    assert response.status_code == 200
+    assert body["workflow_engine"] == "langgraph"
+    assert body["workflow_trace"][0]["classifier"] == "rule_based"
+    assert body["workflow_trace"][0]["fallback_used"] is False
+    monkeypatch.delenv("LANGGRAPH_INTENT_PROVIDER", raising=False)
 
 
 def test_ask_endpoint_rejects_unknown_workflow_engine():

@@ -16,7 +16,7 @@ uvicorn src.api.app:app --reload
 streamlit run app/streamlit_app.py
 ```
 
-如果本地 `.env` 配置了 `DEEPSEEK_API_KEY`，Copilot tab 的 `Generator` 会显示 `deepseek:<model>`。评测页仍默认使用 deterministic generator，避免批量 API 调用影响复现。
+Copilot tab 默认使用 LangGraph workflow，并展示 `LangGraph Workflow Trace`。如果本地 `.env` 配置了 `DEEPSEEK_API_KEY` 且 `LANGGRAPH_INTENT_PROVIDER=auto`，intent classifier 节点会自动使用 DeepSeek；未配置 key 时回退 rule-based。评测页仍默认使用 deterministic generator，避免批量 API 调用影响复现。
 
 当前 Streamlit 首页是专业深色控制台布局：左侧 `Mission Control` 负责选择 walkthrough、任务类型和问题，右侧 `Grounded Answer` 展示回答、Route / Tools / Generator / Evidence / Audit / Data Source 状态卡片，以及后续的结构化证据面板。演示时可以先说明这是一个 HVAC 仿真 Agent 工作台，而不是普通聊天框。
 
@@ -109,9 +109,9 @@ Safety Audit 在这里做什么？
 
 > Safety Audit 是 deterministic guardrail，用于检查最终 answer 是否踩到项目边界，例如把 BEAR 说成真实生产遥测、声称 LLM 直接写回控制动作，或在策略回答中出现 policy 工具未返回的动作。
 
-为什么还没上 LangGraph / FAISS？
+LangGraph / FAISS 现在怎么讲？
 
-> 当前阶段优先完成可复现闭环：RAG、工具、策略边界、API、UI 和评测。LangGraph 和 FAISS/Qdrant 是后续可替换增强项，不影响当前核心能力证明。
+> 当前阶段已经完成可复现闭环：RAG、工具、策略边界、API、UI、LangGraph workflow trace、FAISS dense baseline 和评测。Qdrant 服务化、更强 reranker 和更多人工评测是后续增强项，不影响当前核心能力证明。
 
 评测指标怎么理解？
 

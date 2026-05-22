@@ -1,0 +1,1166 @@
+{
+  "eval_path": "data\\eval\\hvac_eval.jsonl",
+  "providers": [
+    "rule_based"
+  ],
+  "runs": {
+    "rule_based": {
+      "status": "complete",
+      "metrics": {
+        "total": 100,
+        "correct": 64,
+        "accuracy": 0.64,
+        "fallback_rate": 0.0,
+        "by_task_type": {
+          "anomaly_diagnosis": {
+            "total": 20,
+            "correct": 15,
+            "accuracy": 0.75
+          },
+          "document_qa": {
+            "total": 40,
+            "correct": 22,
+            "accuracy": 0.55
+          },
+          "policy_recommendation": {
+            "total": 20,
+            "correct": 15,
+            "accuracy": 0.75
+          },
+          "timeseries_query": {
+            "total": 20,
+            "correct": 12,
+            "accuracy": 0.6
+          }
+        },
+        "confusion_matrix": {
+          "anomaly_diagnosis": {
+            "anomaly_diagnosis": 15,
+            "document_qa": 3,
+            "policy_recommendation": 1,
+            "timeseries_query": 1
+          },
+          "document_qa": {
+            "anomaly_diagnosis": 5,
+            "document_qa": 22,
+            "policy_recommendation": 6,
+            "timeseries_query": 7
+          },
+          "policy_recommendation": {
+            "document_qa": 4,
+            "policy_recommendation": 15,
+            "timeseries_query": 1
+          },
+          "timeseries_query": {
+            "anomaly_diagnosis": 1,
+            "document_qa": 6,
+            "policy_recommendation": 1,
+            "timeseries_query": 12
+          }
+        }
+      },
+      "predictions": [
+        {
+          "id": "doc_qa_001",
+          "question": "数据中心冷却系统为什么可能出现高能耗？",
+          "expected_route": "document_qa",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "doc_qa_002",
+          "question": "提高送风温度设定值通常如何影响 HVAC 能耗和热风险？",
+          "expected_route": "document_qa",
+          "predicted_route": "timeseries_query",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Question asks for trajectory metric analysis."
+        },
+        {
+          "id": "doc_qa_003",
+          "question": "为什么只看单点温度不足以判断冷却系统是否健康？",
+          "expected_route": "document_qa",
+          "predicted_route": "timeseries_query",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Question asks for trajectory metric analysis."
+        },
+        {
+          "id": "doc_qa_004",
+          "question": "冷却系统优化时为什么要同时考虑能耗和舒适度约束？",
+          "expected_route": "document_qa",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "doc_qa_005",
+          "question": "什么情况下应将 HVAC 问题从普通问答升级为时序分析任务？",
+          "expected_route": "document_qa",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "doc_qa_006",
+          "question": "BEAR 轨迹在本项目中应如何表述，为什么不能说成真实生产数据？",
+          "expected_route": "document_qa",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "doc_qa_007",
+          "question": "如果检索证据不足，系统回答应遵循什么原则？",
+          "expected_route": "document_qa",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "doc_qa_008",
+          "question": "为什么 Agent 不应该直接写回控制动作到 BEAR 环境？",
+          "expected_route": "document_qa",
+          "predicted_route": "policy_recommendation",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Question asks for control or policy recommendation."
+        },
+        {
+          "id": "ts_query_001",
+          "question": "episode_001 中 zone_a 在最近 3 小时的温度最大值是多少？",
+          "expected_route": "timeseries_query",
+          "predicted_route": "timeseries_query",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for trajectory metric analysis."
+        },
+        {
+          "id": "ts_query_002",
+          "question": "请查询当前轨迹中 zone_temperature 的最小值和平均值。",
+          "expected_route": "timeseries_query",
+          "predicted_route": "timeseries_query",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for trajectory metric analysis."
+        },
+        {
+          "id": "ts_query_003",
+          "question": "最近窗口内某区域温度是否超过 26 摄氏度？",
+          "expected_route": "timeseries_query",
+          "predicted_route": "timeseries_query",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for trajectory metric analysis."
+        },
+        {
+          "id": "ts_query_004",
+          "question": "zone_a 的温度数据覆盖了什么时间范围？",
+          "expected_route": "timeseries_query",
+          "predicted_route": "timeseries_query",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for trajectory metric analysis."
+        },
+        {
+          "id": "ts_query_005",
+          "question": "当前 BEAR-like 轨迹中 zone_temperature 的样本数量是多少？",
+          "expected_route": "timeseries_query",
+          "predicted_route": "timeseries_query",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for trajectory metric analysis."
+        },
+        {
+          "id": "ts_query_006",
+          "question": "请给出当前区域温度查询的结构化摘要。",
+          "expected_route": "timeseries_query",
+          "predicted_route": "timeseries_query",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for trajectory metric analysis."
+        },
+        {
+          "id": "ts_query_007",
+          "question": "如果用户问最近温度最高点，应调用什么工具并返回哪些字段？",
+          "expected_route": "timeseries_query",
+          "predicted_route": "timeseries_query",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for trajectory metric analysis."
+        },
+        {
+          "id": "ts_query_008",
+          "question": "请检查当前轨迹中 zone_temperature 是否有可用观测值。",
+          "expected_route": "timeseries_query",
+          "predicted_route": "timeseries_query",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for trajectory metric analysis."
+        },
+        {
+          "id": "anomaly_001",
+          "question": "zone_a 是否存在温度异常升高？",
+          "expected_route": "anomaly_diagnosis",
+          "predicted_route": "anomaly_diagnosis",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question mentions anomaly-like behavior."
+        },
+        {
+          "id": "anomaly_002",
+          "question": "温度突然上升时，系统应该如何定位异常证据？",
+          "expected_route": "anomaly_diagnosis",
+          "predicted_route": "anomaly_diagnosis",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question mentions anomaly-like behavior."
+        },
+        {
+          "id": "anomaly_003",
+          "question": "请判断当前轨迹是否存在温控波动异常。",
+          "expected_route": "anomaly_diagnosis",
+          "predicted_route": "anomaly_diagnosis",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question mentions anomaly-like behavior."
+        },
+        {
+          "id": "anomaly_004",
+          "question": "如果风机或冷却动作变化后温度仍升高，应先看什么时序证据？",
+          "expected_route": "anomaly_diagnosis",
+          "predicted_route": "anomaly_diagnosis",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question mentions anomaly-like behavior."
+        },
+        {
+          "id": "anomaly_005",
+          "question": "请用工具判断当前温度序列有没有离群点。",
+          "expected_route": "anomaly_diagnosis",
+          "predicted_route": "timeseries_query",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Question asks for trajectory metric analysis."
+        },
+        {
+          "id": "anomaly_006",
+          "question": "如何确认某个高温片段不是正常负载变化？",
+          "expected_route": "anomaly_diagnosis",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "anomaly_007",
+          "question": "当前轨迹中是否有需要标记为告警候选的温度点？",
+          "expected_route": "anomaly_diagnosis",
+          "predicted_route": "anomaly_diagnosis",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question mentions anomaly-like behavior."
+        },
+        {
+          "id": "policy_001",
+          "question": "如果当前温度超过舒适上限，是否应该调整控制策略？",
+          "expected_route": "policy_recommendation",
+          "predicted_route": "policy_recommendation",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for control or policy recommendation."
+        },
+        {
+          "id": "policy_002",
+          "question": "当前策略建议是否可以直接由 LLM 编造控制动作？",
+          "expected_route": "policy_recommendation",
+          "predicted_route": "policy_recommendation",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for control or policy recommendation."
+        },
+        {
+          "id": "policy_003",
+          "question": "如果温度低于舒适下限，规则策略可能给出什么方向的建议？",
+          "expected_route": "policy_recommendation",
+          "predicted_route": "policy_recommendation",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for control or policy recommendation."
+        },
+        {
+          "id": "policy_004",
+          "question": "请给出当前状态的节能控制建议，并说明其来源。",
+          "expected_route": "policy_recommendation",
+          "predicted_route": "policy_recommendation",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for control or policy recommendation."
+        },
+        {
+          "id": "policy_005",
+          "question": "什么时候应该使用 offline replay 而不是让模型生成策略？",
+          "expected_route": "policy_recommendation",
+          "predicted_route": "policy_recommendation",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for control or policy recommendation."
+        },
+        {
+          "id": "policy_006",
+          "question": "策略推荐回答中必须包含哪些结构化信息？",
+          "expected_route": "policy_recommendation",
+          "predicted_route": "policy_recommendation",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for control or policy recommendation."
+        },
+        {
+          "id": "policy_007",
+          "question": "如果当前状态接近舒适区间，是否仍需要激进调整？",
+          "expected_route": "policy_recommendation",
+          "predicted_route": "policy_recommendation",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for control or policy recommendation."
+        },
+        {
+          "id": "doc_qa_009",
+          "question": "冷热通道封闭为什么有助于降低回流风险？",
+          "expected_route": "document_qa",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "doc_qa_010",
+          "question": "Agent 和控制策略之间应该如何分工？",
+          "expected_route": "document_qa",
+          "predicted_route": "policy_recommendation",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Question asks for control or policy recommendation."
+        },
+        {
+          "id": "doc_qa_011",
+          "question": "评测集记录为什么要包含 required_tools 和 required_documents？",
+          "expected_route": "document_qa",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "doc_qa_012",
+          "question": "BEAR 轨迹中的 PUE、湿度和 IT 负载字段应该如何处理？",
+          "expected_route": "document_qa",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "doc_qa_013",
+          "question": "containment 证据为什么还需要结合 zone temperature trend 和 control action？",
+          "expected_route": "document_qa",
+          "predicted_route": "timeseries_query",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Question asks for trajectory metric analysis."
+        },
+        {
+          "id": "doc_qa_014",
+          "question": "提高 supply temperature setpoint 的节能建议为什么必须保留 comfort violation 和 policy 工具边界？",
+          "expected_route": "document_qa",
+          "predicted_route": "policy_recommendation",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Question asks for control or policy recommendation."
+        },
+        {
+          "id": "doc_qa_015",
+          "question": "rack delta-t return differential alarm evidence 应该看哪些证据？",
+          "expected_route": "document_qa",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "doc_qa_016",
+          "question": "supply air reset risk 为什么不能只看平均温度？",
+          "expected_route": "document_qa",
+          "predicted_route": "timeseries_query",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Question asks for trajectory metric analysis."
+        },
+        {
+          "id": "doc_qa_017",
+          "question": "传感器漂移导致的高温告警应该怎样验证？",
+          "expected_route": "document_qa",
+          "predicted_route": "anomaly_diagnosis",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Question mentions anomaly-like behavior."
+        },
+        {
+          "id": "doc_qa_018",
+          "question": "return air differential 和 rack delta-t 可以提示哪些冷却问题？",
+          "expected_route": "document_qa",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "doc_qa_019",
+          "question": "为什么长篇 cooling airflow 噪声文档不应压过更具体的 supply air reset 文档？",
+          "expected_route": "document_qa",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "doc_qa_020",
+          "question": "冷通道封闭改善后 Delta-T 上升是否一定是坏事？",
+          "expected_route": "document_qa",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "doc_qa_021",
+          "question": "异常诊断中 alarm false positive 和 sensor drift 有什么关系？",
+          "expected_route": "document_qa",
+          "predicted_route": "anomaly_diagnosis",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Question mentions anomaly-like behavior."
+        },
+        {
+          "id": "doc_qa_022",
+          "question": "设定点上调建议中为什么必须说明 policy 工具来源？",
+          "expected_route": "document_qa",
+          "predicted_route": "policy_recommendation",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Question asks for control or policy recommendation."
+        },
+        {
+          "id": "doc_qa_023",
+          "question": "判断 Delta-T 变化原因时，为什么要同时看 fan_power 或 control_action？",
+          "expected_route": "document_qa",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "anomaly_008",
+          "question": "如果只有单个区域出现高温告警，如何判断是否可能是 sensor drift？",
+          "expected_route": "anomaly_diagnosis",
+          "predicted_route": "anomaly_diagnosis",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question mentions anomaly-like behavior."
+        },
+        {
+          "id": "anomaly_009",
+          "question": "Delta-T 异常升高并伴随 comfort violation 时应先做什么？",
+          "expected_route": "anomaly_diagnosis",
+          "predicted_route": "anomaly_diagnosis",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question mentions anomaly-like behavior."
+        },
+        {
+          "id": "policy_008",
+          "question": "当 supply air reset 有节能潜力但存在热点风险时，Agent 应如何回答？",
+          "expected_route": "policy_recommendation",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "policy_009",
+          "question": "如果用户要求直接给出风机和冷却动作数值，系统应该怎样保持边界？",
+          "expected_route": "policy_recommendation",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "doc_qa_024",
+          "question": "economizer free cooling 适合在什么证据下讨论？",
+          "expected_route": "document_qa",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "doc_qa_025",
+          "question": "free cooling 为什么不能只凭室外温度判断可行？",
+          "expected_route": "document_qa",
+          "predicted_route": "timeseries_query",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Question asks for trajectory metric analysis."
+        },
+        {
+          "id": "doc_qa_026",
+          "question": "维护窗口期间冷却告警为什么要结合冗余能力解释？",
+          "expected_route": "document_qa",
+          "predicted_route": "anomaly_diagnosis",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Question mentions anomaly-like behavior."
+        },
+        {
+          "id": "doc_qa_027",
+          "question": "N+1 redundancy 下降时，温度异常诊断应优先看哪些证据？",
+          "expected_route": "document_qa",
+          "predicted_route": "anomaly_diagnosis",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Question mentions anomaly-like behavior."
+        },
+        {
+          "id": "doc_qa_028",
+          "question": "液冷和风冷混合场景下，为什么不能把 zone_temperature 当作液路状态？",
+          "expected_route": "document_qa",
+          "predicted_route": "timeseries_query",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Question asks for trajectory metric analysis."
+        },
+        {
+          "id": "doc_qa_029",
+          "question": "hybrid cooling 评估中 fan_power 下降能说明什么，不能说明什么？",
+          "expected_route": "document_qa",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "doc_qa_030",
+          "question": "传感器缺失时，为什么回答要先说明 count 和时间范围？",
+          "expected_route": "document_qa",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "doc_qa_031",
+          "question": "采样窗口过短会如何影响异常检测？",
+          "expected_route": "document_qa",
+          "predicted_route": "anomaly_diagnosis",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Question mentions anomaly-like behavior."
+        },
+        {
+          "id": "doc_qa_032",
+          "question": "offline replay 与 diffusion adapter 的边界是什么？",
+          "expected_route": "document_qa",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "doc_qa_033",
+          "question": "为什么 natural language policy advice 不能当成控制器输出？",
+          "expected_route": "document_qa",
+          "predicted_route": "policy_recommendation",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Question asks for control or policy recommendation."
+        },
+        {
+          "id": "doc_qa_034",
+          "question": "什么问题应该调用 compare_period 而不是 query_metric？",
+          "expected_route": "document_qa",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "doc_qa_035",
+          "question": "plot_metric_trend 在 demo 中适合回答哪类问题？",
+          "expected_route": "document_qa",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "doc_qa_036",
+          "question": "如果用户问能耗构成，为什么应该调用 compute_energy_breakdown？",
+          "expected_route": "document_qa",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "doc_qa_037",
+          "question": "液冷相关问题中，哪些字段不能由当前 BEAR adapter 编造？",
+          "expected_route": "document_qa",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "doc_qa_038",
+          "question": "空气侧 economizer 策略为什么需要说明 humidity 字段边界？",
+          "expected_route": "document_qa",
+          "predicted_route": "policy_recommendation",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Question asks for control or policy recommendation."
+        },
+        {
+          "id": "doc_qa_039",
+          "question": "维护窗口中的单点高温为什么不能直接判定容量不足？",
+          "expected_route": "document_qa",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "doc_qa_040",
+          "question": "时序工具回答为什么要保留 zone_id、count 和时间范围？",
+          "expected_route": "document_qa",
+          "predicted_route": "timeseries_query",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Question asks for trajectory metric analysis."
+        },
+        {
+          "id": "ts_query_009",
+          "question": "请比较 zone_temperature 在前半段和后半段的平均值变化。",
+          "expected_route": "timeseries_query",
+          "predicted_route": "timeseries_query",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for trajectory metric analysis."
+        },
+        {
+          "id": "ts_query_010",
+          "question": "请生成 zone_a 温度趋势图所需的数据。",
+          "expected_route": "timeseries_query",
+          "predicted_route": "timeseries_query",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for trajectory metric analysis."
+        },
+        {
+          "id": "ts_query_011",
+          "question": "当前轨迹的冷却能耗构成是什么？",
+          "expected_route": "timeseries_query",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "ts_query_012",
+          "question": "请查询 fan_power 的平均值和最大值。",
+          "expected_route": "timeseries_query",
+          "predicted_route": "timeseries_query",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for trajectory metric analysis."
+        },
+        {
+          "id": "ts_query_013",
+          "question": "请比较 control_action 在两个时间窗口中的变化。",
+          "expected_route": "timeseries_query",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "ts_query_014",
+          "question": "最近温度趋势是否适合画折线图展示？",
+          "expected_route": "timeseries_query",
+          "predicted_route": "timeseries_query",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for trajectory metric analysis."
+        },
+        {
+          "id": "ts_query_015",
+          "question": "请检查 outdoor_temp 的数据覆盖范围。",
+          "expected_route": "timeseries_query",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "ts_query_016",
+          "question": "维护窗口前后 zone_temperature 是否升高？",
+          "expected_route": "timeseries_query",
+          "predicted_route": "anomaly_diagnosis",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Question mentions anomaly-like behavior."
+        },
+        {
+          "id": "ts_query_017",
+          "question": "当前轨迹有哪些可用能耗字段可以汇总？",
+          "expected_route": "timeseries_query",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "ts_query_018",
+          "question": "请给出 control_action 的趋势序列。",
+          "expected_route": "timeseries_query",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "ts_query_019",
+          "question": "请查询 internal_load 的统计摘要。",
+          "expected_route": "timeseries_query",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "ts_query_020",
+          "question": "请比较 fan_power 在策略调整前后的变化。",
+          "expected_route": "timeseries_query",
+          "predicted_route": "policy_recommendation",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Question asks for control or policy recommendation."
+        },
+        {
+          "id": "anomaly_010",
+          "question": "如果 temperature spike 只出现在单个区域，如何用工具确认？",
+          "expected_route": "anomaly_diagnosis",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "anomaly_011",
+          "question": "采样窗口过短时，异常诊断回答应如何保守表达？",
+          "expected_route": "anomaly_diagnosis",
+          "predicted_route": "anomaly_diagnosis",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question mentions anomaly-like behavior."
+        },
+        {
+          "id": "anomaly_012",
+          "question": "维护窗口期间出现高温点，应如何判断告警优先级？",
+          "expected_route": "anomaly_diagnosis",
+          "predicted_route": "anomaly_diagnosis",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question mentions anomaly-like behavior."
+        },
+        {
+          "id": "anomaly_013",
+          "question": "free cooling 开启后温度波动异常，应先看什么？",
+          "expected_route": "anomaly_diagnosis",
+          "predicted_route": "anomaly_diagnosis",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question mentions anomaly-like behavior."
+        },
+        {
+          "id": "anomaly_014",
+          "question": "缺失观测值会怎样影响告警候选判断？",
+          "expected_route": "anomaly_diagnosis",
+          "predicted_route": "anomaly_diagnosis",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question mentions anomaly-like behavior."
+        },
+        {
+          "id": "anomaly_015",
+          "question": "Delta-T 变化与风量不足相关时，应如何定位异常证据？",
+          "expected_route": "anomaly_diagnosis",
+          "predicted_route": "anomaly_diagnosis",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question mentions anomaly-like behavior."
+        },
+        {
+          "id": "anomaly_016",
+          "question": "如果冷却冗余下降且温度持续升高，应使用什么工具？",
+          "expected_route": "anomaly_diagnosis",
+          "predicted_route": "anomaly_diagnosis",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question mentions anomaly-like behavior."
+        },
+        {
+          "id": "anomaly_017",
+          "question": "传感器漂移和真实热点如何初步区分？",
+          "expected_route": "anomaly_diagnosis",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "anomaly_018",
+          "question": "液冷混合场景中风侧温度异常能否证明 CDU 故障？",
+          "expected_route": "anomaly_diagnosis",
+          "predicted_route": "anomaly_diagnosis",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question mentions anomaly-like behavior."
+        },
+        {
+          "id": "anomaly_019",
+          "question": "过度制冷导致温度过低时，如何用异常工具标记？",
+          "expected_route": "anomaly_diagnosis",
+          "predicted_route": "anomaly_diagnosis",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question mentions anomaly-like behavior."
+        },
+        {
+          "id": "anomaly_020",
+          "question": "控制动作频繁变化但温度没有改善，如何判断控制震荡？",
+          "expected_route": "anomaly_diagnosis",
+          "predicted_route": "policy_recommendation",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Question asks for control or policy recommendation."
+        },
+        {
+          "id": "policy_010",
+          "question": "如果 free cooling 有节能潜力，策略建议应如何保持边界？",
+          "expected_route": "policy_recommendation",
+          "predicted_route": "policy_recommendation",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for control or policy recommendation."
+        },
+        {
+          "id": "policy_011",
+          "question": "维护窗口中是否应该激进降低冷却功率？",
+          "expected_route": "policy_recommendation",
+          "predicted_route": "timeseries_query",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Question asks for trajectory metric analysis."
+        },
+        {
+          "id": "policy_012",
+          "question": "液冷混合场景是否可以让 LLM 直接输出 CDU 控制量？",
+          "expected_route": "policy_recommendation",
+          "predicted_route": "policy_recommendation",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for control or policy recommendation."
+        },
+        {
+          "id": "policy_013",
+          "question": "当真实 DiffFNO 后端未接入时，策略推荐应如何输出？",
+          "expected_route": "policy_recommendation",
+          "predicted_route": "policy_recommendation",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for control or policy recommendation."
+        },
+        {
+          "id": "policy_014",
+          "question": "如果用户要求 estimated_energy，系统应从哪里取得？",
+          "expected_route": "policy_recommendation",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "policy_015",
+          "question": "传感器缺失时是否应该输出激进策略建议？",
+          "expected_route": "policy_recommendation",
+          "predicted_route": "policy_recommendation",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for control or policy recommendation."
+        },
+        {
+          "id": "policy_016",
+          "question": "如果 comfort violation 增加但能耗下降，策略建议应如何权衡？",
+          "expected_route": "policy_recommendation",
+          "predicted_route": "policy_recommendation",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for control or policy recommendation."
+        },
+        {
+          "id": "policy_017",
+          "question": "policy recommendation 中如何说明 fallback 来源？",
+          "expected_route": "policy_recommendation",
+          "predicted_route": "policy_recommendation",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for control or policy recommendation."
+        },
+        {
+          "id": "policy_018",
+          "question": "当 outdoor_temp 较低时，是否一定推荐 free cooling？",
+          "expected_route": "policy_recommendation",
+          "predicted_route": "document_qa",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": false,
+          "reason": "Defaulted to document QA."
+        },
+        {
+          "id": "policy_019",
+          "question": "如果 compare_period 显示维护后能耗上升，策略建议应如何给出？",
+          "expected_route": "policy_recommendation",
+          "predicted_route": "policy_recommendation",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for control or policy recommendation."
+        },
+        {
+          "id": "policy_020",
+          "question": "策略回答中如何避免把仿真结论当成生产控制指令？",
+          "expected_route": "policy_recommendation",
+          "predicted_route": "policy_recommendation",
+          "classifier": "rule_based",
+          "confidence": 0.65,
+          "fallback_used": false,
+          "correct": true,
+          "reason": "Question asks for control or policy recommendation."
+        }
+      ]
+    }
+  }
+}

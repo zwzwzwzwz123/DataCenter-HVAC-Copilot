@@ -6,7 +6,12 @@ def test_readme_documents_chinese_project_overview_and_boundaries() -> None:
 
     assert "项目亮点" in content
     assert "系统架构" in content
-    assert "DeepSeek 配置" in content
+    assert "LLM 后端配置" in content
+    assert "OLLAMA_MODEL" in content
+    assert "LANGGRAPH_INTENT_PROVIDER" in content
+    assert "LLM intent classifier" in content
+    assert "scripts/run_intent_eval.py" in content
+    assert "ollama" in content
     assert "不是普通 ChatPDF" in content
     assert "不能伪装成真实数据中心生产遥测" in content
     assert "LLM / Agent 只负责任务路由、证据整合和解释生成" in content
@@ -24,6 +29,24 @@ def test_readme_mentions_human_evaluation_calibration() -> None:
     assert "human_review_annotations.jsonl" in content
 
 
+def test_demo_walkthrough_does_not_describe_langgraph_as_future_work() -> None:
+    content = Path("docs/demo_walkthrough.md").read_text(encoding="utf-8")
+
+    assert "LangGraph 和 FAISS/Qdrant 是后续可替换增强项" not in content
+    assert "为什么还没上 LangGraph / FAISS" not in content
+
+
+def test_project_progress_evaluation_reflects_langgraph_and_ollama_updates() -> None:
+    content = Path("project_progress_evaluation.md").read_text(encoding="utf-8")
+
+    assert "IntentClassifier` 不存在" not in content
+    assert "无 `OllamaAnswerGenerator`" not in content
+    assert "不能说**\"用 LLM 做意图路由\"" not in content
+    assert "src/agent/intent_classifier.py" in content
+    assert "src/agent/ollama_generator.py" in content
+    assert "scripts/run_intent_eval.py" in content
+
+
 def test_readme_mentions_optional_faiss_dense_retrieval() -> None:
     content = Path("README.md").read_text(encoding="utf-8")
 
@@ -32,6 +55,16 @@ def test_readme_mentions_optional_faiss_dense_retrieval() -> None:
     assert "rag_dense" in content
     assert "Qdrant" in content
     assert "不需要 API" in content
+
+
+def test_readme_mentions_query_rewrite_and_hyde_baselines() -> None:
+    content = Path("README.md").read_text(encoding="utf-8")
+
+    assert "Query Rewrite / HyDE" in content
+    assert "rag_rewrite" in content
+    assert "rag_hyde" in content
+    assert "rag_hyde_rerank" in content
+    assert "deterministic query expansion" in content
 
 
 def test_readme_documents_docker_compose_demo_startup() -> None:

@@ -102,6 +102,7 @@ def test_build_answer_generator_from_env_uses_deterministic_without_key(
 
 
 def test_build_answer_generator_from_env_uses_deepseek_with_key(monkeypatch) -> None:
+    monkeypatch.setenv("LLM_PROVIDER", "deepseek")
     monkeypatch.setenv("DEEPSEEK_API_KEY", "test-key")
     monkeypatch.setenv("DEEPSEEK_BASE_URL", "https://example.deepseek.test")
     monkeypatch.setenv("DEEPSEEK_MODEL", "deepseek-test")
@@ -117,6 +118,7 @@ def test_build_answer_generator_from_env_uses_deepseek_with_key(monkeypatch) -> 
         )
     )
     assert result.generator == "deepseek:deepseek-test"
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
 
 
 def test_build_answer_generator_from_env_loads_project_dotenv(
@@ -127,6 +129,7 @@ def test_build_answer_generator_from_env_loads_project_dotenv(
     env_path.write_text(
         "\n".join(
             [
+                "LLM_PROVIDER=deepseek",
                 "DEEPSEEK_API_KEY=test-key",
                 "DEEPSEEK_BASE_URL=https://example.deepseek.test",
                 "DEEPSEEK_MODEL=deepseek-dotenv",
@@ -152,7 +155,31 @@ def test_build_answer_generator_from_env_loads_project_dotenv(
         )
     )
     assert result.generator == "deepseek:deepseek-dotenv"
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
     monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
     monkeypatch.delenv("DEEPSEEK_BASE_URL", raising=False)
     monkeypatch.delenv("DEEPSEEK_MODEL", raising=False)
     monkeypatch.delenv("DEEPSEEK_TIMEOUT_SECONDS", raising=False)
+
+
+def test_build_answer_generator_from_env_uses_ollama_provider(monkeypatch) -> None:
+    monkeypatch.setenv("LLM_PROVIDER", "ollama")
+    monkeypatch.setenv("OLLAMA_BASE_URL", "http://ollama.test:11434")
+    monkeypatch.setenv("OLLAMA_MODEL", "qwen2.5:7b")
+
+    generator = build_answer_generator_from_env(
+        transport=FakeTransport(response={"message": {"content": "local answer"}})
+    )
+
+    result = generator.generate(
+        AnswerGeneratorInput(
+            question="x",
+            route="document_qa",
+            route_reason="test",
+            retrieved_contexts=[{"source_id": "doc", "title": "Doc", "text": "evidence"}],
+        )
+    )
+    assert result.generator == "ollama:qwen2.5:7b"
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
+    monkeypatch.delenv("OLLAMA_BASE_URL", raising=False)
+    monkeypatch.delenv("OLLAMA_MODEL", raising=False)

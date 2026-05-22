@@ -71,6 +71,19 @@ def build_answer_generator_from_env(
 ) -> AnswerGenerator:
     root = Path(project_root) if project_root else Path(__file__).resolve().parents[2]
     load_env_file(root / ".env")
+    provider = os.getenv("LLM_PROVIDER", "").strip().lower()
+    if provider == "deterministic":
+        return DeterministicAnswerGenerator()
+    if provider == "ollama":
+        from src.agent.ollama_generator import OllamaAnswerGenerator
+
+        timeout = float(os.getenv("OLLAMA_TIMEOUT_SECONDS", "60"))
+        return OllamaAnswerGenerator(
+            base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+            model=os.getenv("OLLAMA_MODEL", "qwen2.5:7b"),
+            timeout_seconds=timeout,
+            transport=transport,
+        )
     api_key = os.getenv("DEEPSEEK_API_KEY", "").strip()
     if not api_key:
         return DeterministicAnswerGenerator()

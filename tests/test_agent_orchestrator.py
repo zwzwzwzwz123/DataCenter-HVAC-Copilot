@@ -3,6 +3,8 @@ from pathlib import Path
 import pandas as pd
 
 from src.agent.answer_generator import AnswerGeneratorInput, GeneratedAnswer
+from src.agent.executor import AgentTaskExecutor
+from src.agent.intent_classifier import IntentDecision
 from src.agent.langgraph_workflow import LangGraphOrchestrator
 from src.agent.orchestrator import BaselineOrchestrator
 from src.agent.router import route_task
@@ -47,6 +49,22 @@ class SpyAnswerGenerator:
     def generate(self, payload: AnswerGeneratorInput) -> GeneratedAnswer:
         self.payloads.append(payload)
         return GeneratedAnswer(answer=f"generated:{payload.route}", generator="spy")
+
+
+class StaticIntentClassifier:
+    def __init__(self) -> None:
+        self.calls: list[dict] = []
+
+    def classify(self, question: str, task_type: str | None = None) -> IntentDecision:
+        self.calls.append({"question": question, "task_type": task_type})
+        return IntentDecision(
+            route="policy_recommendation",
+            required_tools=["rule_based_policy"],
+            reason="LLM classified as policy intent.",
+            classifier="llm:deepseek:intent-test",
+            confidence=0.88,
+            fallback_used=False,
+        )
 
 
 def test_route_task_uses_eval_task_type_when_available():
@@ -134,6 +152,16 @@ def test_orchestrator_selects_energy_breakdown_for_energy_breakdown_requests():
 
     assert result["tools"] == ["compute_energy_breakdown"]
     assert result["tool_results"][0]["tool_name"] == "compute_energy_breakdown"
+
+
+def test_orchestrator_selects_metric_names_from_chinese_questions():
+    orchestrator = BaselineOrchestrator(rag_pipeline=mock_rag(), trajectory=mock_trajectory())
+
+    fan_result = orchestrator.run("最近风机功率最大值是多少？", task_type="timeseries_query")
+    temp_result = orchestrator.run("最近温度最大值是多少？", task_type="timeseries_query")
+
+    assert fan_result["tool_results"][0]["metric_name"] == "fan_power"
+    assert temp_result["tool_results"][0]["metric_name"] == "zone_temperature"
 
 
 def test_orchestrator_handles_anomaly_diagnosis():
@@ -249,4 +277,46 @@ def test_langgraph_orchestrator_routes_document_qa_through_retrieval_node():
         "answer_audit",
     ]
     assert result["workflow_trace"][2]["citation_count"] >= 1
+
+
+def test_langgraph_orchestrator_uses_injected_intent_classifier_trace_metadata():
+    baseline = BaselineOrchestrator(
+        rag_pipeline=mock_rag(),
+        trajectory=mock_trajectory(),
+        answer_generator=SpyAnswerGenerator(),
+    )
+    classifier = StaticIntentClassifier()
+    orchestrator = LangGraphOrchestrator(baseline, intent_classifier=classifier)
+
+    result = orchestrator.run("当前温度超过上限时是否应该调整控制策略？")
+
+    assert result["route"] == "policy_recommendation"
+    assert result["tools"] == ["rule_based_policy"]
+    assert classifier.calls == [
+        {"question": "当前温度超过上限时是否应该调整控制策略？", "task_type": None}
+    ]
+    intent_trace = result["workflow_trace"][0]
+    assert intent_trace["node"] == "intent_classifier"
+    assert intent_trace["classifier"] == "llm:deepseek:intent-test"
+    assert intent_trace["confidence"] == 0.88
+    assert intent_trace["fallback_used"] is False
+
+
+def test_baseline_and_langgraph_can_share_agent_task_executor():
+    executor = AgentTaskExecutor(
+        rag_pipeline=mock_rag(),
+        trajectory=mock_trajectory(),
+        answer_generator=SpyAnswerGenerator(),
+    )
+    baseline = BaselineOrchestrator(task_executor=executor)
+    langgraph = LangGraphOrchestrator(baseline, task_executor=executor)
+
+    baseline_result = baseline.run("zone_a 是否存在温度异常升高？", task_type="anomaly_diagnosis")
+    langgraph_result = langgraph.run("zone_a 是否存在温度异常升高？", task_type="anomaly_diagnosis")
+
+    assert baseline_result["route"] == "anomaly_diagnosis"
+    assert langgraph_result["route"] == "anomaly_diagnosis"
+    assert baseline_result["tools"] == ["detect_anomaly"]
+    assert langgraph_result["tools"] == ["detect_anomaly"]
+    assert langgraph_result["workflow_trace"][1]["node"] == "anomaly_tool"
 

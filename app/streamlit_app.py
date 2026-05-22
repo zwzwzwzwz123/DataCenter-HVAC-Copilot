@@ -24,8 +24,8 @@ TASK_OPTIONS = {
 }
 
 WORKFLOW_OPTIONS = {
-    "Deterministic baseline": "deterministic",
     "LangGraph workflow": "langgraph",
+    "Deterministic baseline": "deterministic",
 }
 
 DEMO_WALKTHROUGHS = [
@@ -419,6 +419,8 @@ def build_workflow_trace_rows(result: dict) -> list[dict]:
                 "step": index,
                 "node": item.get("node", "unknown"),
                 "route": item.get("route", result.get("route", "unknown")),
+                "classifier": str(item.get("classifier", "n/a")),
+                "fallback": _format_fallback_status(item.get("fallback_used")),
                 "tools": ", ".join(str(tool) for tool in tools) if tools else "none",
                 "evidence": f"{citation_count} citations / {tool_result_count} tool results",
                 "audit": _format_audit_status(audit_value),
@@ -432,6 +434,14 @@ def _format_audit_status(value: object) -> str:
         return "passed"
     if value is False:
         return "review"
+    return "n/a"
+
+
+def _format_fallback_status(value: object) -> str:
+    if value is True:
+        return "yes"
+    if value is False:
+        return "no"
     return "n/a"
 
 
@@ -617,7 +627,7 @@ def _render_empty_state() -> None:
     )
     _render_status_grid(
         [
-            {"label": "Route", "value": "waiting", "hint": "任务会先进入 deterministic router"},
+            {"label": "Route", "value": "waiting", "hint": "默认进入 LangGraph workflow"},
             {"label": "Tools", "value": "standby", "hint": "按问题类型调用 RAG / timeseries / policy"},
             {"label": "Audit", "value": "armed", "hint": "回答会检查生产遥测和 LLM 控制误述"},
         ]

@@ -13,7 +13,7 @@
 3. `src/tools/` 暴露确定性的时序分析工具函数。
 4. `src/policies/` 定义 policy adapter 边界，包含 rule-based、MPC-like、offline replay、diffusion 边界和可选 DROPT Guided-DiffFNO checkpoint 推理适配器，避免把未配置或输入不足的模型伪装成可用能力。
 5. `src/retrieval/` 提供文档 schema、UTF-8 文档加载、chunk、轻量关键词检索、BM25-style hybrid 检索 baseline、metadata-aware lightweight reranker wrapper 和 extractive RAG baseline。
-6. `src/agent/` 提供 deterministic router、baseline orchestrator、evidence-grounded answer generator、answer safety audit，以及可选 DeepSeek 解释生成适配器；当前仍先串联 RAG、时序工具和 policy fallback，不引入复杂 Agent。
+6. `src/agent/` 提供 deterministic router、baseline orchestrator、LangGraph workflow、可插拔 intent classifier、evidence-grounded answer generator、answer safety audit，以及可选 DeepSeek/Ollama 解释生成适配器。
 7. `src/evaluation/` 提供 eval JSONL 读取、最小指标计算、轻量回答质量代理指标和 baseline runner。
 8. `src/api/` 提供 FastAPI 服务雏形，暴露 `/health`、`/ask` 和 `/eval/run`。
 9. `app/` 提供 Streamlit demo，采用专业深色控制台布局，调用 API 并展示 route、tools、answer、citations、tool results、时序趋势、状态卡片和评测摘要。
@@ -34,6 +34,7 @@
 - `rag_keyword` 的 citation/context 指标为 0.554，`rag_hybrid` 为 0.585，长噪声/短目标和领域近义压力样例继续体现 BM25-style hybrid 检索优势。
 - `rag_dense` 已作为 dense retrieval baseline 纳入 comparison；默认使用 deterministic hash embedding，保证不安装 FAISS 或 sentence-transformers 时仍可复现。真实 FAISS dense retrieval 通过 `pip install -e ".[dev,dense]"` 启用，FAISS 本身不需要 API。
 - `rag_hybrid_rerank` 的 citation/context 指标为 0.600，metadata-aware 轻量重排仍能在 100 条样例中拉开与 `rag_hybrid` 的差异。
+- `rag_rewrite`、`rag_hyde`、`rag_hyde_rerank` 已作为 Query Rewrite / HyDE baseline 纳入 comparison。当前 `rag_rewrite` citation/context 为 0.646，说明 deterministic query expansion 在 HVAC/BEAR 领域样例中有效；template HyDE 指标较低，提示模板假想文档可能引入查询漂移，后续可替换为 DeepSeek/Ollama HyDE generator 再评估。
 - `rag_tool_agent` 在当前确定性路由样例上完成工具选择与执行，tool selection / execution 均为 1.000，并将 evidence coverage 提升到 0.910。
 - 代表性样例已加入 `must_include` / `must_not_include` 标注；最新 `rag_tool_agent` 的 `expected_keyword_coverage` 为 0.618，`lexical_answer_coverage` 为 0.285，`answer_correctness_proxy` 为 0.547，`faithfulness_proxy` 为 0.465。这是本地确定性代理指标，不等价于完整人工评审或 LLM judge。
 - 按任务类型表显示，工具类任务的 tool selection / execution 已达到 1.000，文档问答仍主要受 citation/context 和回答覆盖率限制，异常诊断与策略建议的自然语言覆盖仍需更强生成器或人工/LLM judge 指标进一步评估。
@@ -106,16 +107,23 @@ LLM judge adapter 仅作为可选评测辅助，默认关闭。`scripts/run_eval
 
 人工评测校准集用于弥补 deterministic proxy 与 optional LLM judge 的可信度边界。`scripts/run_eval.py` 会生成 `data/eval/human_review_sample.jsonl` 和 `data/eval/human_review_annotations.jsonl`；后者只能由人工填写 correctness、faithfulness 和 safety boundary。未填写前，报告仅显示 `pending_human_review`，不能把 proxy 或 judge 结果表述为人工评审。
 
+## LangGraph Agent Workflow
+
+当前 LangGraph 路径已经从单纯 wrapper 升级为可插拔 workflow。交互式 `/ask` 和 Streamlit 默认使用 `workflow_engine=langgraph`；`intent_classifier` 节点默认 `LANGGRAPH_INTENT_PROVIDER=auto`，检测到 `DEEPSEEK_API_KEY` 时启用 OpenAI-compatible `LLMIntentClassifier`，否则回退 `RuleBasedIntentClassifier`。当设置 `LANGGRAPH_INTENT_PROVIDER=ollama` 时，会通过 Ollama `/api/chat` 调用本地 Qwen 等模型。LLM 分类输出非法、网络失败或缺少 key 时自动回退 rule-based，并在 `workflow_trace` 中记录 `classifier`、`confidence` 和 `fallback_used`。`/eval/run` 和 `scripts/run_eval.py` 仍保持 deterministic generator 与可复现评测口径。
+
+Baseline orchestrator 与 LangGraph orchestrator 共享 `AgentTaskExecutor`，因此工具执行、RAG 检索、policy 调用和 answer audit 不再通过 LangGraph 调用 baseline 私有方法完成。默认 `langgraph_tool_agent` 指标仍与 deterministic baseline 对齐，这是为了保证可复现；差异主要体现在 workflow trace 和可替换的 LLM intent 节点。
+
+Intent routing 评测由 `scripts/run_intent_eval.py` 单独输出 `data/eval/intent_routing_comparison.json`。该评测不传入 gold `task_type`，直接让 classifier 从问题文本判断 route，并报告 accuracy、fallback rate、按任务类型分组和 confusion matrix。默认 rule-based classifier 在当前 100 条样例上 accuracy 为 0.640；DeepSeek 或 Ollama/Qwen 可作为同一脚本中的 LLM routing backend 进行横向对比。
+
 ## 后续扩展方向
 
 后续阶段可以继续加入：
 
-- 真实 sentence-transformers + FAISS dense retrieval 的完整指标对比。
 - Qdrant 向量数据库服务化检索。
 - 更强的 neural / cross-encoder / LLM reranker，以及更多能检验 reranker 的真实领域压力样例。
+- DeepSeek/Ollama HyDE generator 与 template HyDE 的对比实验。
 - 更强的真实 LLM 回答生成器评测、提示词审计和输出约束。
 - 更完整的 DROPT / Guided-DiffFNO offline replay 指标、state 导出脚本和 policy 对比报告。
-- LangGraph 工作流，用于替换当前 deterministic baseline orchestrator。
 - 更完整的 Streamlit 运行日志、案例 walkthrough 和截图素材。
 - 扩展 LLM-only、RAG、RAG + Tool Agent 三组 baseline 的指标和样本规模。
 - 更完整的人工 correctness / faithfulness 标注或可选 LLM judge adapter。

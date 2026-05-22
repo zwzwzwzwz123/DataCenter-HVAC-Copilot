@@ -94,8 +94,10 @@ def render_experiment_report(
             ),
             _retrieval_comparison_conclusion(comparison_summary),
             _reranker_comparison_conclusion(comparison_summary),
+            _query_rewrite_hyde_conclusion(comparison_summary),
             "- `rag_tool_agent` 在当前确定性路由样例上体现工具选择、工具执行和证据覆盖优势。",
             _langgraph_comparison_conclusion(comparison_summary),
+            _intent_routing_conclusion(),
             "",
         ]
     )
@@ -165,6 +167,32 @@ def _reranker_comparison_conclusion(
     )
 
 
+def _query_rewrite_hyde_conclusion(
+    comparison_summary: dict[str, dict[str, float]],
+) -> str:
+    rewrite = comparison_summary.get("rag_rewrite")
+    hyde = comparison_summary.get("rag_hyde")
+    hyde_rerank = comparison_summary.get("rag_hyde_rerank")
+    if not rewrite and not hyde and not hyde_rerank:
+        return "- Query Rewrite / HyDE 尚未纳入当前报告。"
+
+    best_name = "rag_rewrite"
+    best_context = (rewrite or {}).get("context_recall", 0.0)
+    for name, metrics in (
+        ("rag_hyde", hyde or {}),
+        ("rag_hyde_rerank", hyde_rerank or {}),
+    ):
+        context = metrics.get("context_recall", 0.0)
+        if context > best_context:
+            best_name = name
+            best_context = context
+    return (
+        "- Query Rewrite / HyDE 已作为 deterministic query expansion baseline 纳入对比；"
+        f"当前 context_recall 最高的是 `{best_name}`，可用于评估 raw query、rewrite 和 template HyDE "
+        "在 HVAC/BEAR 领域检索中的收益，再决定是否替换为 DeepSeek/Ollama HyDE generator。"
+    )
+
+
 def _langgraph_comparison_conclusion(
     comparison_summary: dict[str, dict[str, float]],
 ) -> str:
@@ -175,11 +203,19 @@ def _langgraph_comparison_conclusion(
     if baseline and langgraph == baseline:
         return (
             "- `langgraph_tool_agent` 保留与 deterministic `rag_tool_agent` 一致的工具行为和指标，"
-            "用于展示 StateGraph 编排、workflow trace 和后续可替换节点，而不是改变当前可复现评测口径。"
+            "用于展示 StateGraph 编排、workflow trace 和可选 DeepSeek/Ollama LLM intent classifier，而不是改变当前可复现评测口径。"
         )
     return (
         "- `langgraph_tool_agent` 已纳入对比；其指标与 deterministic baseline 的差异需要结合 workflow trace "
         "进一步检查路由和工具节点行为。"
+    )
+
+
+def _intent_routing_conclusion() -> str:
+    return (
+        "- `scripts/run_intent_eval.py` 单独评测 intent routing accuracy；默认 rule-based classifier "
+        "在当前 100 条样例上 accuracy 为 0.640，并输出 "
+        "`data/eval/intent_routing_comparison.json` 作为 keyword vs LLM routing 对比入口。"
     )
 
 

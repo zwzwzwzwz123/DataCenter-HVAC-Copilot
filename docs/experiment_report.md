@@ -20,6 +20,9 @@
 | rag_dense | 0.692 | 0.692 | 0.528 | 0.240 | 0.000 | 0.000 | 1.000 | 0.654 | 0.566 |
 | rag_hybrid | 0.585 | 0.585 | 0.382 | 0.182 | 0.000 | 0.000 | 0.590 | 0.478 | 0.396 |
 | rag_hybrid_rerank | 0.600 | 0.600 | 0.398 | 0.189 | 0.000 | 0.000 | 0.590 | 0.500 | 0.412 |
+| rag_rewrite | 0.646 | 0.646 | 0.584 | 0.279 | 0.000 | 0.000 | 1.000 | 0.601 | 0.500 |
+| rag_hyde | 0.246 | 0.246 | 0.182 | 0.112 | 0.000 | 0.000 | 1.000 | 0.233 | 0.214 |
+| rag_hyde_rerank | 0.338 | 0.338 | 0.195 | 0.128 | 0.000 | 0.000 | 1.000 | 0.242 | 0.204 |
 | rag | 0.585 | 0.585 | 0.382 | 0.182 | 0.000 | 0.000 | 0.590 | 0.478 | 0.396 |
 | rag_tool_agent | 0.385 | 0.385 | 0.618 | 0.283 | 1.000 | 1.000 | 0.910 | 0.547 | 0.465 |
 | langgraph_tool_agent | 0.385 | 0.385 | 0.618 | 0.283 | 1.000 | 1.000 | 0.910 | 0.547 | 0.465 |
@@ -48,6 +51,18 @@
 | rag_hybrid_rerank | document_qa | 0.625 | 0.625 | 0.637 | 0.255 | 0.000 | 0.000 | 0.775 | 0.694 | 0.542 |
 | rag_hybrid_rerank | policy_recommendation | 0.692 | 0.692 | 0.300 | 0.200 | 0.000 | 0.000 | 0.550 | 0.438 | 0.375 |
 | rag_hybrid_rerank | timeseries_query | 0.000 | 0.000 | 0.233 | 0.124 | 0.000 | 0.000 | 0.550 | 0.167 | 0.167 |
+| rag_rewrite | anomaly_diagnosis | 0.500 | 0.500 | 0.583 | 0.309 | 0.000 | 0.000 | 1.000 | 0.450 | 0.450 |
+| rag_rewrite | document_qa | 0.675 | 0.675 | 0.677 | 0.260 | 0.000 | 0.000 | 1.000 | 0.722 | 0.542 |
+| rag_rewrite | policy_recommendation | 0.692 | 0.692 | 0.450 | 0.286 | 0.000 | 0.000 | 1.000 | 0.542 | 0.479 |
+| rag_rewrite | timeseries_query | 0.000 | 0.000 | 0.533 | 0.279 | 0.000 | 0.000 | 1.000 | 0.444 | 0.444 |
+| rag_hyde | anomaly_diagnosis | 0.000 | 0.000 | 0.117 | 0.060 | 0.000 | 0.000 | 1.000 | 0.217 | 0.217 |
+| rag_hyde | document_qa | 0.300 | 0.300 | 0.237 | 0.112 | 0.000 | 0.000 | 1.000 | 0.222 | 0.181 |
+| rag_hyde | policy_recommendation | 0.308 | 0.308 | 0.267 | 0.243 | 0.000 | 0.000 | 1.000 | 0.281 | 0.281 |
+| rag_hyde | timeseries_query | 0.000 | 0.000 | 0.050 | 0.032 | 0.000 | 0.000 | 1.000 | 0.111 | 0.111 |
+| rag_hyde_rerank | anomaly_diagnosis | 0.000 | 0.000 | 0.017 | 0.018 | 0.000 | 0.000 | 1.000 | 0.033 | 0.033 |
+| rag_hyde_rerank | document_qa | 0.425 | 0.425 | 0.287 | 0.156 | 0.000 | 0.000 | 1.000 | 0.264 | 0.222 |
+| rag_hyde_rerank | policy_recommendation | 0.385 | 0.385 | 0.367 | 0.286 | 0.000 | 0.000 | 1.000 | 0.365 | 0.302 |
+| rag_hyde_rerank | timeseries_query | 0.000 | 0.000 | 0.017 | 0.023 | 0.000 | 0.000 | 1.000 | 0.111 | 0.111 |
 | rag | anomaly_diagnosis | 0.333 | 0.333 | 0.167 | 0.092 | 0.000 | 0.000 | 0.300 | 0.183 | 0.183 |
 | rag | document_qa | 0.625 | 0.625 | 0.604 | 0.246 | 0.000 | 0.000 | 0.775 | 0.667 | 0.528 |
 | rag | policy_recommendation | 0.692 | 0.692 | 0.300 | 0.200 | 0.000 | 0.000 | 0.550 | 0.438 | 0.375 |
@@ -75,5 +90,7 @@
 - `rag_dense` 使用真实 sentence-transformers embedding + FAISS 本地向量索引；该运行可用于面试中说明真实语义检索 baseline，但仍需结合 hybrid/rerank 指标判断中文 HVAC 场景效果。
 - `rag_keyword` 与 `rag_hybrid` 用于比较轻量检索方案；`rag_hybrid` 在 citation/context 指标上优于 `rag_keyword`，说明 BM25-style 长度归一化在当前压力样例中有效。
 - `rag_hybrid_rerank` 在当前评测中进一步提升 citation/context 指标，可作为后续替换为 cross-encoder 或 LLM reranker 的接口基线。
+- Query Rewrite / HyDE 已作为 deterministic query expansion baseline 纳入对比；当前 context_recall 最高的是 `rag_rewrite`，可用于评估 raw query、rewrite 和 template HyDE 在 HVAC/BEAR 领域检索中的收益，再决定是否替换为 DeepSeek/Ollama HyDE generator。
 - `rag_tool_agent` 在当前确定性路由样例上体现工具选择、工具执行和证据覆盖优势。
-- `langgraph_tool_agent` 保留与 deterministic `rag_tool_agent` 一致的工具行为和指标，用于展示 StateGraph 编排、workflow trace 和后续可替换节点，而不是改变当前可复现评测口径。
+- `langgraph_tool_agent` 保留与 deterministic `rag_tool_agent` 一致的工具行为和指标，用于展示 StateGraph 编排、workflow trace 和可选 DeepSeek/Ollama LLM intent classifier，而不是改变当前可复现评测口径。
+- `scripts/run_intent_eval.py` 单独评测 intent routing accuracy；默认 rule-based classifier 在当前 100 条样例上 accuracy 为 0.640，并输出 `data/eval/intent_routing_comparison.json` 作为 keyword vs LLM routing 对比入口。
