@@ -9,7 +9,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from src.policies.base import PolicyResult, current_action_from, state_id_from
+from src.policies.base import PolicyResult, state_id_from
 from src.policies.rule_based import run_rule_based_policy
 
 

@@ -67,6 +67,33 @@ def test_dropt_checkpoint_policy_falls_back_without_checkpoint():
     assert result.policy_name == "dropt_checkpoint_fallback"
     assert result.baseline == "rule_based"
     assert len(result.recommended_action) == 2
+    assert "not configured" in result.notes.lower()
+
+
+def test_dropt_checkpoint_policy_falls_back_without_full_bear_state():
+    checkpoint_path = Path("models/dropt/policy_best_fno_guided.pth")
+    assert checkpoint_path.exists()
+
+    policy = DROPTCheckpointPolicy(model_path=checkpoint_path)
+    result = policy.run(
+        {
+            "state_id": "episode_001_step_024",
+            "bear_state_vector": [1.0, 2.0, 3.0],
+            "current_action": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        }
+    )
+
+    assert result.policy_name == "dropt_checkpoint_fallback"
+    assert result.baseline == "rule_based"
+    assert "20-dimensional BEAR state vector" in result.notes
+
+
+def test_dropt_checkpoint_policy_rejects_corrupt_checkpoint(tmp_path: Path):
+    checkpoint_path = tmp_path / "bad.pth"
+    checkpoint_path.write_text("not a pytorch checkpoint", encoding="utf-8")
+
+    with pytest.raises(RuntimeError, match="failed to load DROPT checkpoint"):
+        DROPTCheckpointPolicy(model_path=checkpoint_path)
 
 
 def test_dropt_checkpoint_policy_loads_real_checkpoint():
