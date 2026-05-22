@@ -60,6 +60,17 @@ def test_render_experiment_report_creates_markdown_table():
             "answer_correctness_proxy": 0.6,
             "faithfulness_proxy": 0.7,
         },
+        "langgraph_tool_agent": {
+            "citation_hit_rate": 0.5,
+            "context_recall": 0.75,
+            "expected_keyword_coverage": 0.8,
+            "lexical_answer_coverage": 0.45,
+            "tool_selection_accuracy": 1.0,
+            "tool_execution_success_rate": 1.0,
+            "evidence_coverage": 0.8666666666666667,
+            "answer_correctness_proxy": 0.6,
+            "faithfulness_proxy": 0.7,
+        },
     }
 
     markdown = render_experiment_report(
@@ -104,6 +115,8 @@ def test_render_experiment_report_creates_markdown_table():
     assert "rag_hybrid` 在 citation/context 指标上优于 `rag_keyword" in markdown
     assert "rag_dense" in markdown
     assert "rag_hybrid_rerank" in markdown
+    assert "langgraph_tool_agent" in markdown
+    assert "StateGraph 编排" in markdown
     assert "## 按任务类型指标" in markdown
     assert "| rag_tool_agent | document_qa | 0.500 | 0.750" in markdown
     assert "| rag_tool_agent | timeseries_query | 0.000 | 0.000" in markdown
@@ -159,6 +172,34 @@ def test_render_experiment_report_includes_optional_llm_judge_columns() -> None:
 
     assert "llm_judge_correctness" in markdown
     assert "| rag_tool_agent | 0.500 | 0.500 | 0.500 | 0.500 | 1.000 | 1.000 | 1.000 | 0.500 | 0.500 | 0.700 | 0.800 |" in markdown
+
+
+def test_render_experiment_report_documents_real_dense_configuration() -> None:
+    markdown = render_experiment_report(
+        {
+            "rag_dense": {
+                "citation_hit_rate": 0.52,
+                "context_recall": 0.52,
+                "expected_keyword_coverage": 0.38,
+                "lexical_answer_coverage": 0.16,
+                "tool_selection_accuracy": 0.0,
+                "tool_execution_success_rate": 0.0,
+                "evidence_coverage": 1.0,
+                "answer_correctness_proxy": 0.46,
+                "faithfulness_proxy": 0.38,
+            }
+        },
+        eval_record_count=100,
+        expected_keyword_record_count=100,
+        dense_provider="sentence-transformers",
+        dense_backend="faiss",
+        dense_model="BAAI/bge-small-zh-v1.5",
+    )
+
+    assert "dense_provider: `sentence-transformers`" in markdown
+    assert "dense_backend: `faiss`" in markdown
+    assert "dense_model: `BAAI/bge-small-zh-v1.5`" in markdown
+    assert "真实 sentence-transformers embedding + FAISS" in markdown
 
 
 def test_render_experiment_report_includes_pending_human_calibration() -> None:

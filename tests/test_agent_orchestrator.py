@@ -3,6 +3,7 @@ from pathlib import Path
 import pandas as pd
 
 from src.agent.answer_generator import AnswerGeneratorInput, GeneratedAnswer
+from src.agent.langgraph_workflow import LangGraphOrchestrator
 from src.agent.orchestrator import BaselineOrchestrator
 from src.agent.router import route_task
 from src.policies.base import PolicyResult
@@ -201,4 +202,51 @@ def test_orchestrator_can_use_injected_offline_replay_policy_runner():
     assert result["policy_result"]["estimated_energy"] == 901.3
     assert result["answer_audit"]["passed"] is True
     assert generator.payloads[0].policy_result["baseline"] == "rule_based"
+
+
+def test_langgraph_orchestrator_preserves_baseline_result_and_adds_trace():
+    baseline = BaselineOrchestrator(
+        rag_pipeline=mock_rag(),
+        trajectory=mock_trajectory(),
+        answer_generator=SpyAnswerGenerator(),
+    )
+    orchestrator = LangGraphOrchestrator(baseline)
+
+    result = orchestrator.run(
+        "episode_001 中 zone_a 在最近 3 小时的温度最大值是多少？",
+        task_type="timeseries_query",
+    )
+
+    assert result["route"] == "timeseries_query"
+    assert result["tools"] == ["query_metric"]
+    assert result["workflow_engine"] == "langgraph"
+    assert [step["node"] for step in result["workflow_trace"]] == [
+        "intent_classifier",
+        "timeseries_tool",
+        "evidence_aggregator",
+        "answer_audit",
+    ]
+    assert result["workflow_trace"][0]["route"] == "timeseries_query"
+    assert result["workflow_trace"][2]["tool_result_count"] == 1
+
+
+def test_langgraph_orchestrator_routes_document_qa_through_retrieval_node():
+    baseline = BaselineOrchestrator(
+        rag_pipeline=mock_rag(),
+        trajectory=mock_trajectory(),
+        answer_generator=SpyAnswerGenerator(),
+    )
+    orchestrator = LangGraphOrchestrator(baseline)
+
+    result = orchestrator.run("为什么 PUE-like values 不能编造？", task_type="document_qa")
+
+    assert result["route"] == "document_qa"
+    assert result["workflow_engine"] == "langgraph"
+    assert [step["node"] for step in result["workflow_trace"]] == [
+        "intent_classifier",
+        "retrieval",
+        "evidence_aggregator",
+        "answer_audit",
+    ]
+    assert result["workflow_trace"][2]["citation_count"] >= 1
 

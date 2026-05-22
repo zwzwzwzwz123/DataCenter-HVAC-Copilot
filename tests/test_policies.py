@@ -70,7 +70,7 @@ def test_dropt_checkpoint_policy_falls_back_without_checkpoint():
 
 
 def test_dropt_checkpoint_policy_loads_real_checkpoint():
-    checkpoint_path = Path("policy_best_fno_guided.pth")
+    checkpoint_path = Path("models/dropt/policy_best_fno_guided.pth")
     assert checkpoint_path.exists()
 
     policy = DROPTCheckpointPolicy(model_path=checkpoint_path)

@@ -1,5 +1,11 @@
 # DataCenter-HVAC Copilot
 
+## LangGraph Trace Demo
+
+- Copilot tab now lets you switch between `Deterministic baseline` and `LangGraph workflow`.
+- Selecting `LangGraph workflow` makes `/ask` return `workflow_engine=langgraph` plus the real `workflow_trace`.
+- Streamlit shows a `LangGraph Workflow Trace` panel summarizing step / node / route / tools / evidence / audit.
+
 面向 **BEAR HVAC 物理仿真轨迹** 的 RAG + Tool Agent + Evaluation 项目，用于演示数据中心冷却优化类问题中的文档检索、时序分析、异常诊断、策略建议和可复现评测。
 
 > 重要边界：BEAR 在本项目中只能表述为 HVAC 仿真环境 / 可控代理场景，不能伪装成真实数据中心生产遥测。LLM / Agent 只负责任务路由、证据整合和解释生成，不直接生成或写回控制动作。
@@ -27,7 +33,7 @@
 - Streamlit demo
 - 100 条评测集和 baseline comparison
 
-当前更适合继续补的是展示材料、截图、人工标注扩展和更强检索/工作流增强，而不是重写核心架构。
+当前更适合继续补的是展示材料、截图、Docker 启动体验、真实 embedding 检索和工作流增强，而不是重写核心架构。人工评测是可选增强项，不阻塞当前简历展示版本。
 
 ## 系统架构
 
@@ -52,8 +58,27 @@ Deterministic Router
                                                Answer Safety Audit
                                                           |
                                                           v
-                                           FastAPI / Streamlit Demo
+                                          FastAPI / Streamlit Demo
 ```
+
+Stage 2 增加了 LangGraph workflow，但保留 deterministic router 作为可复现 baseline：
+
+```mermaid
+flowchart TD
+    A[User Question] --> B[intent_classifier]
+    B -->|document_qa| C[retrieval]
+    B -->|timeseries_query| D[timeseries_tool]
+    B -->|anomaly_diagnosis| E[anomaly_tool]
+    B -->|policy_recommendation| F[policy_tool]
+    C --> G[evidence_aggregator]
+    D --> G
+    E --> G
+    F --> G
+    G --> H[answer_audit]
+    H --> I[Grounded Answer + Trace]
+```
+
+`langgraph_tool_agent` 当前复用 deterministic baseline 的工具和回答生成逻辑，因此指标与 `rag_tool_agent` 对齐；它的价值是展示 StateGraph 编排、workflow trace 和后续可替换节点，而不是改变默认可复现评测口径。
 
 核心模块：
 
@@ -109,11 +134,11 @@ pip install -e ".[dev]"
 pip install -e ".[dev,dense]"
 ```
 
-FAISS 是本地向量索引库，本身不需要 API 或按次付费；`sentence-transformers` 会在本地生成 embedding，首次使用可能下载模型。Qdrant 更偏生产化向量数据库和服务部署，当前保留在 Roadmap。
+FAISS 是本地向量索引库，本身不需要 API 或按次付费；`sentence-transformers` 会在本地生成 embedding，首次使用可能下载模型。当前 Stage 2 已用 `BAAI/bge-small-zh-v1.5` + FAISS 跑通真实 dense baseline。Qdrant 更偏生产化向量数据库和服务部署，当前保留在 Roadmap。
 
 ## 可选 DROPT / Guided-DiffFNO 策略后端
 
-项目已支持本地 `policy_best_fno_guided.pth` checkpoint 的可选推理适配器：
+项目已支持本地 `models/dropt/policy_best_fno_guided.pth` checkpoint 的可选推理适配器：
 
 - 代码入口：`src/policies/dropt_adapter.py`
 - 策略名称：`dropt_guided_diffno_checkpoint`
@@ -160,6 +185,27 @@ uvicorn src.api.app:app --reload
 ```bash
 streamlit run app/streamlit_app.py
 ```
+
+Streamlit 默认连接 `http://localhost:8000`。如果 API 在其他容器或机器上，设置：
+
+```bash
+HVAC_COPILOT_API_BASE_URL=http://api:8000 streamlit run app/streamlit_app.py
+```
+
+## Docker 一键启动
+
+本项目提供 `Dockerfile` 和 `docker-compose.yml`，用于本地演示 API + Streamlit：
+
+```bash
+docker compose up --build
+```
+
+启动后访问：
+
+- FastAPI: `http://localhost:8000/health`
+- Streamlit: `http://localhost:8501`
+
+`docker-compose.yml` 会为 Streamlit 设置 `HVAC_COPILOT_API_BASE_URL=http://api:8000`，因此容器内不会错误连接自己的 `localhost`。如果本地 `.env` 存在，compose 会把 DeepSeek 等可选配置传入容器；`.env` 不应提交到仓库。
 
 Streamlit 包含：
 
@@ -215,6 +261,12 @@ python -m pytest -q
 python scripts/run_eval.py
 ```
 
+真实 BGE + FAISS dense baseline：
+
+```bash
+python scripts/run_eval.py --dense-provider sentence-transformers --dense-backend faiss --dense-model BAAI/bge-small-zh-v1.5
+```
+
 该脚本会生成：
 
 - `data/eval/baseline_predictions.jsonl`
@@ -263,6 +315,40 @@ answer_correctness_proxy       = 0.547
 faithfulness_proxy             = 0.465
 ```
 
+最新 Stage 2 真实 dense 检索运行中，`rag_dense` 使用 `BAAI/bge-small-zh-v1.5` + FAISS，整体结果为：
+
+```text
+citation_hit_rate              = 0.692
+context_recall                 = 0.692
+expected_keyword_coverage      = 0.528
+answer_correctness_proxy       = 0.654
+faithfulness_proxy             = 0.566
+```
+
+在当前 100 条评测集上，真实 dense 检索的 citation/context 高于 `rag_keyword` 的 0.554、`rag_hybrid` 的 0.585 和 `rag_hybrid_rerank` 的 0.600；`rag_tool_agent` 的优势主要体现在工具选择、工具执行和结构化证据覆盖。
+
+Stage 2 LangGraph workflow 已纳入 baseline comparison：
+
+```text
+langgraph_tool_agent tool_selection_accuracy      = 1.000
+langgraph_tool_agent tool_execution_success_rate  = 1.000
+langgraph_tool_agent evidence_coverage            = 0.910
+langgraph_tool_agent answer_correctness_proxy     = 0.547
+langgraph_tool_agent faithfulness_proxy           = 0.465
+```
+
+`langgraph_tool_agent` 与 deterministic `rag_tool_agent` 指标一致，说明 LangGraph 版本没有改变底层工具行为；它用于展示 workflow 编排和 trace。
+
+## 评测口径
+
+当前阶段默认采用三层评测口径：
+
+1. **Deterministic metrics**：默认主报告，包含 citation/context、tool selection/execution、evidence coverage、expected keyword coverage 等可复现指标。
+2. **Quality proxy**：基于 `expected_keywords`、`must_include`、`must_not_include` 的本地弱监督指标，用于快速比较回答覆盖和边界风险。
+3. **LLM-as-Judge / Human Calibration**：可选增强项。可以用 LLM judge 辅助评估 correctness / faithfulness，但必须明确标注为 LLM-as-Judge；人工评测可以以后再补，不作为当前阶段必须项。
+
+不要把 deterministic proxy 或 LLM judge 说成人工评测。
+
 ## 可选 LLM Judge
 
 LLM judge adapter 默认关闭。默认报告只使用 deterministic metrics，保证可复现。
@@ -278,13 +364,13 @@ python scripts/run_eval.py --enable-llm-judge --llm-judge-provider deterministic
 - `llm_judge_correctness`
 - `llm_judge_faithfulness`
 
-注意：当前 `deterministic` provider 只是接口 smoke provider，不替代人工评审，也不作为默认主指标。
+注意：当前 `deterministic` provider 只是接口 smoke provider，不替代人工评审，也不作为默认主指标。后续如果接入 DeepSeek / Qwen judge，报告和简历都应写成 LLM-as-Judge，而不是人工评审。
 
 ## 人工评测校准
 
-`scripts/run_eval.py` 会生成 `data/eval/human_review_sample.jsonl` 和 `data/eval/human_review_annotations.jsonl`。前者是待审样例，后者由人工填写 correctness / faithfulness / safety boundary。标注指南见 `docs/human_evaluation_guide.md`。
+人工评测是可选增强项，不阻塞当前简历展示版本。`scripts/run_eval.py` 会生成 `data/eval/human_review_sample.jsonl` 和 `data/eval/human_review_annotations.jsonl`。前者是待审样例，后者由人工填写 correctness / faithfulness / safety boundary。标注指南见 `docs/human_evaluation_guide.md`。
 
-在人工填写前，实验报告只显示 `pending_human_review`，不会把 deterministic proxy 或 optional LLM judge 当作人工评审。填写完成后重新运行 `python scripts/run_eval.py`，报告会读取已有 `human_review_annotations.jsonl` 并更新 Human Calibration 小节。
+在人工填写前，实验报告的 Human Calibration 小节显示 `pending_human_review` 是正常状态；README 和简历只强调 deterministic metrics / quality proxy / optional LLM-as-Judge。填写完成后重新运行 `python scripts/run_eval.py`，报告会读取已有 `human_review_annotations.jsonl` 并更新 Human Calibration 小节。
 
 ## BEAR Rollout 导出
 
@@ -293,8 +379,16 @@ python scripts/run_eval.py --enable-llm-judge --llm-judge-provider deterministic
 ```bash
 git clone https://github.com/chz056/BEAR.git ../BEAR
 pip install -r ../BEAR/requirements.txt
-python scripts/export_bear_data.py --bear-root ../BEAR --num-steps 24 --output data/bear_processed/bear_rollout.csv
+python scripts/export_bear_data.py --bear-root ../BEAR --num-steps 336 --scenario-id bear_officesmall_tucson_14d_random --output data/bear_processed/bear_rollout.csv
 ```
+
+如果使用你的完整 DROPT 源码仓库，可以直接把 `--bear-root` 指向其中的 `BEAR` 子目录，例如：
+
+```bash
+python scripts/export_bear_data.py --bear-root C:\Users\zouwei\Desktop\PROJECT\_external\DROPT\BEAR --num-steps 336 --scenario-id bear_officesmall_tucson_14d_random --output data/bear_processed/bear_rollout.csv
+```
+
+当前项目已用 DROPT 中的完整 BEAR 环境导出一份 14 天逐小时、6 zone 的 processed rollout，共 2016 行。demo 会优先加载 `data/bear_processed/bear_rollout.csv`，API 的 `data_source.kind` 应显示 `processed_csv`。这仍然是 BEAR HVAC 仿真 rollout，不是数据中心生产遥测。
 
 导出脚本使用：
 
@@ -334,16 +428,15 @@ python scripts/export_bear_data.py --bear-root ../BEAR --num-steps 24 --output d
 建议下一步：
 
 - README / demo 截图素材
-- 更完整的人工 correctness / faithfulness 标注
 - 更强 prompt 审计样例
+- README / demo 截图素材
 
 长期加分项：
 
-- 真实 sentence-transformers + FAISS dense retrieval 指标对比
 - Qdrant 向量数据库服务化检索
 - cross-encoder / neural / LLM reranker
-- LangGraph workflow trace
 - 更完整的 DiffFNO / Guided-DiffFNO offline replay 指标和策略对比
+- 更完整的人工 correctness / faithfulness 标注
 - 150 到 200 条更大规模 eval
 
 ## 一句话简历表达

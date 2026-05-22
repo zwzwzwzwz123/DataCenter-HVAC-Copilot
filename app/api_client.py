@@ -13,10 +13,15 @@ def ask_api(
     api_base_url: str,
     question: str,
     task_type: str | None = None,
+    workflow_engine: str = "deterministic",
     http_client: Any = httpx,
     timeout: float = 30.0,
 ) -> dict[str, Any]:
-    payload = {"question": question, "task_type": task_type}
+    payload = {
+        "question": question,
+        "task_type": task_type,
+        "workflow_engine": workflow_engine,
+    }
     response = http_client.post(
         _join_url(api_base_url, "/ask"),
         json=payload,

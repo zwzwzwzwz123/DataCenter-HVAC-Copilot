@@ -107,7 +107,7 @@ def _load_demo_trajectory(project_root: Path | None = None) -> pd.DataFrame:
 
 
 def _build_policy_runner(project_root: Path, *, use_dropt_policy: bool = False):
-    dropt_path = project_root / "policy_best_fno_guided.pth"
+    dropt_path = project_root / "models" / "dropt" / "policy_best_fno_guided.pth"
     if use_dropt_policy and dropt_path.exists():
         dropt_policy = DROPTCheckpointPolicy(dropt_path)
 

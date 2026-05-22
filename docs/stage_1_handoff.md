@@ -18,7 +18,7 @@
 
 **FAISS dense retrieval 更新：** 项目新增 `rag_dense` baseline。默认使用 deterministic hash embedding，保证测试和评测不依赖模型下载、API key、`faiss-cpu` 或 `sentence-transformers`；真实 FAISS dense retrieval 作为 optional extra，通过 `pip install -e ".[dev,dense]"` 启用。Qdrant 仍作为后续服务化向量数据库方向，不在当前默认链路中。
 
-**DROPT checkpoint policy 更新：** 项目新增 `src/policies/dropt_adapter.py`，可加载本地 `policy_best_fno_guided.pth` 并运行 Guided-DiffFNO checkpoint 推理。该后端需要完整 20 维 BEAR state vector，状态不完整或 checkpoint 缺失时会回退到 rule-based policy 并在 `notes` 中说明。`/eval/run` 和 `scripts/run_eval.py` 默认仍使用 deterministic rule-based policy；如需演示该后端，在代码中显式调用 `build_demo_orchestrator(use_dropt_policy=True)`。
+**DROPT checkpoint policy 更新：** 项目新增 `src/policies/dropt_adapter.py`，可加载本地 `models/dropt/policy_best_fno_guided.pth` 并运行 Guided-DiffFNO checkpoint 推理。该后端需要完整 20 维 BEAR state vector，状态不完整或 checkpoint 缺失时会回退到 rule-based policy 并在 `notes` 中说明。`/eval/run` 和 `scripts/run_eval.py` 默认仍使用 deterministic rule-based policy；如需演示该后端，在代码中显式调用 `build_demo_orchestrator(use_dropt_policy=True)`。
 
 **环境变量加载：** 项目现在会自动读取仓库根目录 `.env`，但不会覆盖 shell 中已经存在的环境变量。已验证当前本地 `.env` 能启用 `DeepSeekAnswerGenerator`，smoke test 返回 `answer_generator=deepseek:deepseek-v4-flash`。
 

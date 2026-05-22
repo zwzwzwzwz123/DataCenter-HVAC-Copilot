@@ -1,14 +1,22 @@
+import subprocess
+import sys
+from pathlib import Path
+
 import pytest
 
 from app.api_client import ApiClientError, ask_api, run_eval_api
 from app.streamlit_app import (
     DEMO_WALKTHROUGHS,
+    WORKFLOW_OPTIONS,
+    build_workflow_trace_rows,
     get_dashboard_copy,
+    get_default_api_base_url,
     build_status_cards,
     build_execution_timeline,
     build_safety_audit_rows,
     build_prediction_preview,
     group_eval_metrics,
+    render_status_grid_html,
 )
 
 
@@ -60,8 +68,30 @@ def test_ask_api_posts_question_and_task_type():
     )
 
     assert http_client.last_url == "http://localhost:8000/ask"
-    assert http_client.last_json == {"question": "q", "task_type": "document_qa"}
+    assert http_client.last_json == {
+        "question": "q",
+        "task_type": "document_qa",
+        "workflow_engine": "deterministic",
+    }
     assert result["answer"] == "a"
+
+
+def test_ask_api_posts_selected_workflow_engine():
+    http_client = FakeHttpClient(FakeResponse(200, {"answer": "a"}))
+
+    ask_api(
+        "http://localhost:8000",
+        question="q",
+        task_type=None,
+        workflow_engine="langgraph",
+        http_client=http_client,
+    )
+
+    assert http_client.last_json == {
+        "question": "q",
+        "task_type": None,
+        "workflow_engine": "langgraph",
+    }
 
 
 def test_ask_api_raises_on_non_200_response():
@@ -91,6 +121,28 @@ def test_run_eval_api_posts_eval_path():
     assert http_client.last_url == "http://localhost:8000/eval/run"
     assert http_client.last_json == {"eval_path": "data/eval/hvac_eval.jsonl"}
     assert result["metrics"]["citation_hit_rate"] == 0.6
+
+
+def test_default_api_base_url_can_be_overridden_for_docker(monkeypatch):
+    monkeypatch.setenv("HVAC_COPILOT_API_BASE_URL", "http://api:8000")
+
+    assert get_default_api_base_url() == "http://api:8000"
+
+
+def test_streamlit_script_imports_when_run_by_path(tmp_path):
+    script_path = Path(__file__).resolve().parents[1] / "app" / "streamlit_app.py"
+    command = [
+        sys.executable,
+        "-c",
+        (
+            "import runpy; "
+            f"runpy.run_path(r'{script_path}', run_name='streamlit_smoke')"
+        ),
+    ]
+
+    result = subprocess.run(command, cwd=tmp_path, capture_output=True, text=True)
+
+    assert result.returncode == 0, result.stderr
 
 
 def test_group_eval_metrics_splits_quality_proxy_metrics():
@@ -166,6 +218,56 @@ def test_demo_walkthroughs_cover_core_routes():
     assert all(case["why"] for case in DEMO_WALKTHROUGHS)
 
 
+def test_workflow_options_offer_baseline_and_langgraph():
+    assert WORKFLOW_OPTIONS["Deterministic baseline"] == "deterministic"
+    assert WORKFLOW_OPTIONS["LangGraph workflow"] == "langgraph"
+
+
+def test_build_workflow_trace_rows_summarizes_langgraph_nodes():
+    rows = build_workflow_trace_rows(
+        {
+            "workflow_engine": "langgraph",
+            "workflow_trace": [
+                {
+                    "node": "intent_classifier",
+                    "route": "policy_recommendation",
+                    "tools": [],
+                    "citation_count": 0,
+                    "tool_result_count": 0,
+                    "audit_passed": None,
+                },
+                {
+                    "node": "answer_audit",
+                    "route": "policy_recommendation",
+                    "tools": ["rule_based_policy"],
+                    "citation_count": 0,
+                    "tool_result_count": 1,
+                    "audit_passed": True,
+                },
+            ],
+        }
+    )
+
+    assert rows == [
+        {
+            "step": 1,
+            "node": "intent_classifier",
+            "route": "policy_recommendation",
+            "tools": "none",
+            "evidence": "0 citations / 0 tool results",
+            "audit": "n/a",
+        },
+        {
+            "step": 2,
+            "node": "answer_audit",
+            "route": "policy_recommendation",
+            "tools": "rule_based_policy",
+            "evidence": "0 citations / 1 tool results",
+            "audit": "passed",
+        },
+    ]
+
+
 def test_dashboard_copy_uses_control_console_positioning():
     copy = get_dashboard_copy()
 
@@ -201,6 +303,19 @@ def test_build_status_cards_summarizes_runtime_evidence():
     assert cards[3]["value"] == "1 citations / 1 tool results"
     assert cards[4]["value"] == "passed"
     assert cards[5]["value"] == "bear_sample_csv"
+
+
+def test_render_status_grid_html_does_not_emit_indented_code_blocks():
+    html = render_status_grid_html(
+        [
+            {"label": "Route", "value": "waiting", "hint": "ready"},
+            {"label": "Tools", "value": "standby", "hint": "ready"},
+        ]
+    )
+
+    assert '<div class="status-grid">' in html
+    assert "\n    <div" not in html
+    assert html.count('class="status-card"') == 2
 
 
 def test_build_execution_timeline_summarizes_route_tools_generator_and_data_source():

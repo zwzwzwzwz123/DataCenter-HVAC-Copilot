@@ -85,7 +85,7 @@ git commit -m "feat: add dropt checkpoint adapter contract"
 from src.policies.dropt_adapter import DROPTCheckpointPolicy
 
 def test_dropt_adapter_loads_checkpoint_and_returns_policy_result():
-    policy = DROPTCheckpointPolicy(model_path="policy_best_fno_guided.pth")
+    policy = DROPTCheckpointPolicy(model_path="models/dropt/policy_best_fno_guided.pth")
     result = policy.run(
         {
             "state_id": "episode_001_step_024",
@@ -189,4 +189,3 @@ Expected: Regenerate report artifacts without changing deterministic baseline be
 - [ ] **Step 3: Check the generated outputs**
 
 Confirm the report still matches the repo docs and that the new adapter is explicitly described as optional and offline.
-

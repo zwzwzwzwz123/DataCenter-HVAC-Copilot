@@ -102,6 +102,14 @@ def main() -> None:
         choices=["memory", "faiss"],
         help="Dense retrieval backend for rag_dense baseline.",
     )
+    parser.add_argument(
+        "--dense-model",
+        default=None,
+        help=(
+            "Sentence-transformers model name used when --dense-provider sentence-transformers. "
+            "Example: BAAI/bge-small-zh-v1.5"
+        ),
+    )
     args = parser.parse_args()
     eval_path = Path(args.eval_path)
     output_path = Path(args.output)
@@ -147,6 +155,7 @@ def main() -> None:
         orchestrator,
         dense_provider=args.dense_provider,
         dense_backend=args.dense_backend,
+        dense_model=args.dense_model,
     )
     comparison_path.parent.mkdir(parents=True, exist_ok=True)
     comparison_path.write_text(
@@ -175,6 +184,9 @@ def main() -> None:
         expected_keyword_record_count=sum(1 for record in records if record.expected_keywords),
         by_task_type=comparison["by_task_type"],
         human_calibration=human_summary,
+        dense_provider=args.dense_provider,
+        dense_backend=args.dense_backend,
+        dense_model=args.dense_model,
     )
     print(f"Saved predictions to {output_path}")
     print(f"Saved baseline comparison summary to {comparison_path}")

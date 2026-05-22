@@ -46,6 +46,45 @@ def test_ask_endpoint_returns_orchestrator_response():
     assert body["answer_generator"]
 
 
+def test_ask_endpoint_can_run_langgraph_workflow_trace():
+    client = TestClient(create_app(use_env_answer_generator=False))
+
+    response = client.post(
+        "/ask",
+        json={
+            "question": "如果当前温度超过舒适上限，是否应该调整控制策略？",
+            "task_type": "policy_recommendation",
+            "workflow_engine": "langgraph",
+        },
+    )
+
+    body = response.json()
+    assert response.status_code == 200
+    assert body["workflow_engine"] == "langgraph"
+    assert [step["node"] for step in body["workflow_trace"]] == [
+        "intent_classifier",
+        "policy_tool",
+        "evidence_aggregator",
+        "answer_audit",
+    ]
+    assert body["tools"] == ["rule_based_policy"]
+
+
+def test_ask_endpoint_rejects_unknown_workflow_engine():
+    client = TestClient(create_app(use_env_answer_generator=False))
+
+    response = client.post(
+        "/ask",
+        json={
+            "question": "q",
+            "workflow_engine": "unknown",
+        },
+    )
+
+    assert response.status_code == 400
+    assert "workflow_engine" in response.json()["detail"]
+
+
 def test_eval_run_endpoint_returns_metrics():
     client = TestClient(create_app(use_env_answer_generator=False))
 
@@ -201,9 +240,11 @@ def test_demo_orchestrator_uses_dropt_checkpoint_when_present(tmp_path):
             "comfort_violation": [False] * 6,
         }
     ).to_csv(bear_dir / "bear_rollout.csv", index=False)
-    checkpoint = Path("policy_best_fno_guided.pth")
+    checkpoint = Path("models/dropt/policy_best_fno_guided.pth")
     assert checkpoint.exists()
-    (tmp_path / "policy_best_fno_guided.pth").write_bytes(checkpoint.read_bytes())
+    checkpoint_dir = tmp_path / "models" / "dropt"
+    checkpoint_dir.mkdir(parents=True)
+    (checkpoint_dir / "policy_best_fno_guided.pth").write_bytes(checkpoint.read_bytes())
 
     orchestrator = build_demo_orchestrator(
         project_root=tmp_path,

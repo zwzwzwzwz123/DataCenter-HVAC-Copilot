@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from src.agent.orchestrator import BaselineOrchestrator
+from src.agent.langgraph_workflow import LangGraphOrchestrator
 from src.evaluation.dataset import load_eval_dataset
 from src.evaluation.dataset import EvalRecord
 from src.evaluation.llm_judge import LLMJudge
@@ -78,6 +79,7 @@ def run_baseline_comparison(
     *,
     dense_provider: str = "deterministic",
     dense_backend: str = "memory",
+    dense_model: str | None = None,
 ) -> dict[str, Any]:
     records = load_eval_dataset(eval_path)
     chunks = getattr(orchestrator.rag_pipeline.retriever, "chunks", [])
@@ -86,6 +88,7 @@ def run_baseline_comparison(
         chunks,
         provider=dense_provider,
         backend=dense_backend,
+        model_name=dense_model,
     )
     hybrid_rag = ExtractiveRAGPipeline(HybridRetriever(chunks))
     hybrid_rerank_rag = ExtractiveRAGPipeline(
@@ -128,6 +131,18 @@ def run_baseline_comparison(
             "by_task_type": agent_run["by_task_type"],
         }
     )
+    langgraph_run = run_baseline_eval(
+        eval_path,
+        LangGraphOrchestrator(orchestrator),
+    )
+    runs.append(
+        {
+            "mode": "langgraph_tool_agent",
+            "predictions": langgraph_run["predictions"],
+            "metrics": langgraph_run["metrics"],
+            "by_task_type": langgraph_run["by_task_type"],
+        }
+    )
     return {
         "runs": runs,
         "summary": {run["mode"]: run["metrics"] for run in runs},
@@ -159,11 +174,14 @@ def build_dense_rag_pipeline(
     *,
     provider: str = "deterministic",
     backend: str = "memory",
+    model_name: str | None = None,
 ) -> ExtractiveRAGPipeline:
     if provider == "deterministic":
         embedding_provider = DeterministicHashEmbeddingProvider()
     elif provider == "sentence-transformers":
-        embedding_provider = SentenceTransformerEmbeddingProvider()
+        embedding_provider = SentenceTransformerEmbeddingProvider(
+            model_name=model_name or "sentence-transformers/all-MiniLM-L6-v2"
+        )
     else:
         raise ValueError(f"Unsupported dense embedding provider: {provider}")
 

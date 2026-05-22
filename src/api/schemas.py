@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 class AskRequest(BaseModel):
     question: str
     task_type: str | None = None
+    workflow_engine: str = "deterministic"
 
 
 class AskResponse(BaseModel):
@@ -20,6 +21,8 @@ class AskResponse(BaseModel):
     tool_results: list[dict] = Field(default_factory=list)
     route_reason: str | None = None
     data_source: dict[str, str] = Field(default_factory=dict)
+    workflow_engine: str = "deterministic"
+    workflow_trace: list[dict] = Field(default_factory=list)
 
 
 class EvalRunRequest(BaseModel):

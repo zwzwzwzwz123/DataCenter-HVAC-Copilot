@@ -128,6 +128,7 @@ def test_run_baseline_comparison_returns_three_named_modes(tmp_path: Path):
         "rag_hybrid_rerank",
         "rag",
         "rag_tool_agent",
+        "langgraph_tool_agent",
     ]
     assert set(result["summary"]) == {
         "llm_only",
@@ -137,11 +138,14 @@ def test_run_baseline_comparison_returns_three_named_modes(tmp_path: Path):
         "rag_hybrid_rerank",
         "rag",
         "rag_tool_agent",
+        "langgraph_tool_agent",
     }
     assert result["summary"]["rag_tool_agent"]["tool_selection_accuracy"] == 1.0
+    assert result["summary"]["langgraph_tool_agent"]["tool_selection_accuracy"] == 1.0
     assert result["summary"]["llm_only"]["tool_selection_accuracy"] == 0.0
     assert "by_task_type" in result
     assert "rag_tool_agent" in result["by_task_type"]
+    assert "langgraph_tool_agent" in result["by_task_type"]
     assert "document_qa" in result["by_task_type"]["rag_tool_agent"]
     assert "timeseries_query" in result["by_task_type"]["rag_tool_agent"]
 

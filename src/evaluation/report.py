@@ -28,6 +28,9 @@ def render_experiment_report(
     expected_keyword_record_count: int = 0,
     by_task_type: dict[str, dict[str, dict[str, float]]] | None = None,
     human_calibration: dict[str, object] | None = None,
+    dense_provider: str = "deterministic",
+    dense_backend: str = "memory",
+    dense_model: str | None = None,
 ) -> str:
     lines = [
         "# 实验报告",
@@ -43,6 +46,12 @@ def render_experiment_report(
             f"其中 {expected_keyword_record_count} 条样例包含人工维护的 expected_keywords，"
             "用于计算中文回答要点覆盖率。"
         ),
+        "",
+        "## 运行配置",
+        "",
+        f"- dense_provider: `{dense_provider}`",
+        f"- dense_backend: `{dense_backend}`",
+        f"- dense_model: `{dense_model or 'default'}`",
         "",
         "## Baseline 对比",
         "",
@@ -78,10 +87,15 @@ def render_experiment_report(
             "## 当前结论",
             "",
             "- `llm_only` 不使用检索证据或工具结果，作为最低可复现基线。",
-            _dense_comparison_conclusion(comparison_summary),
+            _dense_comparison_conclusion(
+                comparison_summary,
+                dense_provider=dense_provider,
+                dense_backend=dense_backend,
+            ),
             _retrieval_comparison_conclusion(comparison_summary),
             _reranker_comparison_conclusion(comparison_summary),
             "- `rag_tool_agent` 在当前确定性路由样例上体现工具选择、工具执行和证据覆盖优势。",
+            _langgraph_comparison_conclusion(comparison_summary),
             "",
         ]
     )
@@ -111,10 +125,18 @@ def _retrieval_comparison_conclusion(
 
 def _dense_comparison_conclusion(
     comparison_summary: dict[str, dict[str, float]],
+    *,
+    dense_provider: str = "deterministic",
+    dense_backend: str = "memory",
 ) -> str:
     dense = comparison_summary.get("rag_dense", {})
     if not dense:
         return "- `rag_dense` 尚未纳入当前报告。"
+    if dense_provider == "sentence-transformers" and dense_backend == "faiss":
+        return (
+            "- `rag_dense` 使用真实 sentence-transformers embedding + FAISS 本地向量索引；"
+            "该运行可用于面试中说明真实语义检索 baseline，但仍需结合 hybrid/rerank 指标判断中文 HVAC 场景效果。"
+        )
     return (
         "- `rag_dense` 使用 deterministic hash embedding 作为默认 dense retrieval baseline；"
         "真实 FAISS + sentence-transformers 作为可选增强，避免默认评测依赖模型下载或外部 API。"
@@ -143,6 +165,24 @@ def _reranker_comparison_conclusion(
     )
 
 
+def _langgraph_comparison_conclusion(
+    comparison_summary: dict[str, dict[str, float]],
+) -> str:
+    langgraph = comparison_summary.get("langgraph_tool_agent")
+    baseline = comparison_summary.get("rag_tool_agent")
+    if not langgraph:
+        return "- `langgraph_tool_agent` 尚未纳入当前报告。"
+    if baseline and langgraph == baseline:
+        return (
+            "- `langgraph_tool_agent` 保留与 deterministic `rag_tool_agent` 一致的工具行为和指标，"
+            "用于展示 StateGraph 编排、workflow trace 和后续可替换节点，而不是改变当前可复现评测口径。"
+        )
+    return (
+        "- `langgraph_tool_agent` 已纳入对比；其指标与 deterministic baseline 的差异需要结合 workflow trace "
+        "进一步检查路由和工具节点行为。"
+    )
+
+
 def save_experiment_report(
     comparison_summary: dict[str, dict[str, float]],
     *,
@@ -151,6 +191,9 @@ def save_experiment_report(
     expected_keyword_record_count: int = 0,
     by_task_type: dict[str, dict[str, dict[str, float]]] | None = None,
     human_calibration: dict[str, object] | None = None,
+    dense_provider: str = "deterministic",
+    dense_backend: str = "memory",
+    dense_model: str | None = None,
 ) -> None:
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -161,6 +204,9 @@ def save_experiment_report(
             expected_keyword_record_count=expected_keyword_record_count,
             by_task_type=by_task_type,
             human_calibration=human_calibration,
+            dense_provider=dense_provider,
+            dense_backend=dense_backend,
+            dense_model=dense_model,
         ),
         encoding="utf-8",
     )

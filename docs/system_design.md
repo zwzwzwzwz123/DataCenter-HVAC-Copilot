@@ -92,7 +92,7 @@ Agent 后续负责：
 
 Agent 不负责直接训练模型，也不直接向环境写入控制动作。控制建议必须来自规则策略、MPC-like policy、DROPT / DiffFNO / Guided-DiffFNO adapter 或 offline replay 等工具。即使启用 checkpoint policy，LLM 也只解释 `policy_result`，不能自行生成或修改控制动作。
 
-`src/policies/dropt_adapter.py` 可加载本地 `policy_best_fno_guided.pth`，并重建与 DROPT 训练脚本一致的 Guided-DiffFNO 推理骨架。该适配器需要显式 20 维 BEAR state vector，布局为 `[zone_temperature(6), outdoor_temp(1), solar_irradiance(6), ground_temp(1), internal_load(6)]`；当 checkpoint 缺失或 state 不完整时会退回 `rule_based_policy` 并在 `notes` 中说明。该能力默认不进入 `/eval/run` 和 `scripts/run_eval.py`，避免改变 deterministic baseline 指标口径；代码中可通过 `build_demo_orchestrator(use_dropt_policy=True)` 显式启用。
+`src/policies/dropt_adapter.py` 可加载本地 `models/dropt/policy_best_fno_guided.pth`，并重建与 DROPT 训练脚本一致的 Guided-DiffFNO 推理骨架。该适配器需要显式 20 维 BEAR state vector，布局为 `[zone_temperature(6), outdoor_temp(1), solar_irradiance(6), ground_temp(1), internal_load(6)]`；当 checkpoint 缺失或 state 不完整时会退回 `rule_based_policy` 并在 `notes` 中说明。该能力默认不进入 `/eval/run` 和 `scripts/run_eval.py`，避免改变 deterministic baseline 指标口径；代码中可通过 `build_demo_orchestrator(use_dropt_policy=True)` 显式启用。
 
 可选 LLM 生成器只负责最终解释生成。它必须基于 `retrieved_contexts`、`citations`、`tool_results`、`policy_result` 和 `data_source`，不能把 BEAR 表述为真实生产遥测，也不能发明新的控制动作。DeepSeek API 未配置或调用失败时，系统回退到 `deterministic_grounded` 生成器。
 

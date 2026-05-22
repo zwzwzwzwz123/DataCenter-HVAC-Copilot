@@ -1,9 +1,16 @@
 from __future__ import annotations
 
 from html import escape
+import os
+from pathlib import Path
+import sys
 
 import pandas as pd
 import streamlit as st
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.api_client import ApiClientError, ask_api, run_eval_api
 
@@ -14,6 +21,11 @@ TASK_OPTIONS = {
     "时序查询": "timeseries_query",
     "异常诊断": "anomaly_diagnosis",
     "策略建议": "policy_recommendation",
+}
+
+WORKFLOW_OPTIONS = {
+    "Deterministic baseline": "deterministic",
+    "LangGraph workflow": "langgraph",
 }
 
 DEMO_WALKTHROUGHS = [
@@ -47,6 +59,10 @@ METRIC_GROUPS = {
     ],
     "Quality Proxy": ["answer_correctness_proxy", "faithfulness_proxy"],
 }
+
+
+def get_default_api_base_url() -> str:
+    return os.environ.get("HVAC_COPILOT_API_BASE_URL", "http://localhost:8000")
 
 DASHBOARD_COPY = {
     "title": "DataCenter-HVAC Copilot",
@@ -391,6 +407,34 @@ def build_execution_timeline(result: dict) -> list[dict]:
     ]
 
 
+def build_workflow_trace_rows(result: dict) -> list[dict]:
+    rows = []
+    for index, item in enumerate(result.get("workflow_trace", []), start=1):
+        tools = item.get("tools") or []
+        citation_count = int(item.get("citation_count", 0) or 0)
+        tool_result_count = int(item.get("tool_result_count", 0) or 0)
+        audit_value = item.get("audit_passed", item.get("passed"))
+        rows.append(
+            {
+                "step": index,
+                "node": item.get("node", "unknown"),
+                "route": item.get("route", result.get("route", "unknown")),
+                "tools": ", ".join(str(tool) for tool in tools) if tools else "none",
+                "evidence": f"{citation_count} citations / {tool_result_count} tool results",
+                "audit": _format_audit_status(audit_value),
+            }
+        )
+    return rows
+
+
+def _format_audit_status(value: object) -> str:
+    if value is True:
+        return "passed"
+    if value is False:
+        return "review"
+    return "n/a"
+
+
 def build_safety_audit_rows(result: dict) -> list[dict]:
     audit = result.get("answer_audit") or {}
     violations = set(audit.get("violations", []))
@@ -435,21 +479,20 @@ def _render_panel_start(title: str) -> None:
 
 
 def _render_status_grid(cards: list[dict[str, str]]) -> None:
+    st.markdown(render_status_grid_html(cards), unsafe_allow_html=True)
+
+
+def render_status_grid_html(cards: list[dict[str, str]]) -> str:
     card_html = []
     for card in cards:
         card_html.append(
-            f"""
-            <div class="status-card">
-                <div class="label">{escape(card["label"])}</div>
-                <div class="value">{escape(card["value"])}</div>
-                <div class="hint">{escape(card["hint"])}</div>
-            </div>
-            """
+            '<div class="status-card">'
+            f'<div class="label">{escape(card["label"])}</div>'
+            f'<div class="value">{escape(card["value"])}</div>'
+            f'<div class="hint">{escape(card["hint"])}</div>'
+            "</div>"
         )
-    st.markdown(
-        '<div class="status-grid">' + "\n".join(card_html) + "</div>",
-        unsafe_allow_html=True,
-    )
+    return '<div class="status-grid">' + "".join(card_html) + "</div>"
 
 
 def _render_section_label(label: str) -> None:
@@ -475,7 +518,7 @@ def main() -> None:
     st.set_page_config(page_title="DataCenter-HVAC Copilot", layout="wide")
     _render_console_shell()
 
-    api_base_url = st.sidebar.text_input("API 地址", value="http://localhost:8000")
+    api_base_url = st.sidebar.text_input("API 地址", value=get_default_api_base_url())
     tab_ask, tab_eval = st.tabs(["Copilot", "评测摘要"])
     with tab_ask:
         _render_ask_tab(api_base_url)
@@ -506,6 +549,11 @@ def _render_ask_tab(api_base_url: str) -> None:
             list(TASK_OPTIONS.keys()),
             index=list(TASK_OPTIONS.keys()).index(default_task_label),
         )
+        workflow_label = st.selectbox(
+            "Workflow",
+            list(WORKFLOW_OPTIONS.keys()),
+            index=0,
+        )
         question = st.text_area(
             "问题",
             value=(
@@ -530,6 +578,7 @@ def _render_ask_tab(api_base_url: str) -> None:
                 api_base_url=api_base_url,
                 question=question.strip(),
                 task_type=TASK_OPTIONS[task_label],
+                workflow_engine=WORKFLOW_OPTIONS[workflow_label],
             )
         except ApiClientError as exc:
             st.error(str(exc))
@@ -584,6 +633,14 @@ def _render_result(result: dict) -> None:
 
     with st.expander("Execution Timeline", expanded=True):
         st.dataframe(pd.DataFrame(build_execution_timeline(result)), use_container_width=True)
+
+    trace_rows = build_workflow_trace_rows(result)
+    if trace_rows:
+        with st.expander("LangGraph Workflow Trace", expanded=True):
+            st.caption(
+                "StateGraph nodes executed by the selected workflow, including route, tool, evidence, and audit state."
+            )
+            st.dataframe(pd.DataFrame(trace_rows), use_container_width=True)
 
     audit = result.get("answer_audit")
     if audit:
