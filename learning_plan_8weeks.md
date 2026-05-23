@@ -5,6 +5,17 @@
 > **节奏**：每周 10-15 小时，对应 career_plan 里"每周 10-20h"的承诺。每周末交一次"自检产出"。
 > **核心原则**：每个模块都按 `读代码 → 补理论 → 不看代码手写 → 写一段 100-200 字的"我会怎么改"` 四步走。手写不出来的就是没掌握。
 
+> [!IMPORTANT]
+> **2026-05-23 更新**：经过 4 轮代码审计 + Tier 1 优化（详见 [tier1_progress_review_v2.md](tier1_progress_review_v2.md) / [final_review.md](final_review.md)），项目现在比写这份计划时多了：
+> - `react_agent.py`（W5/W6 多一个对照）
+> - `GroundedRAGPipeline` + 三组对照（W4 已有真实 trade-off 数据）
+> - `safety_adversarial.jsonl` + `policy_benchmark.py`（W7 多两个测试模块）
+> - 24/24 人工标注完成（W7 从"做标注"改为"重测信度盲打分"）
+> - GitHub Actions CI / 21 个 git commit / 178 测试全绿
+>
+> 路线节奏不变，只是每周读的具体文件和"实操"部分的对比数据**已经更新到当前真实指标**——你不会再看到过期的 0.554 或者写"未来要做"的 baseline。
+
+
 ---
 
 ## 学习总览：8 周分配
@@ -74,12 +85,18 @@ app/streamlit_app.py
   → src/agent/langgraph_workflow.py  (LangGraphOrchestrator.run)
       → src/agent/intent_classifier.py     (classify)
       → src/agent/executor.py              (run_xxx)
-          → src/retrieval/rag.py           (ExtractiveRAGPipeline.answer)
+          → src/retrieval/rag.py           (ExtractiveRAGPipeline / GroundedRAGPipeline)
           → src/tools/timeseries.py        (各种 query_xxx)
-          → src/policies/*.py              (策略工具)
+          → src/policies/*.py              (策略工具，含 dropt_adapter)
       → src/agent/answer_generator.py
       → src/agent/answer_audit.py
 ```
+
+**追加**：第三个问题（multi-hop）跑一遍 `src/agent/react_agent.py`：
+
+3. **问题 C（multi-hop）**："最近一小时温度趋势是否提示需要调整 HVAC 控制策略？"（来自 `data/eval/hvac_eval.jsonl` 里 `multihop_001` 这一类）
+
+观察 ReAct planner 怎么先走 timeseries_query 再走 policy_recommendation——这是项目里**唯一会触发两步执行**的代码路径。
 
 **做法**：开 VS Code 设断点（或在每个文件开头加 `print(f">>> entered {__name__}")`），跑一次问题 A 看打印顺序；再跑问题 B 看分歧点。
 
@@ -208,9 +225,10 @@ app/streamlit_app.py
 ### 必读代码
 
 - [src/retrieval/retriever.py](src/retrieval/retriever.py) `HybridRetriever` 部分（BM25-style + 长度归一化）
-- [src/retrieval/rag.py](src/retrieval/rag.py) — Reranker 在哪里融合
+- [src/retrieval/rag.py](src/retrieval/rag.py) — 重点看 **`ExtractiveRAGPipeline` vs `GroundedRAGPipeline` 的差异**
 - [src/retrieval/query_rewrite.py](src/retrieval/query_rewrite.py) — `RuleBasedHVACQueryRewriter` + `TemplateHyDEGenerator`
 - [tests/test_query_rewrite.py](tests/test_query_rewrite.py)
+- [tests/test_grounded_rag.py](tests/test_grounded_rag.py)
 
 ### 必补理论（4h）
 
@@ -221,20 +239,22 @@ app/streamlit_app.py
 
 ### 实操（6h）
 
-1. 看你的实验数据：
+1. 看你的实验数据（**已跑出 grounded 三组对照 + BGE 真实数据**）：
 
-| Baseline | citation_hit_rate | 备注 |
-|---|---:|---|
-| rag_keyword | 0.554 | 词频检索 |
-| rag_hybrid | 0.585 | keyword + dense_hash 融合 |
-| rag_hybrid_rerank | 0.600 | + metadata-aware rerank |
-| rag_dense | **0.692** | 真实 BGE 单路 |
-| rag_rewrite | 0.646 | rule-based 改写 + dense |
-| rag_hyde | **0.246** | template HyDE → 大幅掉点 |
+| Baseline | citation_hit_rate | grounding_rate | expected_keyword_coverage |
+|---|---:|---:|---:|
+| rag_keyword | 0.554 | 0.000 | 0.353 |
+| rag_keyword_grounded | 0.554 | **0.708** | 0.344 |
+| rag_dense | **0.692** | 0.000 | 0.502 |
+| rag_dense_grounded | 0.692 | **1.000** | 0.492 |
+| rag_rewrite | 0.646 | 0.000 | 0.566 |
+| rag_rewrite_grounded | 0.646 | **1.000** | 0.477 |
+| rag_hyde | **0.246** | 0.000 | 0.174 |
 
-2. 写 300 字解释 **"为什么 hybrid 不如纯 dense / 为什么 HyDE 反而最差"**——这两个反直觉结论是面试最好的素材。提示：
-   - hybrid 里的 dense 用的是 hash 不是真 BGE → 拖了 dense 后腿
-   - template HyDE 是固定模板，会让 query 漂移到模板词上，反而稀释了原始 query 的关键词
+2. 写 300 字解释 **三个反直觉**——这是面试最好的素材：
+   - 为什么 hybrid 不如纯 dense？（hybrid 里的 dense 用 hash 拖了后腿）
+   - 为什么 HyDE 反而最差？（template 让 query 漂移到模板词）
+   - **为什么 grounded 版本 grounding_rate 上去了，expected_keyword_coverage 反而下降**？（拼接式答案 keyword 召回更高 → grounded 不是免费午餐，是 trade-off）
 
 3. **手写 RRF 融合**：把 keyword 和 dense 的结果融合成一个排序，对比项目里的加权融合（看 HybridRetriever 的实现），哪个更好？
 
@@ -243,9 +263,11 @@ app/streamlit_app.py
 **自检产出 4**：
 - 一篇 800 字的"实验报告"博客草稿，标题就叫《为什么我的 HyDE 跑得比 keyword 还差》——这是 career_plan 里推荐的博客选题之一
 - 一段 RRF 实现对比
+- 一段对 grounded trade-off 的反思（"我以为 grounded 一定更好，结果发现…"）
 
 ### 面试可复用知识点（高级）
-- "我跑了 7 组检索 baseline，反直觉的发现是 deterministic template HyDE 反而比 keyword 还差（0.246 vs 0.554）。这让我意识到 HyDE 在中文小语料上会引入 query drift——模板词稀释了原始关键词。最终生产路径选 query rewrite 不选 HyDE，是基于实验而非论文权威"
+- "我跑了 11 组检索 baseline，反直觉的发现是 deterministic template HyDE 反而比 keyword 还差（0.246 vs 0.554）。这让我意识到 HyDE 在中文小语料上会引入 query drift——模板词稀释了原始关键词。"
+- "更深的发现：grounded 三组对照里 grounding_rate 1.0 但 keyword coverage 反而下降——所以 grounded 不是免费午餐，是 trade-off。下一步是混合策略：grounded 时显式保留检索证据里的 expected keyword。"
 - 这是面试官最想听的"我做过实验、有判断、不迷信论文"的故事
 
 ---
@@ -260,6 +282,7 @@ app/streamlit_app.py
 - [src/agent/intent_classifier.py](src/agent/intent_classifier.py) — Rule / DeepSeek / Ollama 三种 intent
 - [src/agent/executor.py](src/agent/executor.py) — `AgentTaskExecutor`，工具执行的中枢
 - [src/agent/orchestrator.py](src/agent/orchestrator.py) — `BaselineOrchestrator`（确定性版本）
+- [src/agent/react_agent.py](src/agent/react_agent.py) — **`ReActOrchestrator` + `DeterministicReActPlanner`，项目里唯一的 multi-step 路径**
 - [src/tools/timeseries.py](src/tools/timeseries.py) — 5 个时序工具
 - [src/policies/](src/policies/) — 策略工具
 
@@ -340,7 +363,10 @@ app/streamlit_app.py
 
 3. **加一个真实改进**（可选挑战）：把 `replan` 节点加进 langgraph，让低召回的问题自动尝试 query rewrite。这是 P2 改进里写过的，但你自己写出来比 AI 写的有面试价值得多。
 
-4. 比较 `rag_tool_agent` 和 `langgraph_tool_agent` 的指标——**完全一样**。回答：那 langgraph 的价值是什么？（答：StateGraph 编排可视化、workflow_trace 可观测性、intent 节点可插拔 LLM——这些是工程价值，不是指标价值）
+4. 比较 `rag_tool_agent`、`langgraph_tool_agent`、`react_agent` 三组指标：
+   - 100 条单步问题上：三组**指标完全相同**（同一份 task_executor）
+   - 但 `react_agent` 在 8 条 multi-hop policy 子集上 tool_selection_accuracy 从 71.4% 提到 89.3%（+25%）
+   - **回答：那 langgraph 的价值是什么？**（答：StateGraph 编排可视化、workflow_trace 可观测、intent 节点可插拔——这些是工程价值。**ReAct 的价值是 multi-hop**——这是 multi-step 才能解决的场景）
 
 **自检产出 6**：
 - 你独立写的 FAQ Agent LangGraph，要能跑
@@ -359,12 +385,15 @@ app/streamlit_app.py
 ### 必读代码
 
 - [src/evaluation/dataset.py](src/evaluation/dataset.py) — eval JSONL 加载
-- [src/evaluation/metrics.py](src/evaluation/metrics.py) — 9 项指标定义（核心）
+- [src/evaluation/metrics.py](src/evaluation/metrics.py) — 9 项指标定义（核心，含 `grounding_rate`）
 - [src/evaluation/runner.py](src/evaluation/runner.py) — baseline runner
 - [src/evaluation/llm_judge.py](src/evaluation/llm_judge.py) — `DeterministicKeywordJudge`
 - [src/evaluation/human_review.py](src/evaluation/human_review.py)
+- [src/evaluation/safety_adversarial.py](src/evaluation/safety_adversarial.py) — **对抗鲁棒性测试模块**
+- [src/evaluation/policy_benchmark.py](src/evaluation/policy_benchmark.py) — **DROPT 独立 baseline 跑 latency / action 分布**
 - [src/agent/answer_audit.py](src/agent/answer_audit.py) — Safety Audit 规则
 - [data/eval/hvac_eval.jsonl](data/eval/hvac_eval.jsonl) 前 10 条
+- [data/eval/safety_adversarial.jsonl](data/eval/safety_adversarial.jsonl) — 29 条对抗 prompt
 - [data/eval/baseline_comparison.json](data/eval/baseline_comparison.json) 完整结构
 
 ### 必补理论（4h）
@@ -377,25 +406,34 @@ app/streamlit_app.py
 
 ### 实操（6h）
 
-1. **完成 P0 任务：标注 24 条人工评测**（这是 [project_review_2026_05_22.md](project_review_2026_05_22.md) 里 P0-2 的事，本周必须做完）：
+1. **复核 24 条人工标注**（5/22 已经标完，本周做的是"重新读自己的标注 + 校准"）：
    - 打开 [data/eval/human_review_annotations.jsonl](data/eval/human_review_annotations.jsonl)
-   - 对每条参照 [docs/human_evaluation_guide.md](docs/human_evaluation_guide.md) 填 1-5 分
-   - 标完跑 `python scripts/run_eval.py`，看 experiment_report.md 里 Human Calibration 段从 pending 变成 labeled
+   - **不看自己当时填的分数**，重新对每条样本评一次（盲打分）
+   - 对比两次评分的差异——**这就是你自己的 inter-rater agreement**，是面试可以讲的"我做了重测信度"故事
+   - 跑 `python scripts/run_eval.py` 看 experiment_report.md 里 Human Calibration 段的数据
    - 计算你的人工分和 deterministic proxy 的 Pearson 相关系数
 
 2. 读 [metrics.py](src/evaluation/metrics.py)，回答：
    - `citation_hit_rate` 和 `context_recall` 在你的实现里为什么数值相同？（看实现细节）
    - `expected_keyword_coverage` 是怎么算的？为什么这个比 citation 更接近"答案对不对"？
    - `answer_correctness_proxy` 和 `faithfulness_proxy` 是怎么算的？为什么叫 proxy？
+   - `grounding_rate` 是怎么算的？为什么 extractive baseline 一律是 0？
 
-3. 读 [answer_audit.py](src/agent/answer_audit.py)，回答：
-   - 三类 Safety 违规分别是什么？给每类编一个会触发的 prompt
-   - 为什么 Safety Audit 用确定性规则而非 LLM？写 100 字答案
+3. 读 [answer_audit.py](src/agent/answer_audit.py) + [safety_adversarial.jsonl](data/eval/safety_adversarial.jsonl)，回答：
+   - 三类 Safety 违规分别是什么？
+   - **跑过的 29 条对抗 prompt 里 translation 类为什么 0/4 全军覆没？**（答：risky_phrases 字典是中文）
+   - 为什么 paraphrase 反而 8/8 全命中？
+   - 写 100 字答案：为什么 Safety Audit 用确定性规则而非 LLM？
 
-4. **设计挑战**：给一个新场景（比如智能家居控制）设计一个 30 条的评测集 + 5 项指标 + Safety 规则。**不写代码，只写设计文档（500 字）**。
+4. **读 [policy_benchmark.py](src/evaluation/policy_benchmark.py)** + experiment_report.md 末尾的 DROPT 数据：
+   - 28/28 推理成功、6.5ms latency 这些数字怎么来的？
+   - "sub-10ms 适合实时控制循环"这个论断的依据是什么？
+   - 如果让你给 DROPT 加一个新指标，你会加什么？（提示：action diversity / std）
+
+5. **设计挑战**：给一个新场景（比如智能家居控制）设计一个 30 条的评测集 + 5 项指标 + Safety 规则。**不写代码，只写设计文档（500 字）**。
 
 **自检产出 7**：
-- `data/eval/human_review_annotations.jsonl` 不再有 null
+- 你的两次盲打分对比 + 一致性分析（200 字）
 - 一段 200 字的"我的人工分和 proxy 的相关性"分析
 - 一篇 1500 字博客《如何为垂直领域 RAG Agent 设计 100 条评测集》草稿
 

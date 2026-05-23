@@ -6,6 +6,7 @@ import pytest
 
 from app.api_client import ApiClientError, ask_api, run_eval_api
 from app.streamlit_app import (
+    CONSOLE_CSS,
     DEMO_WALKTHROUGHS,
     WORKFLOW_OPTIONS,
     build_workflow_trace_rows,
@@ -324,6 +325,72 @@ def test_render_status_grid_html_does_not_emit_indented_code_blocks():
     assert '<div class="status-grid">' in html
     assert "\n    <div" not in html
     assert html.count('class="status-card"') == 2
+
+
+def test_console_css_keeps_minimal_saas_visual_language():
+    forbidden_fragments = [
+        "linear-gradient",
+        "radial-gradient",
+        "text-transform: uppercase",
+        "font-weight: 700",
+        "font-weight: 800",
+        "box-shadow: 0",
+    ]
+
+    for fragment in forbidden_fragments:
+        assert fragment not in CONSOLE_CSS
+
+
+def test_console_css_removes_default_streamlit_top_gap():
+    assert 'header[data-testid="stHeader"]' in CONSOLE_CSS
+    assert 'div[data-testid="stDecoration"]' in CONSOLE_CSS
+    assert "padding-top: 0.75rem;" in CONSOLE_CSS
+
+
+def test_console_css_distinguishes_panels_from_page_background():
+    expected_fragments = [
+        "--bg-elevated:  #18181b;",
+        "--bg-panel:     #202024;",
+        "--border-panel: #3a3a42;",
+        "background: var(--bg-panel);",
+        "border: 1px solid var(--border-panel);",
+        "border-bottom: 1px solid var(--border-soft);",
+    ]
+
+    for fragment in expected_fragments:
+        assert fragment in CONSOLE_CSS
+
+
+def test_console_css_spaces_stacked_cards_in_empty_state():
+    assert "margin-bottom: 1.25rem;" in CONSOLE_CSS
+
+
+def test_console_css_gives_primary_buttons_visible_boundaries():
+    expected_fragments = [
+        "button[data-testid=\"stBaseButton-primary\"]",
+        "background: var(--bg-panel);",
+        "border: 0;",
+        "box-shadow: inset 0 0 0 1px var(--border-panel);",
+        "border-color: var(--text-muted);",
+    ]
+
+    for fragment in expected_fragments:
+        assert fragment in CONSOLE_CSS
+
+
+def test_console_css_prevents_button_bottom_clipping():
+    expected_fragments = [
+        ".stButton {",
+        "margin-bottom: 1.1rem;",
+        "height: 3rem;",
+        "box-sizing: border-box;",
+        "display: inline-flex;",
+        "align-items: center;",
+        "justify-content: center;",
+    ]
+
+    for fragment in expected_fragments:
+        assert fragment in CONSOLE_CSS
 
 
 def test_build_execution_timeline_summarizes_route_tools_generator_and_data_source():

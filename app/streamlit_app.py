@@ -66,215 +66,442 @@ def get_default_api_base_url() -> str:
 
 DASHBOARD_COPY = {
     "title": "DataCenter-HVAC Copilot",
-    "subtitle": "RAG + Tool Agent control console for BEAR HVAC simulation evidence.",
-    "boundary": "BEAR 仅作为 HVAC 仿真 / 可控代理场景；LLM 不直接控制，策略动作只来自 policy tool。",
+    "subtitle": "RAG + Tool Agent for BEAR HVAC simulation evidence.",
+    "boundary": "BEAR 仅作为 HVAC 仿真 / 可控代理场景。LLM 不直接控制环境，策略动作只来自 policy tool。",
 }
 
 CONSOLE_CSS = """
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
     :root {
-        --console-bg: #0b1117;
-        --console-panel: #101a24;
-        --console-panel-2: #142230;
-        --console-border: #263847;
-        --console-text: #e6edf3;
-        --console-muted: #94a3b8;
-        --console-cyan: #37d5ff;
-        --console-green: #68e391;
-        --console-orange: #ffb454;
-        --console-red: #ff5f6d;
+        --bg:           #0a0a0b;
+        --bg-elevated:  #18181b;
+        --bg-panel:     #202024;
+        --bg-hover:     #25252a;
+        --border:       #303038;
+        --border-soft:  #26262c;
+        --border-panel: #3a3a42;
+        --text:         #ededee;
+        --text-muted:   #8b8b94;
+        --text-subtle:  #5c5c66;
+        --accent:       #ededee;
+        --accent-soft:  #2a2a30;
+        --success:      #4ade80;
+        --warning:      #fbbf24;
+        --danger:       #f87171;
+        --radius:       6px;
+        --radius-lg:    10px;
+    }
+
+    html, body, [class*="css"], .stApp, .stApp * {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+                     'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+                     sans-serif !important;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    code, pre, .stCode, [data-testid="stCode"] {
+        font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace !important;
     }
 
     .stApp {
-        background:
-            radial-gradient(circle at 18% 12%, rgba(55, 213, 255, 0.10), transparent 30%),
-            linear-gradient(135deg, #091017 0%, #0b1117 46%, #111827 100%);
-        color: var(--console-text);
+        background: var(--bg);
+        color: var(--text);
+    }
+
+    header[data-testid="stHeader"] {
+        background: transparent;
+        height: 0;
+    }
+
+    div[data-testid="stDecoration"] {
+        display: none;
     }
 
     section[data-testid="stSidebar"] {
-        background: #091017;
-        border-right: 1px solid var(--console-border);
+        background: var(--bg);
+        border-right: 1px solid var(--border-soft);
     }
 
     section[data-testid="stSidebar"] label,
     section[data-testid="stSidebar"] .stMarkdown {
-        color: var(--console-muted);
+        color: var(--text-muted);
     }
 
     .block-container {
-        max-width: 1420px;
-        padding-top: 2.2rem;
-        padding-bottom: 3rem;
+        max-width: 1280px;
+        padding-top: 0.75rem;
+        padding-bottom: 4rem;
     }
 
-    h1, h2, h3, h4, p, label, span, div {
+    h1, h2, h3, h4, h5 {
+        color: var(--text);
+        font-weight: 600;
+        letter-spacing: -0.01em;
+    }
+
+    p, span, label, div {
         letter-spacing: 0;
     }
 
+    /* Tabs — minimal underline only */
+    div[data-testid="stTabs"] {
+        border-bottom: 1px solid var(--border-soft);
+        margin-bottom: 1.75rem;
+    }
+
     div[data-testid="stTabs"] button {
-        color: var(--console-muted);
+        color: var(--text-muted);
+        font-weight: 500;
+        font-size: 0.9rem;
+        background: transparent;
+        border-bottom: 1px solid transparent;
+        transition: color 120ms ease, border-color 120ms ease;
+    }
+
+    div[data-testid="stTabs"] button:hover {
+        color: var(--text);
     }
 
     div[data-testid="stTabs"] button[aria-selected="true"] {
-        color: var(--console-green);
-        border-bottom-color: var(--console-green);
+        color: var(--text);
+        border-bottom-color: var(--text);
     }
 
+    .stButton {
+        margin-bottom: 1.1rem;
+    }
+
+    /* Buttons — flat, no gradient */
     .stButton > button {
         width: 100%;
-        border: 1px solid rgba(104, 227, 145, 0.45);
-        background: linear-gradient(90deg, #1db16a, #37d5ff);
-        color: #061015;
-        font-weight: 700;
-        border-radius: 8px;
-        min-height: 2.75rem;
+        background: var(--bg-panel);
+        color: var(--text);
+        font-weight: 500;
+        font-size: 0.9rem;
+        border: 0;
+        border-radius: var(--radius);
+        height: 3rem;
+        min-height: 3rem;
+        box-sizing: border-box;
+        box-shadow: inset 0 0 0 1px var(--border-panel);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 120ms ease, box-shadow 120ms ease, color 120ms ease;
     }
 
+    button[data-testid="stBaseButton-primary"] {
+        background: var(--bg-panel);
+        color: var(--text);
+        border: 0;
+        box-shadow: inset 0 0 0 1px var(--border-panel);
+    }
+
+    .stButton > button:hover {
+        background: var(--bg-hover);
+        color: var(--text);
+        border-color: var(--text-muted);
+        box-shadow: inset 0 0 0 1px var(--text-muted);
+    }
+
+    button[data-testid="stBaseButton-primary"]:hover {
+        background: var(--bg-hover);
+        color: var(--text);
+        border-color: var(--text-muted);
+        box-shadow: inset 0 0 0 1px var(--text-muted);
+    }
+
+    .stButton > button:active {
+        background: var(--bg-elevated);
+    }
+
+    /* Form inputs */
     .stTextArea textarea,
     .stTextInput input,
     div[data-baseweb="select"] > div {
-        background-color: #0e1822;
-        border: 1px solid var(--console-border);
-        color: var(--console-text);
-        border-radius: 8px;
+        background: var(--bg-elevated) !important;
+        border: 1px solid var(--border) !important;
+        color: var(--text) !important;
+        border-radius: var(--radius) !important;
+        font-size: 0.9rem !important;
+        transition: border-color 120ms ease;
     }
 
+    .stTextArea textarea:focus,
+    .stTextInput input:focus {
+        border-color: var(--text-muted) !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    /* Hero */
     .console-hero {
-        border: 1px solid var(--console-border);
-        border-radius: 8px;
-        background: linear-gradient(135deg, rgba(16, 26, 36, 0.98), rgba(20, 34, 48, 0.92));
-        padding: 1.4rem 1.5rem;
-        margin-bottom: 1.1rem;
-        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
+        margin-bottom: 2.5rem;
+        padding: 0;
     }
 
     .console-kicker {
-        color: var(--console-green);
+        color: var(--text-subtle);
         font-size: 0.78rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        margin-bottom: 0.35rem;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        margin-bottom: 0.85rem;
+        font-family: 'JetBrains Mono', monospace !important;
     }
 
     .console-title {
-        color: var(--console-text);
-        font-size: clamp(2rem, 4vw, 3.5rem);
-        line-height: 1;
-        font-weight: 800;
-        margin: 0;
+        color: var(--text);
+        font-size: clamp(2.25rem, 4vw, 3.25rem);
+        line-height: 1.05;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin: 0 0 0.85rem 0;
     }
 
     .console-subtitle {
-        color: var(--console-muted);
-        font-size: 0.98rem;
-        margin-top: 0.75rem;
-        margin-bottom: 0;
-        max-width: 920px;
+        color: var(--text-muted);
+        font-size: 1.05rem;
+        line-height: 1.55;
+        margin: 0;
+        max-width: 720px;
+        font-weight: 400;
     }
 
+    /* Boundary notice — quiet, not loud */
     .boundary-strip {
-        border-left: 4px solid var(--console-orange);
-        background: rgba(255, 180, 84, 0.10);
-        color: #ffd89b;
-        padding: 0.75rem 0.9rem;
-        border-radius: 8px;
-        margin-bottom: 1rem;
-        font-size: 0.92rem;
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        background: var(--bg-panel);
+        border: 1px solid var(--border-panel);
+        color: var(--text-muted);
+        padding: 0.7rem 0.95rem;
+        border-radius: var(--radius);
+        margin-bottom: 2.25rem;
+        font-size: 0.85rem;
+        line-height: 1.5;
     }
 
+    .boundary-strip::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--warning);
+        flex-shrink: 0;
+    }
+
+    /* Panels — borderless minimalism */
     .panel {
-        border: 1px solid var(--console-border);
-        background: rgba(16, 26, 36, 0.88);
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 1rem;
+        background: var(--bg-panel);
+        border: 1px solid var(--border-panel);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
     }
 
     .panel-title {
-        color: var(--console-text);
-        font-weight: 750;
+        color: var(--text);
+        font-weight: 500;
         font-size: 0.95rem;
-        margin-bottom: 0.75rem;
+        margin: -0.1rem 0 1.25rem;
+        padding-bottom: 0.85rem;
+        border-bottom: 1px solid var(--border-soft);
+        letter-spacing: -0.005em;
     }
 
+    /* Answer panel — quiet, content-first */
     .answer-panel {
-        border: 1px solid rgba(104, 227, 145, 0.30);
-        background: rgba(9, 16, 23, 0.74);
-        border-radius: 8px;
-        padding: 1rem 1.1rem;
-        margin-bottom: 1rem;
+        background: var(--bg-panel);
+        border: 1px solid var(--border-panel);
+        border-radius: var(--radius-lg);
+        padding: 1.75rem 2rem;
+        margin-bottom: 1.75rem;
     }
 
     .answer-panel h3 {
-        color: var(--console-green);
-        margin-top: 0;
-        margin-bottom: 0.75rem;
-        font-size: 1rem;
+        color: var(--text-muted);
+        margin: 0 0 1.25rem 0;
+        font-size: 0.78rem;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        font-family: 'JetBrains Mono', monospace !important;
     }
 
+    .answer-panel > div {
+        color: var(--text);
+        font-size: 0.95rem;
+        line-height: 1.7;
+    }
+
+    /* Status grid — three info chips */
     .status-grid {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 0.75rem;
-        margin: 0.9rem 0 1rem;
+        gap: 1rem;
+        margin: 0 0 1.75rem 0;
     }
 
     .status-card {
-        border: 1px solid var(--console-border);
-        background: rgba(20, 34, 48, 0.86);
-        border-radius: 8px;
-        padding: 0.75rem 0.85rem;
-        min-height: 88px;
+        background: var(--bg-panel);
+        border: 1px solid var(--border-panel);
+        border-radius: var(--radius);
+        padding: 1rem 1.15rem;
+        min-height: 92px;
+        transition: border-color 120ms ease;
+    }
+
+    .status-card:hover {
+        border-color: var(--border);
     }
 
     .status-card .label {
-        color: var(--console-muted);
+        color: var(--text-subtle);
         font-size: 0.72rem;
-        text-transform: uppercase;
-        font-weight: 700;
-        margin-bottom: 0.35rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        font-family: 'JetBrains Mono', monospace !important;
     }
 
     .status-card .value {
-        color: var(--console-text);
-        font-size: 1.05rem;
-        font-weight: 760;
+        color: var(--text);
+        font-size: 0.98rem;
+        font-weight: 500;
+        line-height: 1.35;
         overflow-wrap: anywhere;
+        margin-bottom: 0.4rem;
     }
 
     .status-card .hint {
-        color: var(--console-muted);
-        font-size: 0.74rem;
-        margin-top: 0.25rem;
+        color: var(--text-muted);
+        font-size: 0.78rem;
+        line-height: 1.45;
         overflow-wrap: anywhere;
     }
 
+    /* Section label */
     .section-label {
-        color: var(--console-cyan);
-        font-size: 0.82rem;
-        font-weight: 760;
-        text-transform: uppercase;
-        margin: 1rem 0 0.45rem;
+        color: var(--text-subtle);
+        font-size: 0.72rem;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        margin: 1.75rem 0 0.85rem;
+        font-family: 'JetBrains Mono', monospace !important;
     }
 
+    /* Expander — quieter */
     div[data-testid="stExpander"] {
-        border: 1px solid var(--console-border);
-        border-radius: 8px;
-        background: rgba(16, 26, 36, 0.70);
+        background: var(--bg-panel);
+        border: 1px solid var(--border-panel);
+        border-radius: var(--radius-lg);
+        margin-bottom: 1rem;
     }
 
+    div[data-testid="stExpander"] summary {
+        color: var(--text);
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    div[data-testid="stExpander"] summary:hover {
+        color: var(--text);
+    }
+
+    /* DataFrame — flat, no gridlines */
     div[data-testid="stDataFrame"] {
-        border: 1px solid var(--console-border);
-        border-radius: 8px;
+        border: 1px solid var(--border-panel);
+        border-radius: var(--radius);
+        overflow: hidden;
     }
 
+    div[data-testid="stDataFrame"] [data-testid="stDataFrameResizable"] {
+        background: var(--bg-elevated);
+    }
+
+    /* Inline code */
     code {
-        color: var(--console-green);
-        background: rgba(104, 227, 145, 0.10);
-        border-radius: 4px;
+        color: var(--text);
+        background: var(--accent-soft);
+        border-radius: 3px;
+        padding: 0.1rem 0.35rem;
+        font-size: 0.85em;
     }
 
+    /* Streamlit metric — clean */
+    div[data-testid="stMetric"] {
+        background: var(--bg-panel);
+        border: 1px solid var(--border-panel);
+        border-radius: var(--radius);
+        padding: 0.85rem 1rem;
+    }
+
+    div[data-testid="stMetricLabel"] {
+        color: var(--text-subtle);
+        font-size: 0.72rem;
+        font-weight: 500;
+        font-family: 'JetBrains Mono', monospace !important;
+    }
+
+    div[data-testid="stMetricValue"] {
+        color: var(--text);
+        font-weight: 500;
+    }
+
+    /* Caption */
+    .stCaption, [data-testid="stCaption"] {
+        color: var(--text-muted) !important;
+        font-size: 0.82rem !important;
+    }
+
+    /* Alert / info / warning */
+    div[data-baseweb="notification"] {
+        border-radius: var(--radius);
+        background: var(--bg-panel);
+        border: 1px solid var(--border-panel);
+    }
+
+    /* Sidebar text input */
+    section[data-testid="stSidebar"] input {
+        background: var(--bg-elevated) !important;
+        border: 1px solid var(--border-soft) !important;
+    }
+
+    /* Empty state — calmer */
+    .empty-state {
+        background: var(--bg-panel);
+        border: 1px solid var(--border-panel);
+        border-radius: var(--radius-lg);
+        padding: 2rem 2rem;
+        margin-bottom: 1.25rem;
+        text-align: left;
+    }
+
+    .empty-state .empty-kicker {
+        color: var(--text-subtle);
+        font-size: 0.72rem;
+        font-weight: 500;
+        margin-bottom: 0.65rem;
+        letter-spacing: 0.04em;
+        font-family: 'JetBrains Mono', monospace !important;
+    }
+
+    .empty-state .empty-title {
+        color: var(--text);
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin-bottom: 0.75rem;
+    }
+
+    .empty-state .empty-body {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+        line-height: 1.65;
+    }
+
+    /* Mobile */
     @media (max-width: 900px) {
         .status-grid {
             grid-template-columns: 1fr;
@@ -282,6 +509,11 @@ CONSOLE_CSS = """
         .block-container {
             padding-left: 1rem;
             padding-right: 1rem;
+            padding-top: 1.5rem;
+        }
+        .answer-panel,
+        .panel {
+            padding: 1.25rem;
         }
     }
 </style>
@@ -471,7 +703,7 @@ def _render_console_shell() -> None:
     st.markdown(
         f"""
         <div class="console-hero">
-            <div class="console-kicker">HVAC Simulation Agent Console</div>
+            <div class="console-kicker">v0.1 · BEAR HVAC Simulation</div>
             <h1 class="console-title">{escape(copy["title"])}</h1>
             <p class="console-subtitle">{escape(copy["subtitle"])}</p>
         </div>
@@ -614,12 +846,12 @@ def _render_eval_tab(api_base_url: str) -> None:
 def _render_empty_state() -> None:
     st.markdown(
         """
-        <div class="answer-panel">
-            <h3>Ready</h3>
-            <div>
-                选择一个 walkthrough 或输入自定义问题，然后运行分析。推荐先看
-                <code>BEAR 数据边界</code>、<code>温度时序查询</code> 和
-                <code>策略建议边界</code> 三个案例。
+        <div class="empty-state">
+            <div class="empty-kicker">Ready</div>
+            <div class="empty-title">Select a walkthrough or enter a custom question</div>
+            <div class="empty-body">
+                推荐先看 <code>BEAR 数据边界</code>、<code>温度时序查询</code> 和
+                <code>策略建议边界</code> 三个案例 —— 它们覆盖了 RAG 检索、时序工具和策略边界三种典型路由。
             </div>
         </div>
         """,
@@ -627,9 +859,9 @@ def _render_empty_state() -> None:
     )
     _render_status_grid(
         [
-            {"label": "Route", "value": "waiting", "hint": "默认进入 LangGraph workflow"},
-            {"label": "Tools", "value": "standby", "hint": "按问题类型调用 RAG / timeseries / policy"},
-            {"label": "Audit", "value": "armed", "hint": "回答会检查生产遥测和 LLM 控制误述"},
+            {"label": "Route", "value": "Standby", "hint": "默认进入 LangGraph workflow"},
+            {"label": "Tools", "value": "Standby", "hint": "按问题类型调用 RAG / timeseries / policy"},
+            {"label": "Audit", "value": "Armed", "hint": "回答会检查生产遥测和 LLM 控制误述"},
         ]
     )
 
