@@ -16,7 +16,7 @@ uvicorn src.api.app:app --reload
 streamlit run app/streamlit_app.py
 ```
 
-Copilot tab 默认使用 LangGraph workflow，并展示 `LangGraph Workflow Trace`。如果本地 `.env` 配置了 `DEEPSEEK_API_KEY` 且 `LANGGRAPH_INTENT_PROVIDER=auto`，intent classifier 节点会自动使用 DeepSeek；未配置 key 时回退 rule-based。评测页仍默认使用 deterministic generator，避免批量 API 调用影响复现。
+Copilot tab 默认使用 LangGraph workflow，并展示 `LangGraph Workflow Trace`。当前本地 demo 默认优先使用 DeepSeek intent classifier；未配置 key、LLM 调用失败或输出非法时回退 rule-based。策略建议路线默认调用 DROPT checkpoint policy backend；评测页仍默认使用 deterministic generator 和 rule-based policy，避免批量 API 调用或策略后端切换影响复现。
 
 当前 Streamlit 首页是专业深色控制台布局：左侧 `Mission Control` 负责选择 walkthrough、任务类型和问题，右侧 `Grounded Answer` 展示回答、Route / Tools / Generator / Evidence / Audit / Data Source 状态卡片，以及后续的结构化证据面板。演示时可以先说明这是一个 HVAC 仿真 Agent 工作台，而不是普通聊天框。
 

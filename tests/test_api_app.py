@@ -14,7 +14,7 @@ class FactorySpyGenerator:
 
 
 def test_health_endpoint_returns_status():
-    client = TestClient(create_app(use_env_answer_generator=False))
+    client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
 
     response = client.get("/health")
 
@@ -27,7 +27,7 @@ def test_health_endpoint_returns_status():
 
 
 def test_ask_endpoint_returns_orchestrator_response():
-    client = TestClient(create_app(use_env_answer_generator=False))
+    client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
 
     response = client.post(
         "/ask",
@@ -49,7 +49,7 @@ def test_ask_endpoint_returns_orchestrator_response():
 
 
 def test_ask_endpoint_can_run_langgraph_workflow_trace():
-    client = TestClient(create_app(use_env_answer_generator=False))
+    client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
 
     response = client.post(
         "/ask",
@@ -74,6 +74,29 @@ def test_ask_endpoint_can_run_langgraph_workflow_trace():
     assert body["workflow_trace"][0]["fallback_used"] is False
 
 
+def test_ask_endpoint_defaults_policy_route_to_dropt_checkpoint():
+    client = TestClient(
+        create_app(
+            use_env_answer_generator=False,
+            use_env_intent_classifier=False,
+        )
+    )
+
+    response = client.post(
+        "/ask",
+        json={
+            "question": "请根据当前状态给出 HVAC 控制策略建议",
+            "task_type": "policy_recommendation",
+            "workflow_engine": "langgraph",
+        },
+    )
+
+    body = response.json()
+    assert response.status_code == 200
+    assert body["tools"] == ["dropt_guided_diffno_checkpoint"]
+    assert body["policy_result"]["policy_name"] == "dropt_guided_diffno_checkpoint"
+
+
 def test_create_app_can_disable_env_intent_classifier(monkeypatch):
     monkeypatch.setenv("LANGGRAPH_INTENT_PROVIDER", "deepseek")
     monkeypatch.setenv("DEEPSEEK_API_KEY", "test-key")
@@ -81,6 +104,7 @@ def test_create_app_can_disable_env_intent_classifier(monkeypatch):
         create_app(
             use_env_answer_generator=False,
             use_env_intent_classifier=False,
+            use_dropt_policy=False,
         )
     )
 
@@ -128,7 +152,7 @@ def test_auto_intent_provider_uses_deepseek_when_key_is_available(monkeypatch):
             fromlist=["build_intent_classifier_from_env"],
         ).build_intent_classifier_from_env(transport=fake_transport),
     )
-    client = TestClient(create_app(use_env_answer_generator=False))
+    client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
 
     response = client.post(
         "/ask",
@@ -148,7 +172,7 @@ def test_auto_intent_provider_uses_deepseek_when_key_is_available(monkeypatch):
 def test_intent_provider_can_be_forced_to_rule_based(monkeypatch):
     monkeypatch.setenv("LANGGRAPH_INTENT_PROVIDER", "rule_based")
     monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
-    client = TestClient(create_app(use_env_answer_generator=False))
+    client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
 
     response = client.post(
         "/ask",
@@ -164,7 +188,7 @@ def test_intent_provider_can_be_forced_to_rule_based(monkeypatch):
 
 
 def test_ask_endpoint_rejects_unknown_workflow_engine():
-    client = TestClient(create_app(use_env_answer_generator=False))
+    client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
 
     response = client.post(
         "/ask",
@@ -179,7 +203,7 @@ def test_ask_endpoint_rejects_unknown_workflow_engine():
 
 
 def test_eval_run_endpoint_returns_metrics():
-    client = TestClient(create_app(use_env_answer_generator=False))
+    client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
 
     response = client.post("/eval/run", json={"eval_path": "data/eval/hvac_eval.jsonl"})
 

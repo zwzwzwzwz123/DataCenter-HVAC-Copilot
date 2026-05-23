@@ -61,7 +61,7 @@ Deterministic Router
                                           FastAPI / Streamlit Demo
 ```
 
-Stage 2 增加了 LangGraph workflow。交互式 `/ask` 和 Streamlit 默认使用 LangGraph 编排；`LANGGRAPH_INTENT_PROVIDER=auto` 时，如果检测到 `DEEPSEEK_API_KEY` 会自动启用 DeepSeek intent classifier，否则回退 rule-based。也可以显式配置 `LANGGRAPH_INTENT_PROVIDER=deepseek`、`ollama` 或 `rule_based`；LLM 输出非法或调用失败时自动回退 rule-based：
+Stage 2 增加了 LangGraph workflow。交互式 `/ask` 和 Streamlit 默认使用 LangGraph 编排；当前 demo 默认优先使用 DeepSeek intent classifier，LLM 输出非法、调用失败或未配置 key 时自动回退 rule-based。也可以显式配置 `LANGGRAPH_INTENT_PROVIDER=deepseek`、`ollama` 或 `rule_based`：
 
 ```mermaid
 flowchart TD
@@ -78,7 +78,7 @@ flowchart TD
     H --> I[Grounded Answer + Trace]
 ```
 
-`langgraph_tool_agent` 与 deterministic `rag_tool_agent` 共享 `AgentTaskExecutor` 工具执行组件，因此默认指标对齐；它的价值是展示 StateGraph 编排、workflow trace，以及可替换的 LLM intent classifier 节点，而不是改变默认可复现评测口径。
+`langgraph_tool_agent` 与 deterministic `rag_tool_agent` 共享 `AgentTaskExecutor` 工具执行组件；交互式 demo 可使用 LLM intent classifier 和 DROPT policy backend，`/eval/run` 与脚本评测仍显式保持 deterministic/rule-based 口径，避免可复现指标漂移。
 
 核心模块：
 
@@ -136,18 +136,18 @@ pip install -e ".[dev,dense]"
 
 FAISS 是本地向量索引库，本身不需要 API 或按次付费；`sentence-transformers` 会在本地生成 embedding，首次使用可能下载模型。当前 Stage 2 已用 `BAAI/bge-small-zh-v1.5` + FAISS 跑通真实 dense baseline。Qdrant 更偏生产化向量数据库和服务部署，当前保留在 Roadmap。
 
-## 可选 DROPT / Guided-DiffFNO 策略后端
+## 默认 DROPT / Guided-DiffFNO 策略后端
 
-项目已支持本地 `models/dropt/policy_best_fno_guided.pth` checkpoint 的可选推理适配器：
+项目已支持本地 `models/dropt/policy_best_fno_guided.pth` checkpoint 的推理适配器；交互式 `/ask` 默认在策略建议路线中启用该后端：
 
 - 代码入口：`src/policies/dropt_adapter.py`
 - 策略名称：`dropt_guided_diffno_checkpoint`
 - 输入要求：显式 20 维 BEAR state vector，布局为 `[zone_temperature(6), outdoor_temp(1), solar_irradiance(6), ground_temp(1), internal_load(6)]`
-- 默认行为：`/eval/run` 和 `scripts/run_eval.py` 仍使用 deterministic rule-based policy，保证评测口径不变。
+- 默认行为：交互式 `/ask` 使用 DROPT checkpoint policy；`/eval/run` 和 `scripts/run_eval.py` 仍使用 deterministic rule-based policy，保证评测口径不变。
 - 边界：该后端只作为 HVAC 仿真 / 可控代理场景中的离线策略工具，不是生产控制器；LLM 仍只解释 `policy_result`，不生成或写回控制动作。
 - 失败语义：checkpoint 缺失、文件损坏、或 BEAR state 维度不完整时，适配器会明确回退到 rule-based policy，并在 `notes` 中写明原因。
 
-代码中可通过 `build_demo_orchestrator(use_dropt_policy=True)` 显式启用该后端；如果 checkpoint 缺失或 state 不完整，会自动回退到 rule-based policy 并在 `notes` 中说明原因。
+如果 checkpoint 缺失或 state 不完整，会自动回退到 rule-based policy 并在 `notes` 中说明原因。代码中也可以通过 `create_app(use_dropt_policy=False)` 或 `build_demo_orchestrator(use_dropt_policy=False)` 显式关闭该后端，便于复现 baseline。
 
 ## LLM 后端配置
 
@@ -172,13 +172,13 @@ OLLAMA_MODEL=qwen2.5:7b
 OLLAMA_TIMEOUT_SECONDS=60
 ```
 
-LangGraph LLM intent classification 默认 auto：
+LangGraph LLM intent classification 默认 DeepSeek-first：
 
 ```bash
-LANGGRAPH_INTENT_PROVIDER=auto
+LANGGRAPH_INTENT_PROVIDER=deepseek
 ```
 
-检测到 `DEEPSEEK_API_KEY` 时，auto 会启用 DeepSeek intent classifier；未配置 key 时使用 rule-based。显式 DeepSeek 示例：
+默认 demo 优先启用 DeepSeek intent classifier；未配置 key、LLM 调用失败或输出非法时使用 rule-based fallback。显式 DeepSeek 示例：
 
 ```bash
 LANGGRAPH_INTENT_PROVIDER=deepseek
@@ -206,8 +206,8 @@ LANGGRAPH_INTENT_PROVIDER=rule_based
 
 - `.env` 会自动加载，但不会覆盖 shell 中已有环境变量。
 - `/ask` 可使用 DeepSeek 或 Ollama 生成最终解释。
-- `LANGGRAPH_INTENT_PROVIDER` 只影响 `workflow_engine=langgraph` 的意图分类节点；可选值为 `auto`、`rule_based`、`deepseek`、`ollama`。交互式 demo 默认 `auto`，评测脚本仍显式保持可复现口径。
-- `scripts/run_eval.py` 和 `/eval/run` 默认使用 deterministic generator，避免批量 API 调用影响速度、成本和可复现性。
+- `LANGGRAPH_INTENT_PROVIDER` 只影响 `workflow_engine=langgraph` 的意图分类节点；可选值为 `auto`、`rule_based`、`deepseek`、`ollama`。交互式 demo 默认 LLM-first，评测脚本仍显式保持可复现口径。
+- `scripts/run_eval.py` 和 `/eval/run` 默认使用 deterministic generator 和 rule-based policy，避免批量 API 调用或策略后端切换影响速度、成本和可复现性。
 - LLM 后端只基于 `retrieved_contexts`、`citations`、`tool_results`、`policy_result` 和 `data_source` 写回答，不负责控制决策。
 
 ## 启动服务

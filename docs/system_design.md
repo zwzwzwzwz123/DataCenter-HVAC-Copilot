@@ -93,7 +93,7 @@ Agent 后续负责：
 
 Agent 不负责直接训练模型，也不直接向环境写入控制动作。控制建议必须来自规则策略、MPC-like policy、DROPT / DiffFNO / Guided-DiffFNO adapter 或 offline replay 等工具。即使启用 checkpoint policy，LLM 也只解释 `policy_result`，不能自行生成或修改控制动作。
 
-`src/policies/dropt_adapter.py` 可加载本地 `models/dropt/policy_best_fno_guided.pth`，并重建与 DROPT 训练脚本一致的 Guided-DiffFNO 推理骨架。该适配器需要显式 20 维 BEAR state vector，布局为 `[zone_temperature(6), outdoor_temp(1), solar_irradiance(6), ground_temp(1), internal_load(6)]`；当 checkpoint 缺失或 state 不完整时会退回 `rule_based_policy` 并在 `notes` 中说明。该能力默认不进入 `/eval/run` 和 `scripts/run_eval.py`，避免改变 deterministic baseline 指标口径；代码中可通过 `build_demo_orchestrator(use_dropt_policy=True)` 显式启用。
+`src/policies/dropt_adapter.py` 可加载本地 `models/dropt/policy_best_fno_guided.pth`，并重建与 DROPT 训练脚本一致的 Guided-DiffFNO 推理骨架。该适配器需要显式 20 维 BEAR state vector，布局为 `[zone_temperature(6), outdoor_temp(1), solar_irradiance(6), ground_temp(1), internal_load(6)]`；当 checkpoint 缺失或 state 不完整时会退回 `rule_based_policy` 并在 `notes` 中说明。交互式 `/ask` 默认启用 DROPT policy backend；`/eval/run` 和 `scripts/run_eval.py` 仍显式使用 rule-based policy，避免改变 deterministic baseline 指标口径。
 
 可选 LLM 生成器只负责最终解释生成。它必须基于 `retrieved_contexts`、`citations`、`tool_results`、`policy_result` 和 `data_source`，不能把 BEAR 表述为真实生产遥测，也不能发明新的控制动作。DeepSeek API 未配置或调用失败时，系统回退到 `deterministic_grounded` 生成器。
 
@@ -109,9 +109,9 @@ LLM judge adapter 仅作为可选评测辅助，默认关闭。`scripts/run_eval
 
 ## LangGraph Agent Workflow
 
-当前 LangGraph 路径已经从单纯 wrapper 升级为可插拔 workflow。交互式 `/ask` 和 Streamlit 默认使用 `workflow_engine=langgraph`；`intent_classifier` 节点默认 `LANGGRAPH_INTENT_PROVIDER=auto`，检测到 `DEEPSEEK_API_KEY` 时启用 OpenAI-compatible `LLMIntentClassifier`，否则回退 `RuleBasedIntentClassifier`。当设置 `LANGGRAPH_INTENT_PROVIDER=ollama` 时，会通过 Ollama `/api/chat` 调用本地 Qwen 等模型。LLM 分类输出非法、网络失败或缺少 key 时自动回退 rule-based，并在 `workflow_trace` 中记录 `classifier`、`confidence` 和 `fallback_used`。`/eval/run` 和 `scripts/run_eval.py` 仍保持 deterministic generator 与可复现评测口径。
+当前 LangGraph 路径已经从单纯 wrapper 升级为可插拔 workflow。交互式 `/ask` 和 Streamlit 默认使用 `workflow_engine=langgraph`；`intent_classifier` 节点默认优先使用 OpenAI-compatible `LLMIntentClassifier` / DeepSeek。未配置 key、LLM 分类输出非法或网络失败时自动回退 `RuleBasedIntentClassifier`，并在 `workflow_trace` 中记录 `classifier`、`confidence` 和 `fallback_used`。当设置 `LANGGRAPH_INTENT_PROVIDER=ollama` 时，会通过 Ollama `/api/chat` 调用本地 Qwen 等模型。`/eval/run` 和 `scripts/run_eval.py` 仍保持 deterministic generator、rule-based policy 与可复现评测口径。
 
-Baseline orchestrator 与 LangGraph orchestrator 共享 `AgentTaskExecutor`，因此工具执行、RAG 检索、policy 调用和 answer audit 不再通过 LangGraph 调用 baseline 私有方法完成。默认 `langgraph_tool_agent` 指标仍与 deterministic baseline 对齐，这是为了保证可复现；差异主要体现在 workflow trace 和可替换的 LLM intent 节点。
+Baseline orchestrator 与 LangGraph orchestrator 共享 `AgentTaskExecutor`，因此工具执行、RAG 检索、policy 调用和 answer audit 不再通过 LangGraph 调用 baseline 私有方法完成。交互式 demo 默认展示 LLM intent routing 和 DROPT policy backend；离线评测中的 `langgraph_tool_agent` 仍与 deterministic baseline 对齐，这是为了保证可复现。
 
 Intent routing 评测由 `scripts/run_intent_eval.py` 单独输出 `data/eval/intent_routing_comparison.json`。该评测不传入 gold `task_type`，直接让 classifier 从问题文本判断 route，并报告 accuracy、fallback rate、按任务类型分组和 confusion matrix。默认 rule-based classifier 在当前 100 条样例上 accuracy 为 0.640；DeepSeek 或 Ollama/Qwen 可作为同一脚本中的 LLM routing backend 进行横向对比。
 

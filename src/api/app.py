@@ -14,10 +14,12 @@ from src.evaluation.runner import run_baseline_eval
 def create_app(
     use_env_answer_generator: bool = True,
     use_env_intent_classifier: bool = True,
+    use_dropt_policy: bool = True,
 ) -> FastAPI:
     app = FastAPI(title="DataCenter-HVAC Copilot", version="0.1.0")
     orchestrator = build_demo_orchestrator(
         use_env_answer_generator=use_env_answer_generator,
+        use_dropt_policy=use_dropt_policy,
     )
     langgraph_orchestrator = LangGraphOrchestrator(
         orchestrator,
@@ -54,7 +56,10 @@ def create_app(
 
     @app.post("/eval/run", response_model=EvalRunResponse)
     def eval_run(request: EvalRunRequest) -> dict:
-        eval_orchestrator = build_demo_orchestrator(use_env_answer_generator=False)
+        eval_orchestrator = build_demo_orchestrator(
+            use_env_answer_generator=False,
+            use_dropt_policy=False,
+        )
         return run_baseline_eval(request.eval_path, eval_orchestrator)
 
     return app

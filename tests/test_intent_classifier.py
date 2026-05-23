@@ -158,7 +158,30 @@ def test_ollama_intent_classifier_falls_back_when_response_is_invalid() -> None:
     assert "LLM intent classification failed" in decision.reason
 
 
-def test_build_intent_classifier_from_env_defaults_to_rule_based(tmp_path, monkeypatch) -> None:
+def test_build_intent_classifier_from_env_defaults_to_deepseek_when_key_exists(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    monkeypatch.delenv("LANGGRAPH_INTENT_PROVIDER", raising=False)
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "test-key")
+    monkeypatch.setenv("LANGGRAPH_INTENT_MODEL", "intent-default")
+
+    classifier = build_intent_classifier_from_env(
+        project_root=tmp_path,
+        transport=FakeIntentTransport(),
+    )
+    decision = classifier.classify("当前温度超过上限时是否应该调整控制策略？")
+
+    assert decision.classifier == "llm:deepseek:intent-default"
+    assert decision.route == "policy_recommendation"
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+    monkeypatch.delenv("LANGGRAPH_INTENT_MODEL", raising=False)
+
+
+def test_build_intent_classifier_from_env_defaults_to_rule_based_without_llm_config(
+    tmp_path,
+    monkeypatch,
+) -> None:
     monkeypatch.delenv("LANGGRAPH_INTENT_PROVIDER", raising=False)
     monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
 
