@@ -67,10 +67,13 @@ def test_ask_endpoint_can_run_langgraph_workflow_trace():
         "planner",
         "execute_plan_step",
         "evidence_aggregator",
+        "answer_generator",
         "answer_audit",
     ]
     assert body["tools"] == ["rule_based_policy"]
+    assert body["workflow_trace"][3]["answer_generator"] == body["answer_generator"]
     assert body["workflow_trace"][0]["planner"] == "deterministic"
+    assert body["workflow_trace"][0]["planned_step_specs"][0]["tool"] == "policy_runner"
     assert body["workflow_trace"][0]["fallback_used"] is False
 
 

@@ -68,6 +68,60 @@ class StaticRoutePlanner:
         )
 
 
+class StructuredStepPlanner:
+    def plan(self, question: str, task_type: str | None = None) -> PlanDecision:
+        return PlanDecision(
+            steps=[
+                PlanStep(
+                    route="timeseries_query",
+                    reason="Planner selected the specific metric query.",
+                    tool="compare_period",
+                    metric_name="fan_power",
+                    zone_id="zone_a",
+                    time_window="full_demo_range",
+                )
+            ],
+            planner="structured-test",
+            confidence=0.9,
+        )
+
+
+class RecentWindowPlanner:
+    def plan(self, question: str, task_type: str | None = None) -> PlanDecision:
+        return PlanDecision(
+            steps=[
+                PlanStep(
+                    route="timeseries_query",
+                    reason="Planner selected a recent time window.",
+                    tool="query_metric",
+                    metric_name="zone_temperature",
+                    zone_id="zone_a",
+                    time_window="last_2_hours",
+                )
+            ],
+            planner="recent-window-test",
+            confidence=0.9,
+        )
+
+
+class UnsupportedWindowPlanner:
+    def plan(self, question: str, task_type: str | None = None) -> PlanDecision:
+        return PlanDecision(
+            steps=[
+                PlanStep(
+                    route="timeseries_query",
+                    reason="Planner emitted an unsupported time window.",
+                    tool="query_metric",
+                    metric_name="zone_temperature",
+                    zone_id="zone_a",
+                    time_window="last_24",
+                )
+            ],
+            planner="unsupported-window-test",
+            confidence=0.9,
+        )
+
+
 def test_route_task_uses_eval_task_type_when_available():
     assert route_task("anything", task_type="timeseries_query").route == "timeseries_query"
 
@@ -253,10 +307,12 @@ def test_langgraph_orchestrator_preserves_baseline_result_and_adds_trace():
         "planner",
         "execute_plan_step",
         "evidence_aggregator",
+        "answer_generator",
         "answer_audit",
     ]
     assert result["workflow_trace"][0]["planned_steps"] == ["timeseries_query"]
     assert result["workflow_trace"][2]["tool_result_count"] == 1
+    assert result["workflow_trace"][3]["answer_generator"] == "spy"
 
 
 def test_langgraph_orchestrator_routes_document_qa_through_retrieval_node():
@@ -275,6 +331,7 @@ def test_langgraph_orchestrator_routes_document_qa_through_retrieval_node():
         "planner",
         "execute_plan_step",
         "evidence_aggregator",
+        "answer_generator",
         "answer_audit",
     ]
     assert result["workflow_trace"][2]["citation_count"] >= 1
@@ -330,6 +387,68 @@ def test_langgraph_multi_step_plan_generates_final_answer_once():
     assert len(generator.payloads) == 1
     assert generator.payloads[0].tools == ["query_metric", "rule_based_policy"]
     assert len(generator.payloads[0].tool_results) == 2
+    assert [step["node"] for step in result["workflow_trace"]] == [
+        "planner",
+        "execute_plan_step",
+        "execute_plan_step",
+        "evidence_aggregator",
+        "answer_generator",
+        "answer_audit",
+    ]
+    assert result["workflow_trace"][4]["answer_generator"] == "spy"
+
+
+def test_langgraph_executes_structured_planner_step_parameters():
+    baseline = BaselineOrchestrator(
+        rag_pipeline=mock_rag(),
+        trajectory=mock_trajectory(),
+        answer_generator=SpyAnswerGenerator(),
+    )
+    orchestrator = LangGraphOrchestrator(baseline, route_planner=StructuredStepPlanner())
+
+    result = orchestrator.run("Planner should choose the exact fan power comparison.")
+
+    assert result["tools"] == ["compare_period"]
+    assert result["tool_results"][0]["tool_name"] == "compare_period"
+    assert result["tool_results"][0]["metric_name"] == "fan_power"
+    assert result["tool_results"][0]["zone_id"] == "zone_a"
+    assert result["planned_steps"][0]["tool"] == "compare_period"
+    assert result["planned_steps"][0]["metric_name"] == "fan_power"
+
+
+def test_langgraph_executes_structured_planner_time_window():
+    baseline = BaselineOrchestrator(
+        rag_pipeline=mock_rag(),
+        trajectory=mock_trajectory(),
+        answer_generator=SpyAnswerGenerator(),
+    )
+    orchestrator = LangGraphOrchestrator(baseline, route_planner=RecentWindowPlanner())
+
+    result = orchestrator.run("Use the last two hours only.")
+
+    tool_result = result["tool_results"][0]
+    assert tool_result["tool_name"] == "query_metric"
+    assert tool_result["start_time"] == "2026-01-01T01:00:00+00:00"
+    assert tool_result["end_time"] == "2026-01-01T03:00:00+00:00"
+    assert tool_result["summary"]["count"] == 3
+
+
+def test_langgraph_marks_unsupported_time_window_fallback_in_tool_result():
+    baseline = BaselineOrchestrator(
+        rag_pipeline=mock_rag(),
+        trajectory=mock_trajectory(),
+        answer_generator=SpyAnswerGenerator(),
+    )
+    orchestrator = LangGraphOrchestrator(baseline, route_planner=UnsupportedWindowPlanner())
+
+    result = orchestrator.run("Use an unsupported window shape.")
+
+    tool_result = result["tool_results"][0]
+    assert tool_result["start_time"] == "2026-01-01T00:00:00+00:00"
+    assert tool_result["end_time"] == "2026-01-01T03:00:00+00:00"
+    assert tool_result["time_window"] == "last_24"
+    assert tool_result["time_window_applied"] == "full_demo_range"
+    assert "Unsupported time_window 'last_24'; used full_demo_range." in tool_result["notes"]
 
 
 def test_baseline_and_langgraph_can_share_agent_task_executor():

@@ -5,6 +5,7 @@ import sys
 import pandas as pd
 
 from src.agent.orchestrator import BaselineOrchestrator
+from src.agent.langgraph_workflow import LangGraphOrchestrator
 from src.api.demo_factory import build_demo_orchestrator
 from src.evaluation.runner import (
     build_dense_rag_pipeline,
@@ -60,6 +61,32 @@ def write_small_eval_dataset(path: Path) -> Path:
     return path
 
 
+def write_compound_eval_dataset(path: Path) -> Path:
+    records = [
+        {
+            "id": "compound_001",
+            "question": "最近温度异常升高，并给出控制建议",
+            "task_type": "policy_recommendation",
+            "gold_answer": "应先查询 zone_temperature，再诊断异常，最后调用 policy 工具。",
+            "required_tools": ["query_metric", "detect_anomaly", "rule_based_policy"],
+            "required_documents": [],
+            "expected_keywords": ["zone_temperature", "异常", "policy"],
+            "expected_steps": [
+                "timeseries_query",
+                "anomaly_diagnosis",
+                "policy_recommendation",
+            ],
+            "expected_output_format": "multi_step_policy_with_tool_evidence",
+        }
+    ]
+    path.write_text(
+        "\n".join(__import__("json").dumps(record, ensure_ascii=False) for record in records)
+        + "\n",
+        encoding="utf-8",
+    )
+    return path
+
+
 def mock_orchestrator():
     document = load_markdown_document(
         Path("data/documents/sample_hvac_guidance.md"),
@@ -97,7 +124,28 @@ def test_run_baseline_eval_returns_predictions_and_metrics(tmp_path: Path):
     assert "lexical_answer_coverage" in result["metrics"]
     assert "tool_selection_accuracy" in result["metrics"]
     assert result["metrics"]["tool_selection_accuracy"] == 1.0
+    assert "planned_step_accuracy" not in result["metrics"]
+    assert "planned_step_order_accuracy" not in result["metrics"]
+    assert "required_step_recall" not in result["metrics"]
+    assert "policy_final_step_rate" not in result["metrics"]
     assert "llm_judge_correctness" not in result["metrics"]
+
+
+def test_run_baseline_eval_reports_planner_metrics_for_compound_records(tmp_path: Path):
+    eval_path = write_compound_eval_dataset(tmp_path / "compound_eval.jsonl")
+    result = run_baseline_eval(
+        eval_path=eval_path,
+        orchestrator=LangGraphOrchestrator(mock_orchestrator()),
+    )
+
+    assert [
+        step["route"]
+        for step in result["predictions"][0]["planned_steps"]
+    ] == ["timeseries_query", "anomaly_diagnosis", "policy_recommendation"]
+    assert result["metrics"]["planned_step_accuracy"] == 1.0
+    assert result["metrics"]["planned_step_order_accuracy"] == 1.0
+    assert result["metrics"]["required_step_recall"] == 1.0
+    assert result["metrics"]["policy_final_step_rate"] == 1.0
 
 
 def test_run_baseline_eval_can_add_optional_llm_judge_metrics(tmp_path: Path):

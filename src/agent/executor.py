@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+import re
 from typing import Any
 
 import pandas as pd
@@ -50,7 +51,12 @@ class AgentTaskExecutor:
         evidence = self.collect_document_qa_evidence(question, reason)
         return self.generate_answer_from_evidence(evidence)
 
-    def collect_document_qa_evidence(self, question: str, reason: str) -> dict[str, Any]:
+    def collect_document_qa_evidence(
+        self,
+        question: str,
+        reason: str,
+        step_spec: Any | None = None,
+    ) -> dict[str, Any]:
         rag_answer = self.rag_pipeline.answer(question, top_k=3)
         return {
             "question": question,
@@ -67,11 +73,19 @@ class AgentTaskExecutor:
         evidence = self.collect_timeseries_query_evidence(question, reason)
         return self.generate_answer_from_evidence(evidence)
 
-    def collect_timeseries_query_evidence(self, question: str, reason: str) -> dict[str, Any]:
-        start_time, end_time = _trajectory_bounds(self.trajectory)
-        tool_name = _select_timeseries_tool(question)
-        metric_name = _select_metric_name(question, self.trajectory)
-        zone_id = _first_zone(self.trajectory)
+    def collect_timeseries_query_evidence(
+        self,
+        question: str,
+        reason: str,
+        step_spec: Any | None = None,
+    ) -> dict[str, Any]:
+        start_time, end_time, time_window_metadata = _select_time_window(
+            self.trajectory,
+            step_spec,
+        )
+        tool_name = _select_timeseries_tool(question, step_spec)
+        metric_name = _select_metric_name(question, self.trajectory, step_spec)
+        zone_id = _select_zone_id(self.trajectory, step_spec)
 
         if tool_name == "compare_period":
             midpoint = start_time + (end_time - start_time) / 2
@@ -104,7 +118,7 @@ class AgentTaskExecutor:
                 end_time=end_time,
                 zone_id=zone_id,
             )
-        return {
+        evidence = {
             "question": question,
             "route": "timeseries_query",
             "route_reason": reason,
@@ -114,18 +128,25 @@ class AgentTaskExecutor:
             "tool_results": [result],
             "data_source": self.data_source,
         }
+        _annotate_time_window_result(result, time_window_metadata)
+        return evidence
 
     def run_anomaly_diagnosis(self, question: str, reason: str) -> dict[str, Any]:
         evidence = self.collect_anomaly_diagnosis_evidence(question, reason)
         return self.generate_answer_from_evidence(evidence)
 
-    def collect_anomaly_diagnosis_evidence(self, question: str, reason: str) -> dict[str, Any]:
+    def collect_anomaly_diagnosis_evidence(
+        self,
+        question: str,
+        reason: str,
+        step_spec: Any | None = None,
+    ) -> dict[str, Any]:
         result = detect_anomaly(
             self.trajectory,
-            metric_name="zone_temperature",
+            metric_name=_select_metric_name(question, self.trajectory, step_spec),
             window_size=2,
             threshold=2.0,
-            zone_id=_first_zone(self.trajectory),
+            zone_id=_select_zone_id(self.trajectory, step_spec),
         )
         return {
             "question": question,
@@ -142,7 +163,12 @@ class AgentTaskExecutor:
         evidence = self.collect_policy_recommendation_evidence(question, reason)
         return self.generate_answer_from_evidence(evidence)
 
-    def collect_policy_recommendation_evidence(self, question: str, reason: str) -> dict[str, Any]:
+    def collect_policy_recommendation_evidence(
+        self,
+        question: str,
+        reason: str,
+        step_spec: Any | None = None,
+    ) -> dict[str, Any]:
         state = self.latest_policy_state()
         policy_result = self.policy_runner(state)
         policy_dump = policy_result.model_dump()
@@ -196,6 +222,69 @@ class AgentTaskExecutor:
 def _trajectory_bounds(trajectory: pd.DataFrame) -> tuple[pd.Timestamp, pd.Timestamp]:
     timestamps = pd.to_datetime(trajectory["timestamp"], utc=True)
     return timestamps.min(), timestamps.max()
+
+
+def _select_time_window(
+    trajectory: pd.DataFrame,
+    step_spec: Any | None = None,
+) -> tuple[pd.Timestamp, pd.Timestamp, dict[str, Any]]:
+    start_time, end_time = _trajectory_bounds(trajectory)
+    planned_window = _step_attr(step_spec, "time_window")
+    if not planned_window:
+        return start_time, end_time, {
+            "requested": None,
+            "applied": "full_demo_range",
+            "notes": [],
+        }
+
+    normalized = str(planned_window).strip().lower().replace("-", "_")
+    if normalized in {"full_demo_range", "full_range", "all", "all_data"}:
+        return start_time, end_time, {
+            "requested": str(planned_window),
+            "applied": "full_demo_range",
+            "notes": [],
+        }
+    if normalized in {"latest", "recent"}:
+        return end_time, end_time, {
+            "requested": str(planned_window),
+            "applied": normalized,
+            "notes": [],
+        }
+
+    match = re.fullmatch(r"(?:last|latest|recent)_(\d+)_hours?", normalized)
+    if match:
+        hours = int(match.group(1))
+        return max(start_time, end_time - pd.Timedelta(hours=hours)), end_time, {
+            "requested": str(planned_window),
+            "applied": normalized,
+            "notes": [],
+        }
+
+    match = re.fullmatch(r"(?:last|latest|recent)_(\d+)_minutes?", normalized)
+    if match:
+        minutes = int(match.group(1))
+        return max(start_time, end_time - pd.Timedelta(minutes=minutes)), end_time, {
+            "requested": str(planned_window),
+            "applied": normalized,
+            "notes": [],
+        }
+
+    return start_time, end_time, {
+        "requested": str(planned_window),
+        "applied": "full_demo_range",
+        "notes": [f"Unsupported time_window '{planned_window}'; used full_demo_range."],
+    }
+
+
+def _annotate_time_window_result(result: dict[str, Any], metadata: dict[str, Any]) -> None:
+    requested = metadata.get("requested")
+    if requested:
+        result["time_window"] = requested
+    result["time_window_applied"] = metadata.get("applied", "full_demo_range")
+    notes = list(result.get("notes", []))
+    notes.extend(metadata.get("notes", []))
+    if notes:
+        result["notes"] = notes
 
 
 def _first_zone(trajectory: pd.DataFrame) -> str | None:
@@ -291,7 +380,15 @@ def _latest_control_action(trajectory: pd.DataFrame) -> list[float]:
     return values or [0.0 for _ in range(len(latest_rows))]
 
 
-def _select_timeseries_tool(question: str) -> str:
+def _select_timeseries_tool(question: str, step_spec: Any | None = None) -> str:
+    planned_tool = _step_attr(step_spec, "tool")
+    if planned_tool in {
+        "query_metric",
+        "compare_period",
+        "plot_metric_trend",
+        "compute_energy_breakdown",
+    }:
+        return planned_tool
     normalized = question.lower()
     if any(token in normalized for token in ["构成", "breakdown", "能耗字段", "能耗"]):
         return "compute_energy_breakdown"
@@ -302,7 +399,14 @@ def _select_timeseries_tool(question: str) -> str:
     return "query_metric"
 
 
-def _select_metric_name(question: str, trajectory: pd.DataFrame) -> str:
+def _select_metric_name(
+    question: str,
+    trajectory: pd.DataFrame,
+    step_spec: Any | None = None,
+) -> str:
+    planned_metric = _step_attr(step_spec, "metric_name")
+    if planned_metric and planned_metric in trajectory.columns:
+        return planned_metric
     normalized = question.lower()
     candidates = [
         "fan_power",
@@ -327,3 +431,18 @@ def _select_metric_name(question: str, trajectory: pd.DataFrame) -> str:
     if "负载" in question and "internal_load" in trajectory.columns:
         return "internal_load"
     return "zone_temperature"
+
+
+def _select_zone_id(trajectory: pd.DataFrame, step_spec: Any | None = None) -> str | None:
+    planned_zone = _step_attr(step_spec, "zone_id")
+    if planned_zone:
+        return planned_zone
+    return _first_zone(trajectory)
+
+
+def _step_attr(step_spec: Any | None, key: str) -> Any:
+    if step_spec is None:
+        return None
+    if isinstance(step_spec, dict):
+        return step_spec.get(key)
+    return getattr(step_spec, key, None)

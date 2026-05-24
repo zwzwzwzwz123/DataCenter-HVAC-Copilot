@@ -57,6 +57,12 @@ METRIC_GROUPS = {
         "tool_execution_success_rate",
         "evidence_coverage",
     ],
+    "Planner": [
+        "planned_step_accuracy",
+        "planned_step_order_accuracy",
+        "required_step_recall",
+        "policy_final_step_rate",
+    ],
     "Quality Proxy": ["answer_correctness_proxy", "faithfulness_proxy"],
 }
 
@@ -642,7 +648,7 @@ def build_execution_timeline(result: dict) -> list[dict]:
 def build_workflow_trace_rows(result: dict) -> list[dict]:
     rows = []
     for index, item in enumerate(result.get("workflow_trace", []), start=1):
-        tools = item.get("tools") or []
+        tools = item.get("tools") or _planned_tools(item)
         citation_count = int(item.get("citation_count", 0) or 0)
         tool_result_count = int(item.get("tool_result_count", 0) or 0)
         audit_value = item.get("audit_passed", item.get("passed"))
@@ -659,6 +665,18 @@ def build_workflow_trace_rows(result: dict) -> list[dict]:
             }
         )
     return rows
+
+
+def _planned_tools(item: dict) -> list[str]:
+    specs = item.get("planned_step_specs") or []
+    tools = []
+    for spec in specs:
+        if not isinstance(spec, dict):
+            continue
+        tool = spec.get("tool")
+        if tool:
+            tools.append(str(tool))
+    return tools
 
 
 def _format_audit_status(value: object) -> str:

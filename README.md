@@ -5,7 +5,9 @@
 - Copilot 页面现在可以在 `Deterministic baseline` 和 `LangGraph workflow` 之间切换。
 - `/ask` 和 Streamlit 默认使用 `workflow_engine=langgraph`，并返回真实的 `workflow_trace`；`Deterministic baseline` 仍可用于对照。
 - Streamlit 会展示 `LangGraph Workflow Trace` 面板，用来汇总 step / node / route / planner / tools / evidence / audit。
-- LangGraph 现在使用 `src/agent/planner.py` 中的 LLM route planner：planner 只会返回受控的 `steps`，每一步限定为 `document_qa`、`timeseries_query`、`anomaly_diagnosis` 或 `policy_recommendation`；`LANGGRAPH_PLANNER_PROVIDER=deepseek` 可启用可选 LLM planner，输出非法或未配置 key 时会回退 deterministic planner。计划步骤先调用 `collect_*_evidence` 收集证据，最后只基于合并证据生成一次最终回答。
+- LangGraph 现在使用 `src/agent/planner.py` 中的 LLM route planner：planner 只会返回受控的 `steps`，每一步限定为 `document_qa`、`timeseries_query`、`anomaly_diagnosis` 或 `policy_recommendation`，并可携带 `tool / metric_name / zone_id / time_window` 这类结构化 step spec；`LANGGRAPH_PLANNER_PROVIDER=deepseek` 可启用可选 LLM planner，输出非法或未配置 key 时会回退 deterministic planner。计划步骤先调用 `collect_*_evidence` 收集证据，`evidence_aggregator` 只合并证据，`answer_generator` 再基于合并证据生成一次最终回答。
+- `time_window` 会被 executor 解析为实际查询范围；当前支持 `full_demo_range`、`latest` / `recent`、`last_N_hours` 和 `last_N_minutes`。
+- 非法 `time_window` 会在 planner 校验阶段触发 fallback；如果外部注入 planner 绕过校验，executor 会回退到 `full_demo_range`，并在 tool result 中写入 `time_window_applied` 与 notes，避免静默吞掉错误参数。
 
 面向 **BEAR HVAC 物理仿真轨迹** 的 RAG + Tool Agent + Evaluation 项目，用于演示数据中心冷却优化类问题中的文档检索、时序分析、异常诊断、策略建议和可复现评测。
 
@@ -48,10 +50,13 @@ FastAPI / Streamlit (/ask, default workflow_engine=langgraph)
   |     - LLMRoutePlanner when configured
   |     - DeterministicRoutePlanner fallback
   |     - 1 to 3 controlled steps
+  |     - step spec may include tool / metric_name / zone_id / time_window
   |     - policy_recommendation must be last
   |
   v
 execute_plan_steps
+  |     - only executes planned route steps
+  |     - calls collect_*_evidence methods
   |
   +-- document_qa ----------> collect_document_qa_evidence --------+
   +-- timeseries_query -----> collect_timeseries_query_evidence ---+
@@ -62,7 +67,7 @@ execute_plan_steps
                                                         Merged Evidence
                                                           |
                                                           v
-                                           One Evidence-Grounded Answer Generator call
+                                                    answer_generator
                                                           |
                                                           v
                                                         Answer Safety Audit
@@ -78,8 +83,9 @@ flowchart TD
     A[User Question] --> B[planner]
     B --> C[execute_plan_steps]
     C -->|document_qa / timeseries_query / anomaly_diagnosis / policy_recommendation| G[evidence_aggregator]
-    G --> H[answer_audit]
-    H --> I[Grounded Answer + Trace]
+    G --> H[answer_generator]
+    H --> I[answer_audit]
+    I --> J[Grounded Answer + Trace]
 ```
 
 `langgraph_tool_agent` 与 deterministic `rag_tool_agent` 共享 `AgentTaskExecutor` 工具执行组件；交互式 demo 可使用 LLM route planner 和 DROPT policy backend，`/eval/run` 与脚本评测仍显式保持 deterministic/rule-based 口径，避免可复现指标漂移。
@@ -409,6 +415,21 @@ langgraph_tool_agent faithfulness_proxy           = 0.465
 ```
 
 `langgraph_tool_agent` 与 deterministic `rag_tool_agent` 指标一致，说明默认 LangGraph 版本没有改变底层工具行为；它用于展示 workflow 编排、trace 和可选 LLM route planner。独立 intent routing 评测显示，默认 keyword/rule-based classifier 在 100 条样例上 accuracy 为 0.640；这也是需要接入 DeepSeek 或本地 Qwen/Ollama intent classifier 做对比的原因。
+
+Planner 也支持单独评测多步规划能力。`EvalRecord` 可选 `expected_steps` 字段用于标注 compound_task，例如 `timeseries_query -> anomaly_diagnosis -> policy_recommendation`。`scripts/generate_compound_eval.py` 可以调用 DeepSeek 生成 compound_task 候选样本，再用本地 schema、route 集合、最多 3 步和 `policy_recommendation` 必须最后一步等规则过滤后写入 JSONL：
+
+```bash
+python scripts/generate_compound_eval.py --output data/eval/compound_task_eval.jsonl --count 30
+```
+
+带 `expected_steps` 的样本会额外计算 planner 指标：`planned_step_accuracy`、`planned_step_order_accuracy`、`required_step_recall` 和 `policy_final_step_rate`。没有 `expected_steps` 的普通 eval 不输出这些 planner 指标，避免把 “未标注、不可评测” 误读成 planner 得分为 0。这让 planner 改动可以通过 eval 指标验证，而不是只靠 demo 观察。
+
+当前已用 DeepSeek `deepseek-v4-flash` 作为 LLM planner 跑过一次 100 条 constrained compound_task eval，结果保存在 `data/eval/compound_task_llm_planner_eval.json`，详细报告见 `docs/compound_task_llm_planner_eval.md`。该 run 只启用 LLM route planner，answer generation 和 policy backend 保持 deterministic/rule-based，以隔离 planner 行为：
+
+- `planned_step_accuracy` = 0.780
+- `planned_step_order_accuracy` = 0.780
+- `required_step_recall` = 0.937
+- `policy_final_step_rate` = 1.000
 
 ## 评测口径
 

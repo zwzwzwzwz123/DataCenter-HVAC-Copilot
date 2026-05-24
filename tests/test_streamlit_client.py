@@ -156,6 +156,10 @@ def test_group_eval_metrics_splits_quality_proxy_metrics():
             "tool_selection_accuracy": 1.0,
             "tool_execution_success_rate": 1.0,
             "evidence_coverage": 0.8,
+            "planned_step_accuracy": 0.9,
+            "planned_step_order_accuracy": 0.8,
+            "required_step_recall": 0.95,
+            "policy_final_step_rate": 1.0,
             "answer_correctness_proxy": 0.4,
             "faithfulness_proxy": 0.3,
         }
@@ -169,6 +173,24 @@ def test_group_eval_metrics_splits_quality_proxy_metrics():
         "answer_correctness_proxy",
         "faithfulness_proxy",
     ]
+    assert [name for name, _ in grouped["Planner"]] == [
+        "planned_step_accuracy",
+        "planned_step_order_accuracy",
+        "required_step_recall",
+        "policy_final_step_rate",
+    ]
+
+
+def test_group_eval_metrics_omits_planner_group_when_metrics_absent():
+    grouped = group_eval_metrics(
+        {
+            "citation_hit_rate": 0.6,
+            "context_recall": 0.7,
+            "tool_selection_accuracy": 1.0,
+        }
+    )
+
+    assert "Planner" not in grouped
 
 
 def test_build_prediction_preview_adds_evidence_flags_and_answer_length():
@@ -235,11 +257,32 @@ def test_build_workflow_trace_rows_summarizes_langgraph_nodes():
                     "route": "policy_recommendation",
                     "planner": "llm:deepseek:planner-test",
                     "planned_steps": ["timeseries_query", "policy_recommendation"],
+                    "planned_step_specs": [
+                        {
+                            "route": "timeseries_query",
+                            "tool": "query_metric",
+                            "metric_name": "zone_temperature",
+                            "time_window": "full_demo_range",
+                        },
+                        {
+                            "route": "policy_recommendation",
+                            "tool": "policy_runner",
+                        },
+                    ],
                     "confidence": 0.88,
                     "fallback_used": False,
                     "tools": [],
                     "citation_count": 0,
                     "tool_result_count": 0,
+                    "audit_passed": None,
+                },
+                {
+                    "node": "answer_generator",
+                    "route": "policy_recommendation",
+                    "answer_generator": "deterministic_grounded",
+                    "tools": [],
+                    "citation_count": 0,
+                    "tool_result_count": 1,
                     "audit_passed": None,
                 },
                 {
@@ -261,12 +304,22 @@ def test_build_workflow_trace_rows_summarizes_langgraph_nodes():
             "route": "policy_recommendation",
             "classifier": "llm:deepseek:planner-test",
             "fallback": "no",
-            "tools": "none",
+            "tools": "query_metric, policy_runner",
             "evidence": "0 citations / 0 tool results",
             "audit": "n/a",
         },
         {
             "step": 2,
+            "node": "answer_generator",
+            "route": "policy_recommendation",
+            "classifier": "n/a",
+            "fallback": "n/a",
+            "tools": "none",
+            "evidence": "0 citations / 1 tool results",
+            "audit": "n/a",
+        },
+        {
+            "step": 3,
             "node": "answer_audit",
             "route": "policy_recommendation",
             "classifier": "n/a",

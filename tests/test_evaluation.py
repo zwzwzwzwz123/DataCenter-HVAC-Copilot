@@ -9,6 +9,10 @@ from src.evaluation.metrics import (
     expected_keyword_coverage,
     faithfulness_proxy,
     lexical_answer_coverage,
+    planned_step_accuracy,
+    planned_step_order_accuracy,
+    policy_final_step_rate,
+    required_step_recall,
     tool_execution_success_rate,
     tool_selection_accuracy,
 )
@@ -36,6 +40,29 @@ def test_load_eval_dataset_accepts_utf8_bom_jsonl(tmp_path: Path):
     records = load_eval_dataset(dataset_path)
 
     assert records[0].id == "doc_001"
+
+
+def test_load_eval_dataset_accepts_compound_task_expected_steps(tmp_path: Path):
+    dataset_path = tmp_path / "compound_eval.jsonl"
+    dataset_path.write_text(
+        (
+            '{"id":"compound_001","question":"最近温度异常升高，并给出控制建议",'
+            '"task_type":"policy_recommendation","gold_answer":"先查询温度，再诊断异常，最后给策略建议。",'
+            '"required_tools":["query_metric","detect_anomaly","rule_based_policy"],'
+            '"required_documents":[],"expected_keywords":["温度","异常","策略"],'
+            '"expected_steps":["timeseries_query","anomaly_diagnosis","policy_recommendation"],'
+            '"expected_output_format":"multi_step_policy_with_tool_evidence"}\n'
+        ),
+        encoding="utf-8",
+    )
+
+    records = load_eval_dataset(dataset_path)
+
+    assert records[0].expected_steps == [
+        "timeseries_query",
+        "anomaly_diagnosis",
+        "policy_recommendation",
+    ]
 
 
 def test_eval_dataset_has_curated_keywords_for_representative_records():
@@ -205,6 +232,66 @@ def test_evidence_coverage_counts_required_evidence_from_citations_or_tools():
     }
 
     assert evidence_coverage(records, predictions) == 0.75
+
+
+def test_planner_metrics_return_none_without_expected_steps():
+    records = _records_by_id(["ts_query_001", "policy_001"])
+    predictions = {
+        "ts_query_001": {"planned_steps": [{"route": "timeseries_query"}]},
+        "policy_001": {"planned_steps": [{"route": "policy_recommendation"}]},
+    }
+
+    assert planned_step_accuracy(records, predictions) is None
+    assert planned_step_order_accuracy(records, predictions) is None
+    assert required_step_recall(records, predictions) is None
+    assert policy_final_step_rate(records, predictions) is None
+
+
+def test_planner_metrics_score_expected_step_sets_and_order(tmp_path: Path):
+    dataset_path = tmp_path / "compound_eval.jsonl"
+    dataset_path.write_text(
+        "\n".join(
+            [
+                (
+                    '{"id":"compound_001","question":"最近温度异常升高，并给出控制建议",'
+                    '"task_type":"policy_recommendation","gold_answer":"先查时序，再诊断异常，最后策略。",'
+                    '"required_tools":[],"required_documents":[],"expected_keywords":[],'
+                    '"expected_steps":["timeseries_query","anomaly_diagnosis","policy_recommendation"],'
+                    '"expected_output_format":"multi_step_policy_with_tool_evidence"}'
+                ),
+                (
+                    '{"id":"compound_002","question":"查询温度趋势，判断是否异常",'
+                    '"task_type":"anomaly_diagnosis","gold_answer":"先查时序，再诊断异常。",'
+                    '"required_tools":[],"required_documents":[],"expected_keywords":[],'
+                    '"expected_steps":["timeseries_query","anomaly_diagnosis"],'
+                    '"expected_output_format":"multi_step_anomaly_with_tool_evidence"}'
+                ),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    records = load_eval_dataset(dataset_path)
+    predictions = {
+        "compound_001": {
+            "planned_steps": [
+                {"route": "timeseries_query"},
+                {"route": "anomaly_diagnosis"},
+                {"route": "policy_recommendation"},
+            ]
+        },
+        "compound_002": {
+            "planned_steps": [
+                {"route": "anomaly_diagnosis"},
+                {"route": "timeseries_query"},
+            ]
+        },
+    }
+
+    assert planned_step_accuracy(records, predictions) == 1.0
+    assert planned_step_order_accuracy(records, predictions) == 0.5
+    assert required_step_recall(records, predictions) == 1.0
+    assert policy_final_step_rate(records, predictions) == 1.0
 
 
 def _records_by_id(ids: list[str]):

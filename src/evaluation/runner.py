@@ -19,6 +19,10 @@ from src.evaluation.metrics import (
     grounding_rate,
     faithfulness_proxy,
     lexical_answer_coverage,
+    planned_step_accuracy,
+    planned_step_order_accuracy,
+    policy_final_step_rate,
+    required_step_recall,
     tool_execution_success_rate,
     tool_selection_accuracy,
 )
@@ -47,7 +51,10 @@ def run_baseline_eval(
     records = load_eval_dataset(eval_path)
     predictions = []
     for record in records:
-        output = orchestrator.run(record.question, task_type=record.task_type)
+        output = orchestrator.run(
+            record.question,
+            task_type=None if record.expected_steps else record.task_type,
+        )
         prediction = {
                 "id": record.id,
                 "question": record.question,
@@ -58,6 +65,7 @@ def run_baseline_eval(
                 "citations": output.get("citations", []),
                 "retrieved_contexts": output.get("retrieved_contexts", []),
                 "tool_results": output.get("tool_results", []),
+                "planned_steps": output.get("planned_steps", [{"route": output.get("route")}]),
                 "answer_audit": output.get("answer_audit", {}),
             }
         if llm_judge is not None:
@@ -229,6 +237,7 @@ def _run_llm_only(records: list[EvalRecord]) -> list[dict[str, Any]]:
                 "citations": [],
                 "retrieved_contexts": [],
                 "tool_results": [],
+                "planned_steps": [],
             }
         )
     return predictions
@@ -339,7 +348,7 @@ def _evaluate_predictions(
 
 
 def _compute_metrics(records: list[EvalRecord], prediction_map: dict[str, dict]) -> dict[str, float]:
-    return {
+    metrics = {
         "citation_hit_rate": citation_hit_rate(records, prediction_map),
         "context_recall": context_recall(records, prediction_map),
         "expected_keyword_coverage": expected_keyword_coverage(records, prediction_map),
@@ -350,6 +359,15 @@ def _compute_metrics(records: list[EvalRecord], prediction_map: dict[str, dict])
         "answer_correctness_proxy": answer_correctness_proxy(records, prediction_map),
         "faithfulness_proxy": faithfulness_proxy(records, prediction_map),
         "grounding_rate": grounding_rate(records, prediction_map),
+        "planned_step_accuracy": planned_step_accuracy(records, prediction_map),
+        "planned_step_order_accuracy": planned_step_order_accuracy(records, prediction_map),
+        "required_step_recall": required_step_recall(records, prediction_map),
+        "policy_final_step_rate": policy_final_step_rate(records, prediction_map),
+    }
+    return {
+        name: value
+        for name, value in metrics.items()
+        if value is not None
     }
 
 

@@ -57,6 +57,60 @@ def tool_selection_accuracy(records: list[EvalRecord], predictions: dict[str, di
     return hits / len(required_records)
 
 
+def planned_step_accuracy(records: list[EvalRecord], predictions: dict[str, dict]) -> float | None:
+    planned_records = [record for record in records if record.expected_steps]
+    if not planned_records:
+        return None
+
+    hits = 0
+    for record in planned_records:
+        if set(record.expected_steps) == set(_planned_routes(predictions.get(record.id, {}))):
+            hits += 1
+    return hits / len(planned_records)
+
+
+def planned_step_order_accuracy(records: list[EvalRecord], predictions: dict[str, dict]) -> float | None:
+    planned_records = [record for record in records if record.expected_steps]
+    if not planned_records:
+        return None
+
+    hits = 0
+    for record in planned_records:
+        if record.expected_steps == _planned_routes(predictions.get(record.id, {})):
+            hits += 1
+    return hits / len(planned_records)
+
+
+def required_step_recall(records: list[EvalRecord], predictions: dict[str, dict]) -> float | None:
+    planned_records = [record for record in records if record.expected_steps]
+    if not planned_records:
+        return None
+
+    scores = []
+    for record in planned_records:
+        expected = set(record.expected_steps)
+        planned = set(_planned_routes(predictions.get(record.id, {})))
+        scores.append(len(expected & planned) / len(expected))
+    return sum(scores) / len(scores)
+
+
+def policy_final_step_rate(records: list[EvalRecord], predictions: dict[str, dict]) -> float | None:
+    policy_records = [
+        record
+        for record in records
+        if record.expected_steps and "policy_recommendation" in record.expected_steps
+    ]
+    if not policy_records:
+        return None
+
+    hits = 0
+    for record in policy_records:
+        planned = _planned_routes(predictions.get(record.id, {}))
+        if planned and planned[-1] == "policy_recommendation":
+            hits += 1
+    return hits / len(policy_records)
+
+
 def lexical_answer_coverage(records: list[EvalRecord], predictions: dict[str, dict]) -> float:
     if not records:
         return 0.0
@@ -133,6 +187,19 @@ def faithfulness_proxy(records: list[EvalRecord], predictions: dict[str, dict]) 
 
 def _tokenize(text: str) -> list[str]:
     return [match.group(0).lower() for match in TOKEN_PATTERN.finditer(text)]
+
+
+def _planned_routes(prediction: dict) -> list[str]:
+    steps = prediction.get("planned_steps", [])
+    routes = []
+    for step in steps:
+        if isinstance(step, dict):
+            route = step.get("route")
+        else:
+            route = step
+        if route:
+            routes.append(str(route))
+    return routes
 
 
 def tool_execution_success_rate(records: list[EvalRecord], predictions: dict[str, dict]) -> float:

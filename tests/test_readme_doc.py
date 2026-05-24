@@ -35,7 +35,19 @@ def test_readme_describes_langgraph_planner_without_stale_intent_node_claims() -
     assert "LANGGRAPH_PLANNER_PROVIDER" in content
     assert "LLM route planner" in content
     assert "execute_plan_steps" in content
+    assert "answer_generator" in content
     assert "collect_*_evidence" in content
+    assert "tool / metric_name / zone_id / time_window" in content
+    assert "last_N_hours" in content
+    assert "非法 `time_window`" in content
+    assert "time_window_applied" in content
+    assert "没有 `expected_steps`" in content
+    assert "compound_task" in content
+    assert "planned_step_accuracy" in content
+    assert "scripts/generate_compound_eval.py" in content
+    assert "compound_task_llm_planner_eval.json" in content
+    assert "compound_task_llm_planner_eval.md" in content
+    assert "planned_step_accuracy` = 0.780" in content
     assert "LANGGRAPH_INTENT_PROVIDER` 只影响 `workflow_engine=langgraph`" not in content
     assert "LangGraph StateGraph workflow + DeepSeek/Ollama optional LLM intent classifier" not in content
     assert "可选 LLM intent classification" not in content
@@ -43,11 +55,20 @@ def test_readme_describes_langgraph_planner_without_stale_intent_node_claims() -
 
 def test_readme_system_architecture_diagram_shows_planner_path() -> None:
     content = Path("README.md").read_text(encoding="utf-8")
+    architecture_section = content.split("## 系统架构", maxsplit=1)[1].split(
+        "## 数据边界",
+        maxsplit=1,
+    )[0]
 
-    assert "LangGraph Route Planner" in content
-    assert "collect_*_evidence" in content
-    assert "Merged Evidence" in content
-    assert "Deterministic Router\n  |" not in content
+    assert "LangGraph Route Planner" in architecture_section
+    assert "collect_*_evidence" in architecture_section
+    assert "tool / metric_name / zone_id / time_window" in architecture_section
+    assert "Merged Evidence" in architecture_section
+    assert "Merged Evidence" in architecture_section.split("answer_generator")[0]
+    assert "answer_generator" in architecture_section.split("Answer Safety Audit")[0]
+    assert "G --> H[answer_generator]" in architecture_section
+    assert "H --> I[answer_audit]" in architecture_section
+    assert "Deterministic Router\n  |" not in architecture_section
 
 
 def test_readme_mentions_human_evaluation_calibration() -> None:

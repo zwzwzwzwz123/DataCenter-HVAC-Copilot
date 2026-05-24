@@ -14,6 +14,7 @@ class WorkflowState(TypedDict, total=False):
     question: str
     task_type: str | None
     plan: PlanDecision
+    merged_evidence: dict[str, Any]
     result: dict[str, Any]
     step_results: list[dict[str, Any]]
     workflow_trace: list[dict[str, Any]]
@@ -53,12 +54,14 @@ class LangGraphOrchestrator:
         graph.add_node("planner", self._planner)
         graph.add_node("execute_plan_steps", self._execute_plan_steps)
         graph.add_node("evidence_aggregator", self._evidence_aggregator)
+        graph.add_node("answer_generator", self._answer_generator)
         graph.add_node("answer_audit", self._answer_audit)
 
         graph.set_entry_point("planner")
         graph.add_edge("planner", "execute_plan_steps")
         graph.add_edge("execute_plan_steps", "evidence_aggregator")
-        graph.add_edge("evidence_aggregator", "answer_audit")
+        graph.add_edge("evidence_aggregator", "answer_generator")
+        graph.add_edge("answer_generator", "answer_audit")
         graph.add_edge("answer_audit", END)
         return graph.compile()
 
@@ -72,6 +75,7 @@ class LangGraphOrchestrator:
             {
                 "node": "planner",
                 "planned_steps": [step.route for step in decision.steps],
+                "planned_step_specs": [_plan_step_to_dict(step) for step in decision.steps],
                 "planner": decision.planner,
                 "confidence": decision.confidence,
                 "fallback_used": decision.fallback_used,
@@ -106,46 +110,63 @@ class LangGraphOrchestrator:
             ]
         return {
             **state,
-            "result": self.task_executor.generate_answer_from_evidence(
-                _merge_step_results(
-                    question=state["question"],
-                    plan=state["plan"],
-                    step_results=step_results,
-                )
-            ),
             "step_results": step_results,
             "workflow_trace": trace,
         }
 
     def _execute_step(self, question: str, step: PlanStep) -> dict[str, Any]:
         if step.route == "document_qa":
-            return self.task_executor.collect_document_qa_evidence(question, step.reason)
+            return self.task_executor.collect_document_qa_evidence(question, step.reason, step)
         if step.route == "timeseries_query":
-            return self.task_executor.collect_timeseries_query_evidence(question, step.reason)
+            return self.task_executor.collect_timeseries_query_evidence(question, step.reason, step)
         if step.route == "anomaly_diagnosis":
-            return self.task_executor.collect_anomaly_diagnosis_evidence(question, step.reason)
+            return self.task_executor.collect_anomaly_diagnosis_evidence(question, step.reason, step)
         if step.route == "policy_recommendation":
-            return self.task_executor.collect_policy_recommendation_evidence(question, step.reason)
+            return self.task_executor.collect_policy_recommendation_evidence(question, step.reason, step)
         raise ValueError(f"Unsupported route: {step.route}")
 
     def _evidence_aggregator(self, state: WorkflowState) -> WorkflowState:
-        result = state["result"]
+        merged_evidence = _merge_step_results(
+            question=state["question"],
+            plan=state["plan"],
+            step_results=state["step_results"],
+        )
         return {
             **state,
+            "merged_evidence": merged_evidence,
             "workflow_trace": _append_trace(
                 state,
                 {
                     "node": "evidence_aggregator",
+                    "route": merged_evidence.get("route"),
+                    "citation_count": len(merged_evidence.get("citations", [])),
+                    "context_count": len(merged_evidence.get("retrieved_contexts", [])),
+                    "tool_result_count": len(merged_evidence.get("tool_results", [])),
+                    "has_policy_result": "policy_result" in merged_evidence,
+                    "evidence_count": (
+                        len(merged_evidence.get("citations", []))
+                        + len(merged_evidence.get("retrieved_contexts", []))
+                        + len(merged_evidence.get("tool_results", []))
+                    ),
+                },
+            ),
+        }
+
+    def _answer_generator(self, state: WorkflowState) -> WorkflowState:
+        result = self.task_executor.generate_answer_from_evidence(state["merged_evidence"])
+        return {
+            **state,
+            "result": result,
+            "workflow_trace": _append_trace(
+                state,
+                {
+                    "node": "answer_generator",
                     "route": result.get("route"),
+                    "answer_generator": result.get("answer_generator"),
                     "citation_count": len(result.get("citations", [])),
                     "context_count": len(result.get("retrieved_contexts", [])),
                     "tool_result_count": len(result.get("tool_results", [])),
                     "has_policy_result": "policy_result" in result,
-                    "evidence_count": (
-                        len(result.get("citations", []))
-                        + len(result.get("retrieved_contexts", []))
-                        + len(result.get("tool_results", []))
-                    ),
                 },
             ),
         }
@@ -204,7 +225,7 @@ def _merge_step_results(
     final["route"] = plan.steps[-1].route
     final["route_reason"] = " | ".join(f"{step.route}: {step.reason}" for step in plan.steps)
     final["planned_steps"] = [
-        {"route": step.route, "reason": step.reason}
+        _plan_step_to_dict(step)
         for step in plan.steps
     ]
     final["planner"] = plan.planner
@@ -239,6 +260,17 @@ def _dedupe_dicts(items: list[Any]) -> list[Any]:
         seen.add(marker)
         deduped.append(item)
     return deduped
+
+
+def _plan_step_to_dict(step: PlanStep) -> dict[str, Any]:
+    return {
+        "route": step.route,
+        "reason": step.reason,
+        **({"tool": step.tool} if step.tool else {}),
+        **({"metric_name": step.metric_name} if step.metric_name else {}),
+        **({"zone_id": step.zone_id} if step.zone_id else {}),
+        **({"time_window": step.time_window} if step.time_window else {}),
+    }
 
 
 def _append_trace(state: WorkflowState, item: dict[str, Any]) -> list[dict[str, Any]]:
