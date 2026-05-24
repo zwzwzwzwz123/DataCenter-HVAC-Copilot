@@ -4,9 +4,9 @@ import pandas as pd
 
 from src.agent.answer_generator import AnswerGeneratorInput, GeneratedAnswer
 from src.agent.executor import AgentTaskExecutor
-from src.agent.intent_classifier import IntentDecision
 from src.agent.langgraph_workflow import LangGraphOrchestrator
 from src.agent.orchestrator import BaselineOrchestrator
+from src.agent.planner import PlanDecision, PlanStep
 from src.agent.router import route_task
 from src.policies.base import PolicyResult
 from src.retrieval.chunking import chunk_document
@@ -51,17 +51,18 @@ class SpyAnswerGenerator:
         return GeneratedAnswer(answer=f"generated:{payload.route}", generator="spy")
 
 
-class StaticIntentClassifier:
+class StaticRoutePlanner:
     def __init__(self) -> None:
         self.calls: list[dict] = []
 
-    def classify(self, question: str, task_type: str | None = None) -> IntentDecision:
+    def plan(self, question: str, task_type: str | None = None) -> PlanDecision:
         self.calls.append({"question": question, "task_type": task_type})
-        return IntentDecision(
-            route="policy_recommendation",
-            required_tools=["rule_based_policy"],
-            reason="LLM classified as policy intent.",
-            classifier="llm:deepseek:intent-test",
+        return PlanDecision(
+            steps=[
+                PlanStep(route="timeseries_query", reason="Gather metric evidence first."),
+                PlanStep(route="policy_recommendation", reason="Then run the bounded policy tool."),
+            ],
+            planner="llm:deepseek:planner-test",
             confidence=0.88,
             fallback_used=False,
         )
@@ -249,12 +250,12 @@ def test_langgraph_orchestrator_preserves_baseline_result_and_adds_trace():
     assert result["tools"] == ["query_metric"]
     assert result["workflow_engine"] == "langgraph"
     assert [step["node"] for step in result["workflow_trace"]] == [
-        "intent_classifier",
-        "timeseries_tool",
+        "planner",
+        "execute_plan_step",
         "evidence_aggregator",
         "answer_audit",
     ]
-    assert result["workflow_trace"][0]["route"] == "timeseries_query"
+    assert result["workflow_trace"][0]["planned_steps"] == ["timeseries_query"]
     assert result["workflow_trace"][2]["tool_result_count"] == 1
 
 
@@ -271,35 +272,64 @@ def test_langgraph_orchestrator_routes_document_qa_through_retrieval_node():
     assert result["route"] == "document_qa"
     assert result["workflow_engine"] == "langgraph"
     assert [step["node"] for step in result["workflow_trace"]] == [
-        "intent_classifier",
-        "retrieval",
+        "planner",
+        "execute_plan_step",
         "evidence_aggregator",
         "answer_audit",
     ]
     assert result["workflow_trace"][2]["citation_count"] >= 1
 
 
-def test_langgraph_orchestrator_uses_injected_intent_classifier_trace_metadata():
+def test_langgraph_orchestrator_uses_injected_planner_and_merges_step_evidence():
+    generator = SpyAnswerGenerator()
     baseline = BaselineOrchestrator(
         rag_pipeline=mock_rag(),
         trajectory=mock_trajectory(),
-        answer_generator=SpyAnswerGenerator(),
+        answer_generator=generator,
     )
-    classifier = StaticIntentClassifier()
-    orchestrator = LangGraphOrchestrator(baseline, intent_classifier=classifier)
+    planner = StaticRoutePlanner()
+    orchestrator = LangGraphOrchestrator(baseline, route_planner=planner)
 
     result = orchestrator.run("当前温度超过上限时是否应该调整控制策略？")
 
     assert result["route"] == "policy_recommendation"
-    assert result["tools"] == ["rule_based_policy"]
-    assert classifier.calls == [
+    assert result["tools"] == ["query_metric", "rule_based_policy"]
+    assert len(result["tool_results"]) == 2
+    assert result["policy_result"]["policy_name"] == "rule_based"
+    assert result["answer"] == "generated:policy_recommendation"
+    assert generator.payloads[-1].route == "policy_recommendation"
+    assert generator.payloads[-1].tools == ["query_metric", "rule_based_policy"]
+    assert len(generator.payloads[-1].tool_results) == 2
+    assert planner.calls == [
         {"question": "当前温度超过上限时是否应该调整控制策略？", "task_type": None}
     ]
-    intent_trace = result["workflow_trace"][0]
-    assert intent_trace["node"] == "intent_classifier"
-    assert intent_trace["classifier"] == "llm:deepseek:intent-test"
-    assert intent_trace["confidence"] == 0.88
-    assert intent_trace["fallback_used"] is False
+    planner_trace = result["workflow_trace"][0]
+    assert planner_trace["node"] == "planner"
+    assert planner_trace["planned_steps"] == ["timeseries_query", "policy_recommendation"]
+    assert planner_trace["planner"] == "llm:deepseek:planner-test"
+    assert planner_trace["confidence"] == 0.88
+    assert planner_trace["fallback_used"] is False
+    step_traces = [step for step in result["workflow_trace"] if step["node"] == "execute_plan_step"]
+    assert [step["route"] for step in step_traces] == ["timeseries_query", "policy_recommendation"]
+    assert step_traces[0]["tools"] == ["query_metric"]
+    assert step_traces[1]["tools"] == ["rule_based_policy"]
+
+
+def test_langgraph_multi_step_plan_generates_final_answer_once():
+    generator = SpyAnswerGenerator()
+    baseline = BaselineOrchestrator(
+        rag_pipeline=mock_rag(),
+        trajectory=mock_trajectory(),
+        answer_generator=generator,
+    )
+    orchestrator = LangGraphOrchestrator(baseline, route_planner=StaticRoutePlanner())
+
+    result = orchestrator.run("当前温度超过上限时是否应该调整控制策略？")
+
+    assert result["route"] == "policy_recommendation"
+    assert len(generator.payloads) == 1
+    assert generator.payloads[0].tools == ["query_metric", "rule_based_policy"]
+    assert len(generator.payloads[0].tool_results) == 2
 
 
 def test_baseline_and_langgraph_can_share_agent_task_executor():
@@ -318,5 +348,6 @@ def test_baseline_and_langgraph_can_share_agent_task_executor():
     assert langgraph_result["route"] == "anomaly_diagnosis"
     assert baseline_result["tools"] == ["detect_anomaly"]
     assert langgraph_result["tools"] == ["detect_anomaly"]
-    assert langgraph_result["workflow_trace"][1]["node"] == "anomaly_tool"
+    assert langgraph_result["workflow_trace"][1]["node"] == "execute_plan_step"
+    assert langgraph_result["workflow_trace"][1]["route"] == "anomaly_diagnosis"
 

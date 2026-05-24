@@ -64,13 +64,13 @@ def test_ask_endpoint_can_run_langgraph_workflow_trace():
     assert response.status_code == 200
     assert body["workflow_engine"] == "langgraph"
     assert [step["node"] for step in body["workflow_trace"]] == [
-        "intent_classifier",
-        "policy_tool",
+        "planner",
+        "execute_plan_step",
         "evidence_aggregator",
         "answer_audit",
     ]
     assert body["tools"] == ["rule_based_policy"]
-    assert body["workflow_trace"][0]["classifier"] == "rule_based"
+    assert body["workflow_trace"][0]["planner"] == "deterministic"
     assert body["workflow_trace"][0]["fallback_used"] is False
 
 
@@ -97,8 +97,8 @@ def test_ask_endpoint_defaults_policy_route_to_dropt_checkpoint():
     assert body["policy_result"]["policy_name"] == "dropt_guided_diffno_checkpoint"
 
 
-def test_create_app_can_disable_env_intent_classifier(monkeypatch):
-    monkeypatch.setenv("LANGGRAPH_INTENT_PROVIDER", "deepseek")
+def test_create_app_can_disable_env_route_planner(monkeypatch):
+    monkeypatch.setenv("LANGGRAPH_PLANNER_PROVIDER", "deepseek")
     monkeypatch.setenv("DEEPSEEK_API_KEY", "test-key")
     client = TestClient(
         create_app(
@@ -118,12 +118,12 @@ def test_create_app_can_disable_env_intent_classifier(monkeypatch):
 
     body = response.json()
     assert response.status_code == 200
-    assert body["workflow_trace"][0]["classifier"] == "rule_based"
-    monkeypatch.delenv("LANGGRAPH_INTENT_PROVIDER", raising=False)
+    assert body["workflow_trace"][0]["planner"] == "deterministic"
+    monkeypatch.delenv("LANGGRAPH_PLANNER_PROVIDER", raising=False)
     monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
 
 
-def test_auto_intent_provider_uses_deepseek_when_key_is_available(monkeypatch):
+def test_auto_route_planner_uses_deepseek_when_key_is_available(monkeypatch):
     captured = {}
 
     def fake_transport(url, headers, body, timeout):
@@ -134,7 +134,8 @@ def test_auto_intent_provider_uses_deepseek_when_key_is_available(monkeypatch):
                 {
                     "message": {
                         "content": (
-                            '{"route":"policy_recommendation",'
+                            '{"steps":[{"route":"policy_recommendation",'
+                            '"reason":"LLM selected policy route."}],'
                             '"confidence":0.91,'
                             '"reason":"LLM selected policy route."}'
                         )
@@ -143,14 +144,14 @@ def test_auto_intent_provider_uses_deepseek_when_key_is_available(monkeypatch):
             ]
         }
 
-    monkeypatch.delenv("LANGGRAPH_INTENT_PROVIDER", raising=False)
+    monkeypatch.delenv("LANGGRAPH_PLANNER_PROVIDER", raising=False)
     monkeypatch.setenv("DEEPSEEK_API_KEY", "test-key")
     monkeypatch.setattr(
-        "src.api.app.build_intent_classifier_from_env",
+        "src.api.app.build_route_planner_from_env",
         lambda: __import__(
-            "src.agent.intent_classifier",
-            fromlist=["build_intent_classifier_from_env"],
-        ).build_intent_classifier_from_env(transport=fake_transport),
+            "src.agent.planner",
+            fromlist=["build_route_planner_from_env"],
+        ).build_route_planner_from_env(transport=fake_transport),
     )
     client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
 
@@ -163,14 +164,14 @@ def test_auto_intent_provider_uses_deepseek_when_key_is_available(monkeypatch):
     assert response.status_code == 200
     assert body["workflow_engine"] == "langgraph"
     assert body["route"] == "policy_recommendation"
-    assert body["workflow_trace"][0]["classifier"].startswith("llm:deepseek:")
+    assert body["workflow_trace"][0]["planner"].startswith("llm:deepseek:")
     assert body["workflow_trace"][0]["fallback_used"] is False
     assert captured["headers"]["Authorization"] == "Bearer test-key"
     monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
 
 
-def test_intent_provider_can_be_forced_to_rule_based(monkeypatch):
-    monkeypatch.setenv("LANGGRAPH_INTENT_PROVIDER", "rule_based")
+def test_route_planner_provider_can_be_forced_to_deterministic(monkeypatch):
+    monkeypatch.setenv("LANGGRAPH_PLANNER_PROVIDER", "deterministic")
     monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
     client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
 
@@ -182,9 +183,9 @@ def test_intent_provider_can_be_forced_to_rule_based(monkeypatch):
     body = response.json()
     assert response.status_code == 200
     assert body["workflow_engine"] == "langgraph"
-    assert body["workflow_trace"][0]["classifier"] == "rule_based"
+    assert body["workflow_trace"][0]["planner"] == "deterministic"
     assert body["workflow_trace"][0]["fallback_used"] is False
-    monkeypatch.delenv("LANGGRAPH_INTENT_PROVIDER", raising=False)
+    monkeypatch.delenv("LANGGRAPH_PLANNER_PROVIDER", raising=False)
 
 
 def test_ask_endpoint_rejects_unknown_workflow_engine():

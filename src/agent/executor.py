@@ -47,28 +47,15 @@ class AgentTaskExecutor:
         )
 
     def run_document_qa(self, question: str, reason: str) -> dict[str, Any]:
+        evidence = self.collect_document_qa_evidence(question, reason)
+        return self.generate_answer_from_evidence(evidence)
+
+    def collect_document_qa_evidence(self, question: str, reason: str) -> dict[str, Any]:
         rag_answer = self.rag_pipeline.answer(question, top_k=3)
-        generated = self.answer_generator.generate(
-            AnswerGeneratorInput(
-                question=question,
-                route="document_qa",
-                route_reason=reason,
-                retrieved_contexts=rag_answer.retrieved_contexts,
-                citations=rag_answer.citations,
-                data_source=self.data_source,
-            )
-        )
         return {
             "question": question,
             "route": "document_qa",
             "route_reason": reason,
-            "answer": generated.answer,
-            "answer_generator": generated.generator,
-            "answer_audit": audit_answer(
-                generated.answer,
-                route="document_qa",
-                policy_result=None,
-            ),
             "citations": rag_answer.citations,
             "retrieved_contexts": rag_answer.retrieved_contexts,
             "tools": [],
@@ -77,6 +64,10 @@ class AgentTaskExecutor:
         }
 
     def run_timeseries_query(self, question: str, reason: str) -> dict[str, Any]:
+        evidence = self.collect_timeseries_query_evidence(question, reason)
+        return self.generate_answer_from_evidence(evidence)
+
+    def collect_timeseries_query_evidence(self, question: str, reason: str) -> dict[str, Any]:
         start_time, end_time = _trajectory_bounds(self.trajectory)
         tool_name = _select_timeseries_tool(question)
         metric_name = _select_metric_name(question, self.trajectory)
@@ -113,28 +104,10 @@ class AgentTaskExecutor:
                 end_time=end_time,
                 zone_id=zone_id,
             )
-        generated = self.answer_generator.generate(
-            AnswerGeneratorInput(
-                question=question,
-                route="timeseries_query",
-                route_reason=reason,
-                tools=[tool_name],
-                tool_results=[result],
-                data_source=self.data_source,
-            )
-        )
-
         return {
             "question": question,
             "route": "timeseries_query",
             "route_reason": reason,
-            "answer": generated.answer,
-            "answer_generator": generated.generator,
-            "answer_audit": audit_answer(
-                generated.answer,
-                route="timeseries_query",
-                policy_result=None,
-            ),
             "citations": [],
             "retrieved_contexts": [],
             "tools": [tool_name],
@@ -143,6 +116,10 @@ class AgentTaskExecutor:
         }
 
     def run_anomaly_diagnosis(self, question: str, reason: str) -> dict[str, Any]:
+        evidence = self.collect_anomaly_diagnosis_evidence(question, reason)
+        return self.generate_answer_from_evidence(evidence)
+
+    def collect_anomaly_diagnosis_evidence(self, question: str, reason: str) -> dict[str, Any]:
         result = detect_anomaly(
             self.trajectory,
             metric_name="zone_temperature",
@@ -150,27 +127,10 @@ class AgentTaskExecutor:
             threshold=2.0,
             zone_id=_first_zone(self.trajectory),
         )
-        generated = self.answer_generator.generate(
-            AnswerGeneratorInput(
-                question=question,
-                route="anomaly_diagnosis",
-                route_reason=reason,
-                tools=["detect_anomaly"],
-                tool_results=[result],
-                data_source=self.data_source,
-            )
-        )
         return {
             "question": question,
             "route": "anomaly_diagnosis",
             "route_reason": reason,
-            "answer": generated.answer,
-            "answer_generator": generated.generator,
-            "answer_audit": audit_answer(
-                generated.answer,
-                route="anomaly_diagnosis",
-                policy_result=None,
-            ),
             "citations": [],
             "retrieved_contexts": [],
             "tools": ["detect_anomaly"],
@@ -179,38 +139,54 @@ class AgentTaskExecutor:
         }
 
     def run_policy_recommendation(self, question: str, reason: str) -> dict[str, Any]:
+        evidence = self.collect_policy_recommendation_evidence(question, reason)
+        return self.generate_answer_from_evidence(evidence)
+
+    def collect_policy_recommendation_evidence(self, question: str, reason: str) -> dict[str, Any]:
         state = self.latest_policy_state()
         policy_result = self.policy_runner(state)
         policy_dump = policy_result.model_dump()
         tool_name = _policy_tool_name(policy_result)
-        generated = self.answer_generator.generate(
-            AnswerGeneratorInput(
-                question=question,
-                route="policy_recommendation",
-                route_reason=reason,
-                tools=[tool_name],
-                tool_results=[policy_dump],
-                policy_result=policy_dump,
-                data_source=self.data_source,
-            )
-        )
         return {
             "question": question,
             "route": "policy_recommendation",
             "route_reason": reason,
-            "answer": generated.answer,
-            "answer_generator": generated.generator,
-            "answer_audit": audit_answer(
-                generated.answer,
-                route="policy_recommendation",
-                policy_result=policy_dump,
-            ),
             "citations": [],
             "retrieved_contexts": [],
             "tools": [tool_name],
             "tool_results": [policy_dump],
             "policy_result": policy_dump,
             "data_source": self.data_source,
+        }
+
+    def generate_answer_from_evidence(self, evidence: dict[str, Any]) -> dict[str, Any]:
+        policy_result = (
+            evidence.get("policy_result")
+            if isinstance(evidence.get("policy_result"), dict)
+            else None
+        )
+        generated = self.answer_generator.generate(
+            AnswerGeneratorInput(
+                question=str(evidence.get("question", "")),
+                route=str(evidence.get("route", "")),
+                route_reason=str(evidence.get("route_reason", "")),
+                retrieved_contexts=list(evidence.get("retrieved_contexts", [])),
+                citations=list(evidence.get("citations", [])),
+                tools=list(evidence.get("tools", [])),
+                tool_results=list(evidence.get("tool_results", [])),
+                data_source=evidence.get("data_source"),
+                policy_result=policy_result,
+            )
+        )
+        return {
+            **evidence,
+            "answer": generated.answer,
+            "answer_generator": generated.generator,
+            "answer_audit": audit_answer(
+                generated.answer,
+                route=str(evidence.get("route", "")),
+                policy_result=policy_result,
+            ),
         }
 
     def latest_policy_state(self) -> dict[str, Any]:

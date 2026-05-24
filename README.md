@@ -1,10 +1,11 @@
 # DataCenter-HVAC Copilot
 
-## LangGraph Trace Demo
+## LangGraph 工作流追踪演示
 
-- Copilot tab now lets you switch between `Deterministic baseline` and `LangGraph workflow`.
-- `/ask` and Streamlit default to `workflow_engine=langgraph`, returning the real `workflow_trace`; `Deterministic baseline` remains selectable for comparison.
-- Streamlit shows a `LangGraph Workflow Trace` panel summarizing step / node / route / classifier / tools / evidence / audit.
+- Copilot 页面现在可以在 `Deterministic baseline` 和 `LangGraph workflow` 之间切换。
+- `/ask` 和 Streamlit 默认使用 `workflow_engine=langgraph`，并返回真实的 `workflow_trace`；`Deterministic baseline` 仍可用于对照。
+- Streamlit 会展示 `LangGraph Workflow Trace` 面板，用来汇总 step / node / route / planner / tools / evidence / audit。
+- LangGraph 现在使用 `src/agent/planner.py` 中的 LLM route planner：planner 只会返回受控的 `steps`，每一步限定为 `document_qa`、`timeseries_query`、`anomaly_diagnosis` 或 `policy_recommendation`；`LANGGRAPH_PLANNER_PROVIDER=deepseek` 可启用可选 LLM planner，输出非法或未配置 key 时会回退 deterministic planner。计划步骤先调用 `collect_*_evidence` 收集证据，最后只基于合并证据生成一次最终回答。
 
 面向 **BEAR HVAC 物理仿真轨迹** 的 RAG + Tool Agent + Evaluation 项目，用于演示数据中心冷却优化类问题中的文档检索、时序分析、异常诊断、策略建议和可复现评测。
 
@@ -41,44 +42,47 @@
 用户问题
   |
   v
-Deterministic Router
+FastAPI / Streamlit (/ask, default workflow_engine=langgraph)
   |
-  +-- document_qa ---------> RAG Retriever / Reranker ----+
-  |                                                       |
-  +-- timeseries_query ----> Time-Series Tools -----------+
-  |                                                       |
-  +-- anomaly_diagnosis ---> Anomaly Tool ----------------+
-  |                                                       |
-  +-- policy_recommendation -> Policy Adapter ------------+
+  +-- LangGraph Route Planner
+  |     - LLMRoutePlanner when configured
+  |     - DeterministicRoutePlanner fallback
+  |     - 1 to 3 controlled steps
+  |     - policy_recommendation must be last
+  |
+  v
+execute_plan_steps
+  |
+  +-- document_qa ----------> collect_document_qa_evidence --------+
+  +-- timeseries_query -----> collect_timeseries_query_evidence ---+
+  +-- anomaly_diagnosis ----> collect_anomaly_diagnosis_evidence --+
+  +-- policy_recommendation -> collect_policy_recommendation_evidence
                                                           |
                                                           v
-                                      Evidence-Grounded Answer Generator
+                                                        Merged Evidence
                                                           |
                                                           v
-                                               Answer Safety Audit
+                                           One Evidence-Grounded Answer Generator call
                                                           |
                                                           v
-                                          FastAPI / Streamlit Demo
+                                                        Answer Safety Audit
+
+Deterministic baseline remains available via workflow_engine=deterministic:
+User Question -> Deterministic Router -> AgentTaskExecutor.run_* -> Answer Audit
 ```
 
-Stage 2 增加了 LangGraph workflow。交互式 `/ask` 和 Streamlit 默认使用 LangGraph 编排；当前 demo 默认优先使用 DeepSeek intent classifier，LLM 输出非法、调用失败或未配置 key 时自动回退 rule-based。也可以显式配置 `LANGGRAPH_INTENT_PROVIDER=deepseek`、`ollama` 或 `rule_based`：
+Stage 2 增加了 LangGraph workflow。交互式 `/ask` 和 Streamlit 默认使用 LangGraph 编排；当前 workflow 使用受控 route planner 生成最多 3 步 plan，再按步骤调用现有 `AgentTaskExecutor`。如果 LLM route planner 输出非法、调用失败或未配置 key，会自动回退 deterministic planner。也可以显式配置 `LANGGRAPH_PLANNER_PROVIDER=deepseek` 或 `deterministic`：
 
 ```mermaid
 flowchart TD
-    A[User Question] --> B[intent_classifier]
-    B -->|document_qa| C[retrieval]
-    B -->|timeseries_query| D[timeseries_tool]
-    B -->|anomaly_diagnosis| E[anomaly_tool]
-    B -->|policy_recommendation| F[policy_tool]
-    C --> G[evidence_aggregator]
-    D --> G
-    E --> G
-    F --> G
+    A[User Question] --> B[planner]
+    B --> C[execute_plan_steps]
+    C -->|document_qa / timeseries_query / anomaly_diagnosis / policy_recommendation| G[evidence_aggregator]
     G --> H[answer_audit]
     H --> I[Grounded Answer + Trace]
 ```
 
-`langgraph_tool_agent` 与 deterministic `rag_tool_agent` 共享 `AgentTaskExecutor` 工具执行组件；交互式 demo 可使用 LLM intent classifier 和 DROPT policy backend，`/eval/run` 与脚本评测仍显式保持 deterministic/rule-based 口径，避免可复现指标漂移。
+`langgraph_tool_agent` 与 deterministic `rag_tool_agent` 共享 `AgentTaskExecutor` 工具执行组件；交互式 demo 可使用 LLM route planner 和 DROPT policy backend，`/eval/run` 与脚本评测仍显式保持 deterministic/rule-based 口径，避免可复现指标漂移。
 
 核心模块：
 
@@ -88,7 +92,7 @@ src/ingestion/     BEAR 轨迹标准化、BEAR adapter、processed/sample loader
 src/retrieval/     文档加载、chunk、keyword / hybrid / rerank 检索、RAG baseline
 src/tools/         时序查询、周期对比、异常检测、能耗拆分、趋势数据
 src/policies/      rule-based、MPC-like、diffusion adapter、DROPT checkpoint adapter、offline replay
-src/agent/         router、intent classifier、shared task executor、orchestrator、answer generator、DeepSeek/Ollama adapter、answer audit
+src/agent/         router、planner、intent classifier、shared task executor、orchestrator、answer generator、DeepSeek/Ollama adapter、answer audit
 src/evaluation/    eval loader、metrics、baseline runner、report、可选 judge adapter
 src/api/           FastAPI 服务
 app/               Streamlit demo
@@ -172,18 +176,18 @@ OLLAMA_MODEL=qwen2.5:7b
 OLLAMA_TIMEOUT_SECONDS=60
 ```
 
-LangGraph LLM intent classification 默认 DeepSeek-first：
+LangGraph LLM route planner 默认 DeepSeek-first：
 
 ```bash
-LANGGRAPH_INTENT_PROVIDER=deepseek
+LANGGRAPH_PLANNER_PROVIDER=deepseek
 ```
 
-默认 demo 优先启用 DeepSeek intent classifier；未配置 key、LLM 调用失败或输出非法时使用 rule-based fallback。显式 DeepSeek 示例：
+默认 demo 优先启用 DeepSeek route planner；未配置 key、LLM 调用失败或输出非法时使用 deterministic fallback。显式 DeepSeek 示例：
 
 ```bash
-LANGGRAPH_INTENT_PROVIDER=deepseek
-LANGGRAPH_INTENT_MODEL=deepseek-chat
-LANGGRAPH_INTENT_TIMEOUT_SECONDS=20
+LANGGRAPH_PLANNER_PROVIDER=deepseek
+LANGGRAPH_PLANNER_MODEL=deepseek-chat
+LANGGRAPH_PLANNER_TIMEOUT_SECONDS=20
 ```
 
 本地 Qwen / Ollama intent classification 示例：
@@ -199,14 +203,14 @@ LANGGRAPH_INTENT_TIMEOUT_SECONDS=20
 
 ```bash
 LLM_PROVIDER=deterministic
-LANGGRAPH_INTENT_PROVIDER=rule_based
+LANGGRAPH_PLANNER_PROVIDER=deterministic
 ```
 
 说明：
 
 - `.env` 会自动加载，但不会覆盖 shell 中已有环境变量。
 - `/ask` 可使用 DeepSeek 或 Ollama 生成最终解释。
-- `LANGGRAPH_INTENT_PROVIDER` 只影响 `workflow_engine=langgraph` 的意图分类节点；可选值为 `auto`、`rule_based`、`deepseek`、`ollama`。交互式 demo 默认 LLM-first，评测脚本仍显式保持可复现口径。
+- `LANGGRAPH_PLANNER_PROVIDER` 只影响 `workflow_engine=langgraph` 的 planner 节点；可选值为 `auto`、`deterministic`、`deepseek`。`LANGGRAPH_INTENT_PROVIDER` 仍保留给独立 intent routing 对比脚本，不再是 LangGraph 默认入口。
 - `scripts/run_eval.py` 和 `/eval/run` 默认使用 deterministic generator 和 rule-based policy，避免批量 API 调用或策略后端切换影响速度、成本和可复现性。
 - LLM 后端只基于 `retrieved_contexts`、`citations`、`tool_results`、`policy_result` 和 `data_source` 写回答，不负责控制决策。
 
@@ -404,7 +408,7 @@ langgraph_tool_agent answer_correctness_proxy     = 0.547
 langgraph_tool_agent faithfulness_proxy           = 0.465
 ```
 
-`langgraph_tool_agent` 与 deterministic `rag_tool_agent` 指标一致，说明默认 LangGraph 版本没有改变底层工具行为；它用于展示 workflow 编排、trace 和可选 LLM intent classification。独立 intent routing 评测显示，默认 keyword/rule-based classifier 在 100 条样例上 accuracy 为 0.640；这也是需要接入 DeepSeek 或本地 Qwen/Ollama intent classifier 做对比的原因。
+`langgraph_tool_agent` 与 deterministic `rag_tool_agent` 指标一致，说明默认 LangGraph 版本没有改变底层工具行为；它用于展示 workflow 编排、trace 和可选 LLM route planner。独立 intent routing 评测显示，默认 keyword/rule-based classifier 在 100 条样例上 accuracy 为 0.640；这也是需要接入 DeepSeek 或本地 Qwen/Ollama intent classifier 做对比的原因。
 
 ## 评测口径
 
@@ -481,7 +485,8 @@ python scripts/export_bear_data.py --bear-root C:\Users\zouwei\Desktop\PROJECT\_
 - policy adapter：rule-based、MPC-like placeholder、diffusion adapter 边界、DROPT Guided-DiffFNO checkpoint adapter、offline replay
 - 多文档 RAG：Markdown/TXT loader、chunk、Keyword、Hybrid、Reranking retriever
 - deterministic router + baseline orchestrator
-- LangGraph StateGraph workflow + DeepSeek/Ollama optional LLM intent classifier
+- LangGraph StateGraph workflow + optional DeepSeek LLM route planner
+- LangGraph multi-step execution uses `collect_*_evidence` and generates one final merged-evidence answer
 - shared AgentTaskExecutor for baseline and LangGraph tool execution
 - DeepSeek / Ollama evidence-grounded answer generator
 - deterministic fallback answer generator

@@ -4,9 +4,9 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException
 
-from src.agent.intent_classifier import RuleBasedIntentClassifier, build_intent_classifier_from_env
 from src.agent.langgraph_workflow import LangGraphOrchestrator
 from src.api.demo_factory import build_demo_orchestrator
+from src.agent.planner import DeterministicRoutePlanner, build_route_planner_from_env
 from src.api.schemas import AskRequest, AskResponse, EvalRunRequest, EvalRunResponse
 from src.evaluation.runner import run_baseline_eval
 
@@ -23,10 +23,10 @@ def create_app(
     )
     langgraph_orchestrator = LangGraphOrchestrator(
         orchestrator,
-        intent_classifier=(
-            build_intent_classifier_from_env()
+        route_planner=(
+            build_route_planner_from_env()
             if use_env_intent_classifier
-            else RuleBasedIntentClassifier()
+            else DeterministicRoutePlanner()
         ),
     )
 

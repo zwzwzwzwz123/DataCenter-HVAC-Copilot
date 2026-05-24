@@ -231,9 +231,10 @@ def test_build_workflow_trace_rows_summarizes_langgraph_nodes():
             "workflow_engine": "langgraph",
             "workflow_trace": [
                 {
-                    "node": "intent_classifier",
+                    "node": "planner",
                     "route": "policy_recommendation",
-                    "classifier": "llm:deepseek:intent-test",
+                    "planner": "llm:deepseek:planner-test",
+                    "planned_steps": ["timeseries_query", "policy_recommendation"],
                     "confidence": 0.88,
                     "fallback_used": False,
                     "tools": [],
@@ -256,9 +257,9 @@ def test_build_workflow_trace_rows_summarizes_langgraph_nodes():
     assert rows == [
         {
             "step": 1,
-            "node": "intent_classifier",
+            "node": "planner",
             "route": "policy_recommendation",
-            "classifier": "llm:deepseek:intent-test",
+            "classifier": "llm:deepseek:planner-test",
             "fallback": "no",
             "tools": "none",
             "evidence": "0 citations / 0 tool results",

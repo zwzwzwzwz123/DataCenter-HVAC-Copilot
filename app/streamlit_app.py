@@ -651,7 +651,7 @@ def build_workflow_trace_rows(result: dict) -> list[dict]:
                 "step": index,
                 "node": item.get("node", "unknown"),
                 "route": item.get("route", result.get("route", "unknown")),
-                "classifier": str(item.get("classifier", "n/a")),
+                "classifier": str(item.get("classifier", item.get("planner", "n/a"))),
                 "fallback": _format_fallback_status(item.get("fallback_used")),
                 "tools": ", ".join(str(tool) for tool in tools) if tools else "none",
                 "evidence": f"{citation_count} citations / {tool_result_count} tool results",

@@ -5,31 +5,33 @@ from typing import Any, TypedDict
 from langgraph.graph import END, StateGraph
 
 from src.agent.executor import AgentTaskExecutor
-from src.agent.intent_classifier import IntentClassifier, RuleBasedIntentClassifier
+from src.agent.intent_classifier import IntentClassifier
 from src.agent.orchestrator import BaselineOrchestrator
+from src.agent.planner import DeterministicRoutePlanner, PlanDecision, PlanStep, RoutePlanner
 
 
 class WorkflowState(TypedDict, total=False):
     question: str
     task_type: str | None
-    route: str
-    route_reason: str
+    plan: PlanDecision
     result: dict[str, Any]
+    step_results: list[dict[str, Any]]
     workflow_trace: list[dict[str, Any]]
 
 
 class LangGraphOrchestrator:
-    """LangGraph workflow with pluggable intent classification and shared task execution."""
+    """LangGraph workflow with controlled multi-step route planning."""
 
     def __init__(
         self,
         baseline: BaselineOrchestrator,
-        intent_classifier: IntentClassifier | None = None,
+        route_planner: RoutePlanner | None = None,
         task_executor: AgentTaskExecutor | None = None,
+        intent_classifier: IntentClassifier | None = None,
     ) -> None:
         self.baseline = baseline
         self.task_executor = task_executor or baseline.task_executor
-        self.intent_classifier = intent_classifier or RuleBasedIntentClassifier()
+        self.route_planner = route_planner or _PlannerFromIntentClassifier(intent_classifier)
         self.graph = self._build_graph()
 
     def run(self, question: str, task_type: str | None = None) -> dict[str, Any]:
@@ -38,6 +40,7 @@ class LangGraphOrchestrator:
                 "question": question,
                 "task_type": task_type,
                 "workflow_trace": [],
+                "step_results": [],
             }
         )
         result = dict(state["result"])
@@ -47,113 +50,83 @@ class LangGraphOrchestrator:
 
     def _build_graph(self):
         graph = StateGraph(WorkflowState)
-        graph.add_node("intent_classifier", self._intent_classifier)
-        graph.add_node("retrieval", self._run_document_qa)
-        graph.add_node("timeseries_tool", self._run_timeseries_query)
-        graph.add_node("anomaly_tool", self._run_anomaly_diagnosis)
-        graph.add_node("policy_tool", self._run_policy_recommendation)
+        graph.add_node("planner", self._planner)
+        graph.add_node("execute_plan_steps", self._execute_plan_steps)
         graph.add_node("evidence_aggregator", self._evidence_aggregator)
         graph.add_node("answer_audit", self._answer_audit)
 
-        graph.set_entry_point("intent_classifier")
-        graph.add_conditional_edges(
-            "intent_classifier",
-            self._select_route_node,
-            {
-                "retrieval": "retrieval",
-                "timeseries_tool": "timeseries_tool",
-                "anomaly_tool": "anomaly_tool",
-                "policy_tool": "policy_tool",
-            },
-        )
-        for node in ["retrieval", "timeseries_tool", "anomaly_tool", "policy_tool"]:
-            graph.add_edge(node, "evidence_aggregator")
+        graph.set_entry_point("planner")
+        graph.add_edge("planner", "execute_plan_steps")
+        graph.add_edge("execute_plan_steps", "evidence_aggregator")
         graph.add_edge("evidence_aggregator", "answer_audit")
         graph.add_edge("answer_audit", END)
         return graph.compile()
 
-    def _intent_classifier(self, state: WorkflowState) -> WorkflowState:
-        decision = self.intent_classifier.classify(
+    def _planner(self, state: WorkflowState) -> WorkflowState:
+        decision = self.route_planner.plan(
             state["question"],
             task_type=state.get("task_type"),
         )
         trace = _append_trace(
             state,
             {
-                "node": "intent_classifier",
-                "route": decision.route,
-                "reason": decision.reason,
-                "classifier": decision.classifier,
+                "node": "planner",
+                "planned_steps": [step.route for step in decision.steps],
+                "planner": decision.planner,
                 "confidence": decision.confidence,
                 "fallback_used": decision.fallback_used,
+                "route": decision.steps[-1].route,
             },
         )
         return {
             **state,
-            "route": decision.route,
-            "route_reason": decision.reason,
+            "plan": decision,
             "workflow_trace": trace,
         }
 
-    def _select_route_node(self, state: WorkflowState) -> str:
-        route = state["route"]
+    def _execute_plan_steps(self, state: WorkflowState) -> WorkflowState:
+        step_results: list[dict[str, Any]] = []
+        trace = state.get("workflow_trace", [])
+        for index, step in enumerate(state["plan"].steps, start=1):
+            result = self._execute_step(state["question"], step)
+            step_results.append(result)
+            trace = [
+                *trace,
+                {
+                    "node": "execute_plan_step",
+                    "step_index": index,
+                    "route": step.route,
+                    "reason": step.reason,
+                    "tools": result.get("tools", []),
+                    "citation_count": len(result.get("citations", [])),
+                    "context_count": len(result.get("retrieved_contexts", [])),
+                    "tool_result_count": len(result.get("tool_results", [])),
+                    "has_policy_result": "policy_result" in result,
+                },
+            ]
         return {
-            "document_qa": "retrieval",
-            "timeseries_query": "timeseries_tool",
-            "anomaly_diagnosis": "anomaly_tool",
-            "policy_recommendation": "policy_tool",
-        }[route]
+            **state,
+            "result": self.task_executor.generate_answer_from_evidence(
+                _merge_step_results(
+                    question=state["question"],
+                    plan=state["plan"],
+                    step_results=step_results,
+                )
+            ),
+            "step_results": step_results,
+            "workflow_trace": trace,
+        }
 
-    def _run_document_qa(self, state: WorkflowState) -> WorkflowState:
-        result = self.task_executor.run_document_qa(state["question"], state["route_reason"])
-        return _with_result_and_trace(
-            state,
-            result,
-            {
-                "node": "retrieval",
-                "citation_count": len(result.get("citations", [])),
-                "context_count": len(result.get("retrieved_contexts", [])),
-            },
-        )
-
-    def _run_timeseries_query(self, state: WorkflowState) -> WorkflowState:
-        result = self.task_executor.run_timeseries_query(state["question"], state["route_reason"])
-        return _with_result_and_trace(
-            state,
-            result,
-            {
-                "node": "timeseries_tool",
-                "tools": result.get("tools", []),
-                "tool_result_count": len(result.get("tool_results", [])),
-            },
-        )
-
-    def _run_anomaly_diagnosis(self, state: WorkflowState) -> WorkflowState:
-        result = self.task_executor.run_anomaly_diagnosis(state["question"], state["route_reason"])
-        return _with_result_and_trace(
-            state,
-            result,
-            {
-                "node": "anomaly_tool",
-                "tools": result.get("tools", []),
-                "tool_result_count": len(result.get("tool_results", [])),
-            },
-        )
-
-    def _run_policy_recommendation(self, state: WorkflowState) -> WorkflowState:
-        result = self.task_executor.run_policy_recommendation(
-            state["question"],
-            state["route_reason"],
-        )
-        return _with_result_and_trace(
-            state,
-            result,
-            {
-                "node": "policy_tool",
-                "tools": result.get("tools", []),
-                "policy_name": result.get("policy_result", {}).get("policy_name"),
-            },
-        )
+    def _execute_step(self, question: str, step: PlanStep) -> dict[str, Any]:
+        if step.route == "document_qa":
+            return self.task_executor.collect_document_qa_evidence(question, step.reason)
+        if step.route == "timeseries_query":
+            return self.task_executor.collect_timeseries_query_evidence(question, step.reason)
+        if step.route == "anomaly_diagnosis":
+            return self.task_executor.collect_anomaly_diagnosis_evidence(question, step.reason)
+        if step.route == "policy_recommendation":
+            return self.task_executor.collect_policy_recommendation_evidence(question, step.reason)
+        raise ValueError(f"Unsupported route: {step.route}")
 
     def _evidence_aggregator(self, state: WorkflowState) -> WorkflowState:
         result = state["result"]
@@ -163,9 +136,16 @@ class LangGraphOrchestrator:
                 state,
                 {
                     "node": "evidence_aggregator",
+                    "route": result.get("route"),
                     "citation_count": len(result.get("citations", [])),
+                    "context_count": len(result.get("retrieved_contexts", [])),
                     "tool_result_count": len(result.get("tool_results", [])),
                     "has_policy_result": "policy_result" in result,
+                    "evidence_count": (
+                        len(result.get("citations", []))
+                        + len(result.get("retrieved_contexts", []))
+                        + len(result.get("tool_results", []))
+                    ),
                 },
             ),
         }
@@ -179,24 +159,87 @@ class LangGraphOrchestrator:
                 state,
                 {
                     "node": "answer_audit",
+                    "route": result.get("route"),
                     "passed": bool(audit.get("passed", False)),
+                    "audit_passed": bool(audit.get("passed", False)),
                     "violations": audit.get("violations", []),
+                    "citation_count": len(result.get("citations", [])),
+                    "tool_result_count": len(result.get("tool_results", [])),
                 },
             ),
         }
 
 
+class _PlannerFromIntentClassifier:
+    """Compatibility wrapper for callers still injecting an intent classifier."""
+
+    def __init__(self, intent_classifier: IntentClassifier | None = None) -> None:
+        self.intent_classifier = intent_classifier
+        self.fallback = DeterministicRoutePlanner()
+
+    def plan(self, question: str, task_type: str | None = None) -> PlanDecision:
+        if self.intent_classifier is None:
+            return self.fallback.plan(question, task_type=task_type)
+
+        decision = self.intent_classifier.classify(question, task_type=task_type)
+        return PlanDecision(
+            steps=[PlanStep(route=decision.route, reason=decision.reason)],
+            planner=decision.classifier,
+            confidence=decision.confidence,
+            fallback_used=decision.fallback_used,
+        )
+
+
+def _merge_step_results(
+    *,
+    question: str,
+    plan: PlanDecision,
+    step_results: list[dict[str, Any]],
+) -> dict[str, Any]:
+    if not step_results:
+        raise ValueError("cannot merge empty plan results")
+
+    final = dict(step_results[-1])
+    final["question"] = question
+    final["route"] = plan.steps[-1].route
+    final["route_reason"] = " | ".join(f"{step.route}: {step.reason}" for step in plan.steps)
+    final["planned_steps"] = [
+        {"route": step.route, "reason": step.reason}
+        for step in plan.steps
+    ]
+    final["planner"] = plan.planner
+    final["planner_fallback_used"] = plan.fallback_used
+    final["tools"] = _flatten_list(step_results, "tools")
+    final["tool_results"] = _flatten_list(step_results, "tool_results")
+    final["citations"] = _dedupe_dicts(_flatten_list(step_results, "citations"))
+    final["retrieved_contexts"] = _dedupe_dicts(_flatten_list(step_results, "retrieved_contexts"))
+
+    for result in reversed(step_results):
+        if "policy_result" in result:
+            final["policy_result"] = result["policy_result"]
+            break
+
+    return final
+
+
+def _flatten_list(results: list[dict[str, Any]], key: str) -> list[Any]:
+    flattened: list[Any] = []
+    for result in results:
+        flattened.extend(result.get(key, []))
+    return flattened
+
+
+def _dedupe_dicts(items: list[Any]) -> list[Any]:
+    seen: set[str] = set()
+    deduped: list[Any] = []
+    for item in items:
+        marker = repr(item)
+        if marker in seen:
+            continue
+        seen.add(marker)
+        deduped.append(item)
+    return deduped
+
+
 def _append_trace(state: WorkflowState, item: dict[str, Any]) -> list[dict[str, Any]]:
     return [*state.get("workflow_trace", []), item]
-
-
-def _with_result_and_trace(
-    state: WorkflowState,
-    result: dict[str, Any],
-    trace_item: dict[str, Any],
-) -> WorkflowState:
-    return {
-        **state,
-        "result": result,
-        "workflow_trace": _append_trace(state, trace_item),
-    }

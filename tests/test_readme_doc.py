@@ -8,8 +8,9 @@ def test_readme_documents_chinese_project_overview_and_boundaries() -> None:
     assert "系统架构" in content
     assert "LLM 后端配置" in content
     assert "OLLAMA_MODEL" in content
-    assert "LANGGRAPH_INTENT_PROVIDER" in content
-    assert "LLM intent classifier" in content
+    assert "LANGGRAPH_PLANNER_PROVIDER" in content
+    assert "LLM route planner" in content
+    assert "src/agent/planner.py" in content
     assert "scripts/run_intent_eval.py" in content
     assert "ollama" in content
     assert "不是普通 ChatPDF" in content
@@ -17,6 +18,36 @@ def test_readme_documents_chinese_project_overview_and_boundaries() -> None:
     assert "LLM / Agent 只负责任务路由、证据整合和解释生成" in content
     assert "docs/demo_walkthrough.md" in content
     assert "--enable-llm-judge" in content
+
+
+def test_readme_langgraph_intro_is_chinese() -> None:
+    content = Path("README.md").read_text(encoding="utf-8")
+
+    assert "## LangGraph Trace Demo" not in content
+    assert "## LangGraph 工作流追踪演示" in content
+    assert "Copilot tab now lets you switch" not in content
+    assert "LangGraph 现在使用" in content
+
+
+def test_readme_describes_langgraph_planner_without_stale_intent_node_claims() -> None:
+    content = Path("README.md").read_text(encoding="utf-8")
+
+    assert "LANGGRAPH_PLANNER_PROVIDER" in content
+    assert "LLM route planner" in content
+    assert "execute_plan_steps" in content
+    assert "collect_*_evidence" in content
+    assert "LANGGRAPH_INTENT_PROVIDER` 只影响 `workflow_engine=langgraph`" not in content
+    assert "LangGraph StateGraph workflow + DeepSeek/Ollama optional LLM intent classifier" not in content
+    assert "可选 LLM intent classification" not in content
+
+
+def test_readme_system_architecture_diagram_shows_planner_path() -> None:
+    content = Path("README.md").read_text(encoding="utf-8")
+
+    assert "LangGraph Route Planner" in content
+    assert "collect_*_evidence" in content
+    assert "Merged Evidence" in content
+    assert "Deterministic Router\n  |" not in content
 
 
 def test_readme_mentions_human_evaluation_calibration() -> None:
