@@ -202,6 +202,7 @@ class AgentTaskExecutor:
                 tool_results=list(evidence.get("tool_results", [])),
                 data_source=evidence.get("data_source"),
                 policy_result=policy_result,
+                conversation_context=evidence.get("conversation_context"),
             )
         )
         return {

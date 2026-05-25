@@ -89,14 +89,24 @@ class PlanDecision:
 
 
 class RoutePlanner(Protocol):
-    def plan(self, question: str, task_type: str | None = None) -> PlanDecision:
+    def plan(
+        self,
+        question: str,
+        task_type: str | None = None,
+        conversation_context: dict[str, Any] | None = None,
+    ) -> PlanDecision:
         """Plan one to three controlled route steps for a user question."""
 
 
 class DeterministicRoutePlanner:
     name = "deterministic"
 
-    def plan(self, question: str, task_type: str | None = None) -> PlanDecision:
+    def plan(
+        self,
+        question: str,
+        task_type: str | None = None,
+        conversation_context: dict[str, Any] | None = None,
+    ) -> PlanDecision:
         if task_type in SUPPORTED_ROUTES:
             decision = route_task(question, task_type=task_type)
             return PlanDecision(
@@ -136,7 +146,12 @@ class LLMRoutePlanner:
         self.fallback = fallback or DeterministicRoutePlanner()
         self.transport = transport or _default_transport
 
-    def plan(self, question: str, task_type: str | None = None) -> PlanDecision:
+    def plan(
+        self,
+        question: str,
+        task_type: str | None = None,
+        conversation_context: dict[str, Any] | None = None,
+    ) -> PlanDecision:
         if task_type in SUPPORTED_ROUTES:
             return self.fallback.plan(question, task_type=task_type)
 

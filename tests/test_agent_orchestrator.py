@@ -55,8 +55,16 @@ class StaticRoutePlanner:
     def __init__(self) -> None:
         self.calls: list[dict] = []
 
-    def plan(self, question: str, task_type: str | None = None) -> PlanDecision:
-        self.calls.append({"question": question, "task_type": task_type})
+    def plan(
+        self,
+        question: str,
+        task_type: str | None = None,
+        conversation_context: dict | None = None,
+    ) -> PlanDecision:
+        call = {"question": question, "task_type": task_type}
+        if conversation_context is not None:
+            call["conversation_context"] = conversation_context
+        self.calls.append(call)
         return PlanDecision(
             steps=[
                 PlanStep(route="timeseries_query", reason="Gather metric evidence first."),
@@ -469,4 +477,52 @@ def test_baseline_and_langgraph_can_share_agent_task_executor():
     assert langgraph_result["tools"] == ["detect_anomaly"]
     assert langgraph_result["workflow_trace"][1]["node"] == "execute_plan_step"
     assert langgraph_result["workflow_trace"][1]["route"] == "anomaly_diagnosis"
+
+
+def test_conversation_context_reaches_baseline_answer_generator():
+    generator = SpyAnswerGenerator()
+    orchestrator = BaselineOrchestrator(
+        rag_pipeline=mock_rag(),
+        trajectory=mock_trajectory(),
+        answer_generator=generator,
+    )
+    context = {
+        "session_id": "session-1",
+        "recent_turns": [{"question": "previous", "answer": "fan power was stable"}],
+        "relevant_memory": [{"text": "Fan power was stable."}],
+    }
+
+    result = orchestrator.run(
+        "What about that result?",
+        task_type="document_qa",
+        conversation_context=context,
+    )
+
+    assert result["conversation_context"] == context
+    assert generator.payloads[0].conversation_context == context
+
+
+def test_conversation_context_reaches_langgraph_planner_and_trace():
+    generator = SpyAnswerGenerator()
+    baseline = BaselineOrchestrator(
+        rag_pipeline=mock_rag(),
+        trajectory=mock_trajectory(),
+        answer_generator=generator,
+    )
+    planner = StaticRoutePlanner()
+    orchestrator = LangGraphOrchestrator(baseline, route_planner=planner)
+    context = {
+        "session_id": "session-1",
+        "recent_turns": [{"question": "previous", "answer": "zone_a peaked"}],
+        "relevant_memory": [{"text": "zone_a peaked at 30 C"}],
+        "budget": {"truncated": False},
+    }
+
+    result = orchestrator.run("What about that zone?", conversation_context=context)
+
+    assert planner.calls[-1]["conversation_context"] == context
+    assert generator.payloads[-1].conversation_context == context
+    assert result["conversation_context"] == context
+    assert result["workflow_trace"][0]["memory_context_available"] is True
+    assert result["workflow_trace"][0]["memory_recent_turn_count"] == 1
 

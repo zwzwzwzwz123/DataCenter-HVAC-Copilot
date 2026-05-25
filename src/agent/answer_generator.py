@@ -15,6 +15,7 @@ class AnswerGeneratorInput:
     tool_results: list[dict[str, Any]] = field(default_factory=list)
     data_source: dict[str, str] | None = None
     policy_result: dict[str, Any] | None = None
+    conversation_context: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)

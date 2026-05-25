@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pandas as pd
+import pytest
 from fastapi.testclient import TestClient
 
 from src.agent.answer_generator import AnswerGeneratorInput, GeneratedAnswer
@@ -11,6 +12,20 @@ from src.api.demo_factory import build_demo_orchestrator
 class FactorySpyGenerator:
     def generate(self, payload: AnswerGeneratorInput) -> GeneratedAnswer:
         return GeneratedAnswer(answer="factory-spy", generator="factory_spy")
+
+
+def _core_workflow_trace(body: dict) -> list[dict]:
+    return [
+        step
+        for step in body.get("workflow_trace", [])
+        if not str(step.get("node", "")).startswith("memory_")
+    ]
+
+
+@pytest.fixture(autouse=True)
+def isolated_memory_db(tmp_path, monkeypatch):
+    monkeypatch.setenv("HVAC_COPILOT_MEMORY_DB_PATH", str(tmp_path / "memory.db"))
+    monkeypatch.setenv("HVAC_COPILOT_MEMORY_RETRIEVER", "dense_memory")
 
 
 def test_health_endpoint_returns_status():
@@ -63,7 +78,8 @@ def test_ask_endpoint_can_run_langgraph_workflow_trace():
     body = response.json()
     assert response.status_code == 200
     assert body["workflow_engine"] == "langgraph"
-    assert [step["node"] for step in body["workflow_trace"]] == [
+    core_trace = _core_workflow_trace(body)
+    assert [step["node"] for step in core_trace] == [
         "planner",
         "execute_plan_step",
         "evidence_aggregator",
@@ -71,10 +87,10 @@ def test_ask_endpoint_can_run_langgraph_workflow_trace():
         "answer_audit",
     ]
     assert body["tools"] == ["rule_based_policy"]
-    assert body["workflow_trace"][3]["answer_generator"] == body["answer_generator"]
-    assert body["workflow_trace"][0]["planner"] == "deterministic"
-    assert body["workflow_trace"][0]["planned_step_specs"][0]["tool"] == "policy_runner"
-    assert body["workflow_trace"][0]["fallback_used"] is False
+    assert core_trace[3]["answer_generator"] == body["answer_generator"]
+    assert core_trace[0]["planner"] == "deterministic"
+    assert core_trace[0]["planned_step_specs"][0]["tool"] == "policy_runner"
+    assert core_trace[0]["fallback_used"] is False
 
 
 def test_ask_endpoint_defaults_policy_route_to_dropt_checkpoint():
@@ -121,7 +137,7 @@ def test_create_app_can_disable_env_route_planner(monkeypatch):
 
     body = response.json()
     assert response.status_code == 200
-    assert body["workflow_trace"][0]["planner"] == "deterministic"
+    assert _core_workflow_trace(body)[0]["planner"] == "deterministic"
     monkeypatch.delenv("LANGGRAPH_PLANNER_PROVIDER", raising=False)
     monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
 
@@ -167,8 +183,8 @@ def test_auto_route_planner_uses_deepseek_when_key_is_available(monkeypatch):
     assert response.status_code == 200
     assert body["workflow_engine"] == "langgraph"
     assert body["route"] == "policy_recommendation"
-    assert body["workflow_trace"][0]["planner"].startswith("llm:deepseek:")
-    assert body["workflow_trace"][0]["fallback_used"] is False
+    assert _core_workflow_trace(body)[0]["planner"].startswith("llm:deepseek:")
+    assert _core_workflow_trace(body)[0]["fallback_used"] is False
     assert captured["headers"]["Authorization"] == "Bearer test-key"
     monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
 
@@ -186,8 +202,8 @@ def test_route_planner_provider_can_be_forced_to_deterministic(monkeypatch):
     body = response.json()
     assert response.status_code == 200
     assert body["workflow_engine"] == "langgraph"
-    assert body["workflow_trace"][0]["planner"] == "deterministic"
-    assert body["workflow_trace"][0]["fallback_used"] is False
+    assert _core_workflow_trace(body)[0]["planner"] == "deterministic"
+    assert _core_workflow_trace(body)[0]["fallback_used"] is False
     monkeypatch.delenv("LANGGRAPH_PLANNER_PROVIDER", raising=False)
 
 
@@ -218,6 +234,116 @@ def test_eval_run_endpoint_returns_metrics():
     # intentionally misses the first evidence-gathering tool on those records.
     assert body["metrics"]["tool_selection_accuracy"] >= 0.88
     assert len(body["predictions"]) >= 30
+
+
+def test_ask_endpoint_creates_session_and_saves_second_turn(tmp_path, monkeypatch):
+    db_path = tmp_path / "memory" / "conversations.db"
+    monkeypatch.setenv("HVAC_COPILOT_MEMORY_DB_PATH", str(db_path))
+    monkeypatch.setenv("HVAC_COPILOT_MEMORY_RETRIEVER", "dense_memory")
+    client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
+
+    first = client.post(
+        "/ask",
+        json={
+            "question": "What was zone_a temperature?",
+            "task_type": "timeseries_query",
+            "memory_enabled": True,
+        },
+    )
+    first_body = first.json()
+    second = client.post(
+        "/ask",
+        json={
+            "question": "What did we ask last time?",
+            "task_type": "document_qa",
+            "session_id": first_body["session_id"],
+            "memory_enabled": True,
+        },
+    )
+    second_body = second.json()
+
+    assert first.status_code == 200
+    assert first_body["session_id"]
+    assert first_body["turn_id"]
+    assert first_body["memory_status"]["storage"]["saved"] is True
+    assert second.status_code == 200
+    assert second_body["session_id"] == first_body["session_id"]
+    assert second_body["turn_id"] != first_body["turn_id"]
+    assert second_body["conversation_context"]["recent_turns"]
+    assert any(step["node"] == "memory_context_loaded" for step in second_body["workflow_trace"])
+    assert any(step["node"] == "memory_turn_saved" for step in second_body["workflow_trace"])
+
+
+def test_ask_endpoint_returns_404_for_unknown_session(tmp_path, monkeypatch):
+    monkeypatch.setenv("HVAC_COPILOT_MEMORY_DB_PATH", str(tmp_path / "memory.db"))
+    client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
+
+    response = client.post(
+        "/ask",
+        json={
+            "question": "q",
+            "session_id": "missing-session",
+            "memory_enabled": True,
+        },
+    )
+
+    assert response.status_code == 404
+    assert "session_id" in response.json()["detail"]
+
+
+def test_ask_endpoint_memory_disabled_preserves_single_turn_behavior(tmp_path, monkeypatch):
+    db_path = tmp_path / "memory.db"
+    monkeypatch.setenv("HVAC_COPILOT_MEMORY_DB_PATH", str(db_path))
+    client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
+
+    response = client.post(
+        "/ask",
+        json={
+            "question": "q",
+            "task_type": "document_qa",
+            "memory_enabled": False,
+        },
+    )
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["session_id"] is None
+    assert body["turn_id"] is None
+    assert body["conversation_context"] == {}
+    assert body["memory_status"]["enabled"] is False
+    assert not db_path.exists()
+
+
+def test_ask_endpoint_runs_without_memory_when_storage_unavailable(monkeypatch):
+    monkeypatch.setattr("src.api.app.ContextManager", lambda: (_ for _ in ()).throw(OSError("cannot create db")))
+    client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
+
+    response = client.post(
+        "/ask",
+        json={
+            "question": "q",
+            "task_type": "document_qa",
+            "memory_enabled": True,
+        },
+    )
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["answer"]
+    assert body["session_id"] is None
+    assert body["memory_status"]["storage"]["available"] is False
+    assert "cannot create db" in body["memory_status"]["storage"]["error"]
+
+
+def test_eval_run_does_not_create_memory_database(tmp_path, monkeypatch):
+    db_path = tmp_path / "memory.db"
+    monkeypatch.setenv("HVAC_COPILOT_MEMORY_DB_PATH", str(db_path))
+    client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
+
+    response = client.post("/eval/run", json={"eval_path": "data/eval/hvac_eval.jsonl"})
+
+    assert response.status_code == 200
+    assert not db_path.exists()
 
 
 def test_demo_orchestrator_loads_all_text_documents_from_documents_dir(tmp_path):

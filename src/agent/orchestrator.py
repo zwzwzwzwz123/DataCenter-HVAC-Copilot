@@ -41,29 +41,67 @@ class BaselineOrchestrator:
         self.policy_runner = task_executor.policy_runner
         self.data_source = task_executor.data_source
 
-    def run(self, question: str, task_type: str | None = None) -> dict[str, Any]:
+    def run(
+        self,
+        question: str,
+        task_type: str | None = None,
+        conversation_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         decision = route_task(question, task_type=task_type)
         if decision.route == "document_qa":
-            return self.run_document_qa(question, decision.reason)
+            return self.run_document_qa(question, decision.reason, conversation_context)
         if decision.route == "timeseries_query":
-            return self.run_timeseries_query(question, decision.reason)
+            return self.run_timeseries_query(question, decision.reason, conversation_context)
         if decision.route == "anomaly_diagnosis":
-            return self.run_anomaly_diagnosis(question, decision.reason)
+            return self.run_anomaly_diagnosis(question, decision.reason, conversation_context)
         if decision.route == "policy_recommendation":
-            return self.run_policy_recommendation(question, decision.reason)
+            return self.run_policy_recommendation(question, decision.reason, conversation_context)
         raise ValueError(f"Unsupported route: {decision.route}")
 
-    def run_document_qa(self, question: str, reason: str) -> dict[str, Any]:
-        return self.task_executor.run_document_qa(question, reason)
+    def run_document_qa(
+        self,
+        question: str,
+        reason: str,
+        conversation_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        evidence = self.task_executor.collect_document_qa_evidence(question, reason)
+        return self._generate_with_conversation_context(evidence, conversation_context)
 
-    def run_timeseries_query(self, question: str, reason: str) -> dict[str, Any]:
-        return self.task_executor.run_timeseries_query(question, reason)
+    def run_timeseries_query(
+        self,
+        question: str,
+        reason: str,
+        conversation_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        evidence = self.task_executor.collect_timeseries_query_evidence(question, reason)
+        return self._generate_with_conversation_context(evidence, conversation_context)
 
-    def run_anomaly_diagnosis(self, question: str, reason: str) -> dict[str, Any]:
-        return self.task_executor.run_anomaly_diagnosis(question, reason)
+    def run_anomaly_diagnosis(
+        self,
+        question: str,
+        reason: str,
+        conversation_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        evidence = self.task_executor.collect_anomaly_diagnosis_evidence(question, reason)
+        return self._generate_with_conversation_context(evidence, conversation_context)
 
-    def run_policy_recommendation(self, question: str, reason: str) -> dict[str, Any]:
-        return self.task_executor.run_policy_recommendation(question, reason)
+    def run_policy_recommendation(
+        self,
+        question: str,
+        reason: str,
+        conversation_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        evidence = self.task_executor.collect_policy_recommendation_evidence(question, reason)
+        return self._generate_with_conversation_context(evidence, conversation_context)
+
+    def _generate_with_conversation_context(
+        self,
+        evidence: dict[str, Any],
+        conversation_context: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        if conversation_context is not None:
+            evidence = {**evidence, "conversation_context": conversation_context}
+        return self.task_executor.generate_answer_from_evidence(evidence)
 
     # Backward-compatible aliases for older tests or notebooks.
     def _run_document_qa(self, question: str, reason: str) -> dict[str, Any]:

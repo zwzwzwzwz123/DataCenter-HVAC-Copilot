@@ -7,6 +7,8 @@ class AskRequest(BaseModel):
     question: str
     task_type: str | None = None
     workflow_engine: str = "langgraph"
+    session_id: str | None = None
+    memory_enabled: bool = True
 
 
 class AskResponse(BaseModel):
@@ -24,6 +26,10 @@ class AskResponse(BaseModel):
     data_source: dict[str, str] = Field(default_factory=dict)
     workflow_engine: str = "langgraph"
     workflow_trace: list[dict] = Field(default_factory=list)
+    session_id: str | None = None
+    turn_id: str | None = None
+    memory_status: dict = Field(default_factory=dict)
+    conversation_context: dict = Field(default_factory=dict)
 
 
 class EvalRunRequest(BaseModel):

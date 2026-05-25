@@ -13,6 +13,7 @@ from src.agent.planner import DeterministicRoutePlanner, PlanDecision, PlanStep,
 class WorkflowState(TypedDict, total=False):
     question: str
     task_type: str | None
+    conversation_context: dict[str, Any] | None
     plan: PlanDecision
     merged_evidence: dict[str, Any]
     result: dict[str, Any]
@@ -35,11 +36,17 @@ class LangGraphOrchestrator:
         self.route_planner = route_planner or _PlannerFromIntentClassifier(intent_classifier)
         self.graph = self._build_graph()
 
-    def run(self, question: str, task_type: str | None = None) -> dict[str, Any]:
+    def run(
+        self,
+        question: str,
+        task_type: str | None = None,
+        conversation_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         state = self.graph.invoke(
             {
                 "question": question,
                 "task_type": task_type,
+                "conversation_context": conversation_context,
                 "workflow_trace": [],
                 "step_results": [],
             }
@@ -66,10 +73,18 @@ class LangGraphOrchestrator:
         return graph.compile()
 
     def _planner(self, state: WorkflowState) -> WorkflowState:
-        decision = self.route_planner.plan(
-            state["question"],
-            task_type=state.get("task_type"),
-        )
+        conversation_context = state.get("conversation_context")
+        if conversation_context is None:
+            decision = self.route_planner.plan(
+                state["question"],
+                task_type=state.get("task_type"),
+            )
+        else:
+            decision = self.route_planner.plan(
+                state["question"],
+                task_type=state.get("task_type"),
+                conversation_context=conversation_context,
+            )
         trace = _append_trace(
             state,
             {
@@ -80,6 +95,10 @@ class LangGraphOrchestrator:
                 "confidence": decision.confidence,
                 "fallback_used": decision.fallback_used,
                 "route": decision.steps[-1].route,
+                "memory_context_available": bool(state.get("conversation_context")),
+                "memory_recent_turn_count": len(
+                    (state.get("conversation_context") or {}).get("recent_turns", [])
+                ),
             },
         )
         return {
@@ -131,6 +150,8 @@ class LangGraphOrchestrator:
             plan=state["plan"],
             step_results=state["step_results"],
         )
+        if state.get("conversation_context") is not None:
+            merged_evidence["conversation_context"] = state.get("conversation_context")
         return {
             **state,
             "merged_evidence": merged_evidence,
@@ -198,7 +219,12 @@ class _PlannerFromIntentClassifier:
         self.intent_classifier = intent_classifier
         self.fallback = DeterministicRoutePlanner()
 
-    def plan(self, question: str, task_type: str | None = None) -> PlanDecision:
+    def plan(
+        self,
+        question: str,
+        task_type: str | None = None,
+        conversation_context: dict[str, Any] | None = None,
+    ) -> PlanDecision:
         if self.intent_classifier is None:
             return self.fallback.plan(question, task_type=task_type)
 
