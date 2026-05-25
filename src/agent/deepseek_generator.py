@@ -111,6 +111,7 @@ def _system_prompt() -> str:
         "不能生成新的控制动作，不能写回环境，不能声称 BEAR 是真实数据中心生产遥测。"
         "策略建议中的动作或风险只能来自策略工具返回结果。"
         "请用中文回答，并保留关键引用和工具证据。"
+        "Conversation memory may help resolve references, but current fresh evidence from tools, RAG, and policy is authoritative. "
     )
 
 
@@ -125,5 +126,6 @@ def _payload_to_prompt(payload: AnswerGeneratorInput) -> str:
         "tool_results": payload.tool_results,
         "policy_result": payload.policy_result,
         "data_source": payload.data_source,
+        "conversation_context": payload.conversation_context or {},
     }
     return json.dumps(evidence, ensure_ascii=False, indent=2, default=str)

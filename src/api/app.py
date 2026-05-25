@@ -91,10 +91,9 @@ def create_app(
             except UnknownSessionError as exc:
                 raise HTTPException(status_code=404, detail=f"Unknown session_id: {exc.args[0]}") from exc
             except Exception as exc:
-                manager = None
                 memory_status.update(
                     {
-                        "storage": {"available": False, "error": str(exc)},
+                        "storage": {"available": True, "db_path": str(manager.store.db_path)},
                         "retrieval": {"available": False, "error": str(exc)},
                     }
                 )
@@ -126,7 +125,7 @@ def create_app(
         turn_id = None
         if manager is not None and session_id is not None:
             try:
-                saved = manager.save_turn(
+                saved = manager.store.save_turn(
                     ConversationTurn(
                         session_id=session_id,
                         question=request.question,
@@ -148,6 +147,14 @@ def create_app(
                     **memory_status.get("storage", {"available": True}),
                     "saved": True,
                 }
+                try:
+                    manager.index_turn(saved)
+                    memory_status["indexing"] = {"saved": True}
+                except Exception as exc:
+                    memory_status["indexing"] = {
+                        "saved": False,
+                        "error": str(exc),
+                    }
                 workflow_trace.append(
                     {
                         "node": "memory_turn_saved",

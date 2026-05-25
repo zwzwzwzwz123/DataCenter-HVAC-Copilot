@@ -335,6 +335,62 @@ def test_ask_endpoint_runs_without_memory_when_storage_unavailable(monkeypatch):
     assert "cannot create db" in body["memory_status"]["storage"]["error"]
 
 
+def test_ask_endpoint_saves_turn_when_context_load_fails(tmp_path, monkeypatch):
+    db_path = tmp_path / "memory.db"
+    monkeypatch.setenv("HVAC_COPILOT_MEMORY_DB_PATH", str(db_path))
+    client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
+    first = client.post(
+        "/ask",
+        json={"question": "first", "task_type": "document_qa", "memory_enabled": True},
+    )
+    session_id = first.json()["session_id"]
+
+    def fail_load(*args, **kwargs):
+        raise RuntimeError("retrieval broken")
+
+    monkeypatch.setattr("src.memory.context_manager.ContextManager.load_context", fail_load)
+    second = client.post(
+        "/ask",
+        json={
+            "question": "second",
+            "task_type": "document_qa",
+            "session_id": session_id,
+            "memory_enabled": True,
+        },
+    )
+    body = second.json()
+
+    assert second.status_code == 200
+    assert body["session_id"] == session_id
+    assert body["turn_id"]
+    assert body["memory_status"]["storage"]["saved"] is True
+    assert body["memory_status"]["retrieval"]["available"] is False
+    assert "retrieval broken" in body["memory_status"]["retrieval"]["error"]
+
+
+def test_ask_endpoint_reports_indexing_failure_separately_from_turn_save(tmp_path, monkeypatch):
+    db_path = tmp_path / "memory.db"
+    monkeypatch.setenv("HVAC_COPILOT_MEMORY_DB_PATH", str(db_path))
+
+    def fail_index(*args, **kwargs):
+        raise RuntimeError("indexing broken")
+
+    monkeypatch.setattr("src.memory.indexer.TurnMemoryIndexer.chunks_from_turn", fail_index)
+    client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
+
+    response = client.post(
+        "/ask",
+        json={"question": "q", "task_type": "document_qa", "memory_enabled": True},
+    )
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["turn_id"]
+    assert body["memory_status"]["storage"]["saved"] is True
+    assert body["memory_status"]["indexing"]["saved"] is False
+    assert "indexing broken" in body["memory_status"]["indexing"]["error"]
+
+
 def test_eval_run_does_not_create_memory_database(tmp_path, monkeypatch):
     db_path = tmp_path / "memory.db"
     monkeypatch.setenv("HVAC_COPILOT_MEMORY_DB_PATH", str(db_path))

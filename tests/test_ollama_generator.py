@@ -86,3 +86,27 @@ def test_ollama_generator_falls_back_when_transport_fails() -> None:
 
     assert result.generator == "deterministic_grounded"
     assert "rule_based" in result.answer
+
+
+def test_ollama_generator_prompt_includes_conversation_context() -> None:
+    transport = FakeOllamaTransport()
+    generator = OllamaAnswerGenerator(
+        base_url="http://ollama.test:11434",
+        model="qwen2.5:7b",
+        transport=transport,
+    )
+
+    generator.generate(
+        AnswerGeneratorInput(
+            question="What about that zone?",
+            route="document_qa",
+            route_reason="follow-up",
+            conversation_context={
+                "recent_turns": [{"question": "previous", "answer": "zone_a peaked"}],
+                "relevant_memory": [{"text": "zone_a peaked at 30 C"}],
+            },
+        )
+    )
+
+    user_evidence = json.loads(transport.calls[0]["payload"]["messages"][1]["content"])
+    assert user_evidence["conversation_context"]["relevant_memory"][0]["text"] == "zone_a peaked at 30 C"

@@ -60,9 +60,12 @@ class ContextManager:
 
     def save_turn(self, turn: ConversationTurn) -> ConversationTurn:
         saved = self.store.save_turn(turn)
-        chunks = self.indexer.chunks_from_turn(saved)
-        self.store.save_chunks(chunks)
+        self.index_turn(saved)
         return saved
+
+    def index_turn(self, turn: ConversationTurn) -> None:
+        chunks = self.indexer.chunks_from_turn(turn)
+        self.store.save_chunks(chunks)
 
 
 def default_memory_db_path() -> Path:

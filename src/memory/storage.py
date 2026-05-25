@@ -67,11 +67,12 @@ class ConversationMemoryStore:
         now = turn.created_at or _utc_now()
         turn_id = turn.turn_id or f"turn_{uuid.uuid4().hex}"
         with self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
             current = conn.execute(
                 "SELECT COALESCE(MAX(turn_index), 0) FROM conversation_turns WHERE session_id = ?",
                 (turn.session_id,),
             ).fetchone()[0]
-            turn_index = turn.turn_index or int(current) + 1
+            turn_index = turn.turn_index if turn.turn_index is not None else int(current) + 1
             conn.execute(
                 """
                 INSERT INTO conversation_turns (
@@ -207,6 +208,7 @@ class ConversationMemoryStore:
                   data_source_json TEXT NOT NULL DEFAULT '{}',
                   memory_context_json TEXT NOT NULL DEFAULT '{}',
                   created_at TEXT NOT NULL,
+                  UNIQUE(session_id, turn_index),
                   FOREIGN KEY(session_id) REFERENCES conversation_sessions(session_id)
                 );
 
@@ -233,6 +235,9 @@ class ConversationMemoryStore:
                   updated_at TEXT NOT NULL,
                   metadata_json TEXT NOT NULL DEFAULT '{}'
                 );
+
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_conversation_turns_session_turn_index
+                ON conversation_turns(session_id, turn_index);
                 """
             )
 

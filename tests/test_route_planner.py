@@ -292,3 +292,25 @@ def test_build_route_planner_from_env_defaults_to_deterministic_without_key(tmp_
 
     assert decision.planner == "deterministic"
     assert [step.route for step in decision.steps] == ["policy_recommendation"]
+
+
+def test_llm_planner_prompt_includes_conversation_context() -> None:
+    transport = FakePlannerTransport()
+    planner = LLMRoutePlanner(
+        provider="deepseek",
+        api_key="test-key",
+        base_url="https://example.deepseek.test",
+        model="planner-test",
+        transport=transport,
+    )
+    context = {
+        "stable_context": {"boundary_summary": "BEAR is simulation only."},
+        "recent_turns": [{"question": "previous", "answer": "zone_a peaked"}],
+        "relevant_memory": [{"text": "zone_a peaked at 30 C"}],
+    }
+
+    planner.plan("What about that zone?", conversation_context=context)
+
+    user_payload = json.loads(transport.calls[0]["payload"]["messages"][1]["content"])
+    assert user_payload["conversation_context"] == context
+    assert "current fresh evidence" in transport.calls[0]["payload"]["messages"][0]["content"]

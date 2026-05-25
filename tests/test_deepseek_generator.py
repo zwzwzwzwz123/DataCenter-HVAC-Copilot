@@ -183,3 +183,33 @@ def test_build_answer_generator_from_env_uses_ollama_provider(monkeypatch) -> No
     monkeypatch.delenv("LLM_PROVIDER", raising=False)
     monkeypatch.delenv("OLLAMA_BASE_URL", raising=False)
     monkeypatch.delenv("OLLAMA_MODEL", raising=False)
+
+
+def test_deepseek_generator_prompt_includes_conversation_context_with_evidence_boundary() -> None:
+    transport = FakeTransport()
+    generator = DeepSeekAnswerGenerator(
+        api_key="test-key",
+        base_url="https://example.deepseek.test",
+        model="deepseek-test",
+        transport=transport,
+    )
+
+    generator.generate(
+        AnswerGeneratorInput(
+            question="What about that zone?",
+            route="timeseries_query",
+            route_reason="follow-up",
+            tool_results=[{"metric_name": "zone_temperature", "summary": {"max": 29.0}}],
+            conversation_context={
+                "recent_turns": [{"question": "previous", "answer": "zone_a peaked"}],
+                "relevant_memory": [{"text": "zone_a peaked at 30 C"}],
+                "stable_context": {"boundary_summary": "BEAR is simulation only."},
+            },
+        )
+    )
+
+    payload = transport.calls[0]["payload"]
+    assert "current fresh evidence" in payload["messages"][0]["content"]
+    user_evidence = json.loads(payload["messages"][1]["content"])
+    assert user_evidence["conversation_context"]["recent_turns"][0]["answer"] == "zone_a peaked"
+    assert user_evidence["tool_results"][0]["summary"]["max"] == 29.0

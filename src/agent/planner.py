@@ -160,7 +160,16 @@ class LLMRoutePlanner:
                 "model": self.model,
                 "messages": [
                     {"role": "system", "content": _system_prompt()},
-                    {"role": "user", "content": json.dumps({"question": question}, ensure_ascii=False)},
+                    {
+                        "role": "user",
+                        "content": json.dumps(
+                            {
+                                "question": question,
+                                "conversation_context": conversation_context or {},
+                            },
+                            ensure_ascii=False,
+                        ),
+                    },
                 ],
                 "temperature": 0.0,
             },
@@ -284,6 +293,7 @@ def _system_prompt() -> str:
         "Each step object must have route and reason. "
         "Allowed routes are exactly: document_qa, timeseries_query, anomaly_diagnosis, policy_recommendation. "
         "If policy_recommendation is included, it must be the final step. "
+        "Use conversation_context only for continuity and reference resolution; current fresh evidence remains authoritative. "
         "Do not call tools, write Python, or produce control actions."
     )
 
