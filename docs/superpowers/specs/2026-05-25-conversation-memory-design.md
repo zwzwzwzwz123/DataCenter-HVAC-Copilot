@@ -135,6 +135,7 @@ memory_chunks
 
 memory_index_metadata
   index_id TEXT PRIMARY KEY
+  session_id TEXT
   backend TEXT NOT NULL
   embedding_provider TEXT NOT NULL
   embedding_model TEXT NOT NULL
@@ -144,7 +145,10 @@ memory_index_metadata
 ```
 
 SQLite remains the source of truth. FAISS index files are derived artifacts and
-can be rebuilt from `memory_chunks`.
+can be rebuilt from `memory_chunks`. Implementations may choose one global FAISS
+index or one index per session, but retrieval must always enforce session
+isolation. If a global index is used, the retriever must filter candidate chunks
+by `session_id` before returning memory evidence.
 
 ## Memory Indexing
 
@@ -188,11 +192,13 @@ Alternate backends:
 - `dense_memory`: in-memory dense retrieval, useful for tests and small
   sessions.
 
-Fallback policy:
+Status and fallback policy:
 
 - Default runtime does not silently downgrade from FAISS/Dense. If FAISS or the
-  embedding provider is unavailable, return a clear `memory_status` with
-  `available=false` and an install/configuration hint.
+  embedding provider is unavailable, return a clear `memory_status.retrieval`
+  value with `available=false` and an install/configuration hint.
+- Storage and retrieval status are tracked separately. SQLite turn logging may
+  remain available even when FAISS/Dense retrieval is unavailable.
 - If `HVAC_COPILOT_MEMORY_ALLOW_FALLBACK=true`, the system may use
   `hybrid_rerank` and mark the fallback in `memory_status`.
 - Tests may use deterministic embeddings or explicit non-FAISS backends to avoid
@@ -232,13 +238,20 @@ Output shape:
 }
 ```
 
-Context priority:
+Pre-execution context assembly priority:
 
 1. Stable boundary reference.
 2. Current user question.
 3. Recent turns for reference resolution.
 4. Retrieved memory chunks.
-5. Current fresh evidence from RAG, tools, and policy.
+
+Answer-time evidence authority:
+
+1. Current fresh evidence from RAG, tools, and policy.
+2. Current route plan and workflow trace.
+3. Retrieved conversation memory.
+4. Recent turns used for reference resolution.
+5. Stable boundary reference.
 6. Safety audit.
 
 For final answer generation, current fresh evidence has the highest authority.
@@ -366,10 +379,11 @@ First implementation keeps UI work minimal:
 ## Error Handling
 
 - SQLite path cannot be created: run `/ask` without memory and return
-  `memory_status.available=false`.
+  `memory_status.storage.available=false`.
 - Invalid session id: return HTTP 404.
 - FAISS or embedding provider unavailable: return a clear memory unavailable
-  status unless fallback is explicitly enabled.
+  retrieval status unless fallback is explicitly enabled. If SQLite storage is
+  still available, the turn can still be saved and indexed later.
 - Index corruption: rebuild from `memory_chunks` when possible; otherwise mark
   memory retrieval unavailable and preserve turn logging if SQLite still works.
 - Turn save failure after successful answer: return the answer and
@@ -438,4 +452,3 @@ Agent tests:
 - Hybrid/rerank: available as configurable backend and explicit fallback.
 - Streamlit: minimal compatibility only in first pass.
 - Evaluation: memory disabled by default.
-
