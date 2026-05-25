@@ -180,66 +180,74 @@ class ConversationMemoryStore:
 
     def _initialize_schema(self) -> None:
         with self._connect() as conn:
-            conn.executescript(
-                """
-                CREATE TABLE IF NOT EXISTS conversation_sessions (
-                  session_id TEXT PRIMARY KEY,
-                  title TEXT NOT NULL,
-                  created_at TEXT NOT NULL,
-                  updated_at TEXT NOT NULL,
-                  summary TEXT NOT NULL DEFAULT '',
-                  metadata_json TEXT NOT NULL DEFAULT '{}'
-                );
+            try:
+                conn.executescript(
+                    """
+                    CREATE TABLE IF NOT EXISTS conversation_sessions (
+                      session_id TEXT PRIMARY KEY,
+                      title TEXT NOT NULL,
+                      created_at TEXT NOT NULL,
+                      updated_at TEXT NOT NULL,
+                      summary TEXT NOT NULL DEFAULT '',
+                      metadata_json TEXT NOT NULL DEFAULT '{}'
+                    );
 
-                CREATE TABLE IF NOT EXISTS conversation_turns (
-                  turn_id TEXT PRIMARY KEY,
-                  session_id TEXT NOT NULL,
-                  turn_index INTEGER NOT NULL,
-                  question TEXT NOT NULL,
-                  answer TEXT NOT NULL,
-                  route TEXT NOT NULL,
-                  tools_json TEXT NOT NULL DEFAULT '[]',
-                  citations_json TEXT NOT NULL DEFAULT '[]',
-                  retrieved_contexts_json TEXT NOT NULL DEFAULT '[]',
-                  tool_results_json TEXT NOT NULL DEFAULT '[]',
-                  policy_result_json TEXT NOT NULL DEFAULT '{}',
-                  workflow_trace_json TEXT NOT NULL DEFAULT '[]',
-                  answer_audit_json TEXT NOT NULL DEFAULT '{}',
-                  data_source_json TEXT NOT NULL DEFAULT '{}',
-                  memory_context_json TEXT NOT NULL DEFAULT '{}',
-                  created_at TEXT NOT NULL,
-                  UNIQUE(session_id, turn_index),
-                  FOREIGN KEY(session_id) REFERENCES conversation_sessions(session_id)
-                );
+                    CREATE TABLE IF NOT EXISTS conversation_turns (
+                      turn_id TEXT PRIMARY KEY,
+                      session_id TEXT NOT NULL,
+                      turn_index INTEGER NOT NULL,
+                      question TEXT NOT NULL,
+                      answer TEXT NOT NULL,
+                      route TEXT NOT NULL,
+                      tools_json TEXT NOT NULL DEFAULT '[]',
+                      citations_json TEXT NOT NULL DEFAULT '[]',
+                      retrieved_contexts_json TEXT NOT NULL DEFAULT '[]',
+                      tool_results_json TEXT NOT NULL DEFAULT '[]',
+                      policy_result_json TEXT NOT NULL DEFAULT '{}',
+                      workflow_trace_json TEXT NOT NULL DEFAULT '[]',
+                      answer_audit_json TEXT NOT NULL DEFAULT '{}',
+                      data_source_json TEXT NOT NULL DEFAULT '{}',
+                      memory_context_json TEXT NOT NULL DEFAULT '{}',
+                      created_at TEXT NOT NULL,
+                      UNIQUE(session_id, turn_index),
+                      FOREIGN KEY(session_id) REFERENCES conversation_sessions(session_id)
+                    );
 
-                CREATE TABLE IF NOT EXISTS memory_chunks (
-                  chunk_id TEXT PRIMARY KEY,
-                  session_id TEXT NOT NULL,
-                  turn_id TEXT NOT NULL,
-                  chunk_index INTEGER NOT NULL,
-                  text TEXT NOT NULL,
-                  metadata_json TEXT NOT NULL DEFAULT '{}',
-                  embedding_status TEXT NOT NULL DEFAULT 'pending',
-                  created_at TEXT NOT NULL,
-                  FOREIGN KEY(session_id) REFERENCES conversation_sessions(session_id),
-                  FOREIGN KEY(turn_id) REFERENCES conversation_turns(turn_id)
-                );
+                    CREATE TABLE IF NOT EXISTS memory_chunks (
+                      chunk_id TEXT PRIMARY KEY,
+                      session_id TEXT NOT NULL,
+                      turn_id TEXT NOT NULL,
+                      chunk_index INTEGER NOT NULL,
+                      text TEXT NOT NULL,
+                      metadata_json TEXT NOT NULL DEFAULT '{}',
+                      embedding_status TEXT NOT NULL DEFAULT 'pending',
+                      created_at TEXT NOT NULL,
+                      FOREIGN KEY(session_id) REFERENCES conversation_sessions(session_id),
+                      FOREIGN KEY(turn_id) REFERENCES conversation_turns(turn_id)
+                    );
 
-                CREATE TABLE IF NOT EXISTS memory_index_metadata (
-                  index_id TEXT PRIMARY KEY,
-                  session_id TEXT,
-                  backend TEXT NOT NULL,
-                  embedding_provider TEXT NOT NULL,
-                  embedding_model TEXT NOT NULL,
-                  index_path TEXT NOT NULL,
-                  updated_at TEXT NOT NULL,
-                  metadata_json TEXT NOT NULL DEFAULT '{}'
-                );
+                    CREATE TABLE IF NOT EXISTS memory_index_metadata (
+                      index_id TEXT PRIMARY KEY,
+                      session_id TEXT,
+                      backend TEXT NOT NULL,
+                      embedding_provider TEXT NOT NULL,
+                      embedding_model TEXT NOT NULL,
+                      index_path TEXT NOT NULL,
+                      updated_at TEXT NOT NULL,
+                      metadata_json TEXT NOT NULL DEFAULT '{}'
+                    );
 
-                CREATE UNIQUE INDEX IF NOT EXISTS idx_conversation_turns_session_turn_index
-                ON conversation_turns(session_id, turn_index);
-                """
-            )
+                    CREATE UNIQUE INDEX IF NOT EXISTS idx_conversation_turns_session_turn_index
+                    ON conversation_turns(session_id, turn_index);
+                    """
+                )
+            except sqlite3.IntegrityError as exc:
+                if "conversation_turns.session_id" in str(exc):
+                    raise sqlite3.IntegrityError(
+                        "duplicate conversation turn_index values exist; repair the SQLite memory database "
+                        "by renumbering duplicate conversation_turns per session before enabling the unique index"
+                    ) from exc
+                raise
 
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self.db_path)

@@ -135,6 +135,69 @@ def test_storage_adds_unique_turn_index_index_to_existing_schema(tmp_path: Path)
     assert any(index[1] == "idx_conversation_turns_session_turn_index" and index[2] for index in indexes)
 
 
+def test_storage_duplicate_turn_index_migration_error_has_repair_hint(tmp_path: Path):
+    db_path = tmp_path / "conversations.db"
+    with sqlite3.connect(db_path) as conn:
+        conn.executescript(
+            """
+            CREATE TABLE conversation_sessions (
+              session_id TEXT PRIMARY KEY,
+              title TEXT NOT NULL,
+              created_at TEXT NOT NULL,
+              updated_at TEXT NOT NULL,
+              summary TEXT NOT NULL DEFAULT '',
+              metadata_json TEXT NOT NULL DEFAULT '{}'
+            );
+            CREATE TABLE conversation_turns (
+              turn_id TEXT PRIMARY KEY,
+              session_id TEXT NOT NULL,
+              turn_index INTEGER NOT NULL,
+              question TEXT NOT NULL,
+              answer TEXT NOT NULL,
+              route TEXT NOT NULL,
+              tools_json TEXT NOT NULL DEFAULT '[]',
+              citations_json TEXT NOT NULL DEFAULT '[]',
+              retrieved_contexts_json TEXT NOT NULL DEFAULT '[]',
+              tool_results_json TEXT NOT NULL DEFAULT '[]',
+              policy_result_json TEXT NOT NULL DEFAULT '{}',
+              workflow_trace_json TEXT NOT NULL DEFAULT '[]',
+              answer_audit_json TEXT NOT NULL DEFAULT '{}',
+              data_source_json TEXT NOT NULL DEFAULT '{}',
+              memory_context_json TEXT NOT NULL DEFAULT '{}',
+              created_at TEXT NOT NULL
+            );
+            CREATE TABLE memory_chunks (
+              chunk_id TEXT PRIMARY KEY,
+              session_id TEXT NOT NULL,
+              turn_id TEXT NOT NULL,
+              chunk_index INTEGER NOT NULL,
+              text TEXT NOT NULL,
+              metadata_json TEXT NOT NULL DEFAULT '{}',
+              embedding_status TEXT NOT NULL DEFAULT 'pending',
+              created_at TEXT NOT NULL
+            );
+            CREATE TABLE memory_index_metadata (
+              index_id TEXT PRIMARY KEY,
+              session_id TEXT,
+              backend TEXT NOT NULL,
+              embedding_provider TEXT NOT NULL,
+              embedding_model TEXT NOT NULL,
+              index_path TEXT NOT NULL,
+              updated_at TEXT NOT NULL,
+              metadata_json TEXT NOT NULL DEFAULT '{}'
+            );
+            INSERT INTO conversation_turns (
+              turn_id, session_id, turn_index, question, answer, route, created_at
+            ) VALUES
+              ('turn_1', 'session_1', 1, 'q1', 'a1', 'document_qa', '2026-01-01T00:00:00Z'),
+              ('turn_2', 'session_1', 1, 'q2', 'a2', 'document_qa', '2026-01-01T00:00:01Z');
+            """
+        )
+
+    with pytest.raises(sqlite3.IntegrityError, match="duplicate conversation turn_index"):
+        ConversationMemoryStore(db_path)
+
+
 def test_storage_loads_recent_turns_in_chronological_order(tmp_path: Path):
     store = ConversationMemoryStore(tmp_path / "conversations.db")
     session = store.create_session()

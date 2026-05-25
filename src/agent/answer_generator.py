@@ -61,6 +61,8 @@ class DeterministicAnswerGenerator:
             sections.append(_format_context_evidence(payload.retrieved_contexts))
         if payload.citations:
             sections.append(_format_citations(payload.citations))
+        if payload.conversation_context:
+            sections.append(_format_conversation_memory(payload.conversation_context))
 
         return GeneratedAnswer(answer="\n".join(sections), generator=self.name)
 
@@ -123,4 +125,19 @@ def _format_citations(citations: list[dict[str, Any]]) -> str:
         source_id = citation.get("source_id", "unknown_source")
         title = citation.get("title") or citation.get("source_title") or "unknown_title"
         lines.append(f"- {source_id}: {title}")
+    return "\n".join(lines)
+
+
+def _format_conversation_memory(context: dict[str, Any]) -> str:
+    lines = [
+        "Conversation memory (for continuity only; current evidence remains authoritative):"
+    ]
+    for memory in list(context.get("relevant_memory", []))[:2]:
+        text = str(memory.get("text", ""))[:180]
+        if text:
+            lines.append(f"- {text}")
+    for turn in list(context.get("recent_turns", []))[-2:]:
+        answer = str(turn.get("answer", ""))[:160]
+        if answer:
+            lines.append(f"- Prior turn: {answer}")
     return "\n".join(lines)

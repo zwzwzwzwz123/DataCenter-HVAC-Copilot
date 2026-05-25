@@ -366,6 +366,10 @@ def test_ask_endpoint_saves_turn_when_context_load_fails(tmp_path, monkeypatch):
     assert body["memory_status"]["storage"]["saved"] is True
     assert body["memory_status"]["retrieval"]["available"] is False
     assert "retrieval broken" in body["memory_status"]["retrieval"]["error"]
+    retrieval_trace = [step for step in body["workflow_trace"] if step["node"] == "memory_retrieval"]
+    assert retrieval_trace
+    assert retrieval_trace[0]["available"] is False
+    assert "retrieval broken" in retrieval_trace[0]["error"]
 
 
 def test_ask_endpoint_reports_indexing_failure_separately_from_turn_save(tmp_path, monkeypatch):
@@ -389,6 +393,31 @@ def test_ask_endpoint_reports_indexing_failure_separately_from_turn_save(tmp_pat
     assert body["memory_status"]["storage"]["saved"] is True
     assert body["memory_status"]["indexing"]["saved"] is False
     assert "indexing broken" in body["memory_status"]["indexing"]["error"]
+    turn_saved_trace = [step for step in body["workflow_trace"] if step["node"] == "memory_turn_saved"]
+    assert turn_saved_trace
+    assert turn_saved_trace[0]["indexing_saved"] is False
+    assert "indexing broken" in turn_saved_trace[0]["indexing_error"]
+
+
+def test_ask_endpoint_classifies_session_create_failure_as_storage(monkeypatch):
+    def fail_create(*args, **kwargs):
+        raise OSError("session write failed")
+
+    monkeypatch.setattr("src.memory.context_manager.ContextManager.create_session", fail_create)
+    client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
+
+    response = client.post(
+        "/ask",
+        json={"question": "q", "task_type": "document_qa", "memory_enabled": True},
+    )
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["session_id"] is None
+    assert body["memory_status"]["storage"]["available"] is False
+    assert "session write failed" in body["memory_status"]["storage"]["error"]
+    assert body["memory_status"]["retrieval"]["available"] is False
+    assert body["memory_status"]["retrieval"]["error"] == "memory storage unavailable"
 
 
 def test_eval_run_does_not_create_memory_database(tmp_path, monkeypatch):

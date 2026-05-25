@@ -6,6 +6,28 @@ from src.agent.answer_generator import (
 )
 
 
+def test_deterministic_generator_mentions_conversation_memory_without_replacing_fresh_evidence() -> None:
+    generator = DeterministicAnswerGenerator()
+    result = generator.generate(
+        AnswerGeneratorInput(
+            question="What about that zone?",
+            route="timeseries_query",
+            route_reason="follow-up",
+            tools=["query_metric"],
+            tool_results=[{"metric_name": "zone_temperature", "summary": {"max": 29.0}}],
+            conversation_context={
+                "recent_turns": [{"question": "previous", "answer": "zone_a peaked at 30 C"}],
+                "relevant_memory": [{"text": "Earlier zone_a peaked at 30 C"}],
+            },
+        )
+    )
+
+    assert "Conversation memory" in result.answer
+    assert "Earlier zone_a peaked at 30 C" in result.answer
+    assert "current evidence remains authoritative" in result.answer
+    assert "29.0" in result.answer
+
+
 def test_document_answer_preserves_citations_and_context_evidence() -> None:
     generator = DeterministicAnswerGenerator()
     result = generator.generate(

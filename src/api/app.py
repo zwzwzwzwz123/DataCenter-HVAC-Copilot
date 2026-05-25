@@ -62,41 +62,82 @@ def create_app(
                 )
 
         if manager is not None:
-            try:
-                if session_id is None:
+            if session_id is None:
+                try:
                     session = manager.create_session(title=_session_title(request.question))
                     session_id = session.session_id
-                else:
+                except Exception as exc:
+                    manager = None
+                    memory_status.update(
+                        {
+                            "storage": {"available": False, "error": str(exc)},
+                            "retrieval": {
+                                "available": False,
+                                "error": "memory storage unavailable",
+                            },
+                        }
+                    )
+            else:
+                try:
                     manager.store.require_session(session_id)
-                loaded = manager.load_context(session_id, request.question)
-                conversation_context = loaded.to_dict()
-                memory_status.update(loaded.memory_status)
-                memory_trace.append(
-                    {
-                        "node": "memory_context_loaded",
-                        "session_id": session_id,
-                        "retrieved_memory_count": len(loaded.relevant_memory),
-                        "budget_truncated": bool(loaded.budget.get("truncated", False)),
-                    }
-                )
-                memory_trace.append(
-                    {
-                        "node": "memory_retrieval",
-                        "backend": loaded.memory_status.get("retrieval", {}).get("backend"),
-                        "available": loaded.memory_status.get("retrieval", {}).get("available"),
-                        "fallback_used": loaded.memory_status.get("retrieval", {}).get("fallback_used", False),
-                        "retrieved_memory_count": len(loaded.relevant_memory),
-                    }
-                )
-            except UnknownSessionError as exc:
-                raise HTTPException(status_code=404, detail=f"Unknown session_id: {exc.args[0]}") from exc
-            except Exception as exc:
-                memory_status.update(
-                    {
-                        "storage": {"available": True, "db_path": str(manager.store.db_path)},
-                        "retrieval": {"available": False, "error": str(exc)},
-                    }
-                )
+                except UnknownSessionError as exc:
+                    raise HTTPException(status_code=404, detail=f"Unknown session_id: {exc.args[0]}") from exc
+                except Exception as exc:
+                    manager = None
+                    memory_status.update(
+                        {
+                            "storage": {"available": False, "error": str(exc)},
+                            "retrieval": {
+                                "available": False,
+                                "error": "memory storage unavailable",
+                            },
+                        }
+                    )
+            if manager is not None:
+                try:
+                    loaded = manager.load_context(session_id, request.question)
+                    conversation_context = loaded.to_dict()
+                    memory_status.update(loaded.memory_status)
+                    memory_trace.append(
+                        {
+                            "node": "memory_context_loaded",
+                            "session_id": session_id,
+                            "retrieved_memory_count": len(loaded.relevant_memory),
+                            "budget_truncated": bool(loaded.budget.get("truncated", False)),
+                        }
+                    )
+                    memory_trace.append(
+                        {
+                            "node": "memory_retrieval",
+                            "backend": loaded.memory_status.get("retrieval", {}).get("backend"),
+                            "available": loaded.memory_status.get("retrieval", {}).get("available"),
+                            "fallback_used": loaded.memory_status.get("retrieval", {}).get("fallback_used", False),
+                            "retrieved_memory_count": len(loaded.relevant_memory),
+                        }
+                    )
+                except Exception as exc:
+                    memory_status.update(
+                        {
+                            "storage": {"available": True, "db_path": str(manager.store.db_path)},
+                            "retrieval": {"available": False, "error": str(exc)},
+                        }
+                    )
+                    memory_trace.append(
+                        {
+                            "node": "memory_context_loaded",
+                            "session_id": session_id,
+                            "available": False,
+                            "error": str(exc),
+                        }
+                    )
+                    memory_trace.append(
+                        {
+                            "node": "memory_retrieval",
+                            "available": False,
+                            "error": str(exc),
+                            "retrieved_memory_count": 0,
+                        }
+                    )
 
         if request.workflow_engine == "deterministic":
             result = orchestrator.run(
@@ -150,17 +191,23 @@ def create_app(
                 try:
                     manager.index_turn(saved)
                     memory_status["indexing"] = {"saved": True}
+                    indexing_saved = True
+                    indexing_error = None
                 except Exception as exc:
                     memory_status["indexing"] = {
                         "saved": False,
                         "error": str(exc),
                     }
+                    indexing_saved = False
+                    indexing_error = str(exc)
                 workflow_trace.append(
                     {
                         "node": "memory_turn_saved",
                         "session_id": session_id,
                         "turn_id": turn_id,
                         "turn_index": saved.turn_index,
+                        "indexing_saved": indexing_saved,
+                        **({"indexing_error": indexing_error} if indexing_error else {}),
                     }
                 )
             except Exception as exc:
