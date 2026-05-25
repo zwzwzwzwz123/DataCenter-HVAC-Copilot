@@ -14,6 +14,8 @@ def ask_api(
     question: str,
     task_type: str | None = None,
     workflow_engine: str = "langgraph",
+    session_id: str | None = None,
+    memory_enabled: bool | None = None,
     http_client: Any = httpx,
     timeout: float = 30.0,
 ) -> dict[str, Any]:
@@ -22,6 +24,10 @@ def ask_api(
         "task_type": task_type,
         "workflow_engine": workflow_engine,
     }
+    if session_id is not None:
+        payload["session_id"] = session_id
+    if memory_enabled is not None:
+        payload["memory_enabled"] = memory_enabled
     response = http_client.post(
         _join_url(api_base_url, "/ask"),
         json=payload,

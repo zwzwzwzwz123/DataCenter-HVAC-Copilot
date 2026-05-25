@@ -1296,6 +1296,8 @@ def _render_ask_tab(api_base_url: str, workflow_label: str) -> None:
                 question=question.strip(),
                 task_type=TASK_OPTIONS[task_label],
                 workflow_engine=WORKFLOW_OPTIONS[workflow_label],
+                session_id=st.session_state.get("session_id"),
+                memory_enabled=True,
             )
         except ApiClientError as exc:
             thinking_placeholder.empty()
@@ -1303,6 +1305,8 @@ def _render_ask_tab(api_base_url: str, workflow_label: str) -> None:
             return
 
         st.session_state["last_result"] = result
+        if result.get("session_id"):
+            st.session_state["session_id"] = result["session_id"]
         thinking_placeholder.empty()
         _render_result(result)
 

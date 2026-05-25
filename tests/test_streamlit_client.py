@@ -99,6 +99,26 @@ def test_ask_api_posts_selected_workflow_engine():
     }
 
 
+def test_ask_api_posts_session_id_and_memory_flag():
+    http_client = FakeHttpClient(FakeResponse(200, {"answer": "a"}))
+
+    ask_api(
+        "http://localhost:8000",
+        question="q",
+        session_id="session-1",
+        memory_enabled=True,
+        http_client=http_client,
+    )
+
+    assert http_client.last_json == {
+        "question": "q",
+        "task_type": None,
+        "workflow_engine": "langgraph",
+        "session_id": "session-1",
+        "memory_enabled": True,
+    }
+
+
 def test_ask_api_raises_on_non_200_response():
     http_client = FakeHttpClient(FakeResponse(500, {"detail": "broken"}))
 
