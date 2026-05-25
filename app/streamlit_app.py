@@ -4,6 +4,7 @@ from html import escape
 import os
 from pathlib import Path
 import sys
+from urllib.parse import urlparse
 
 import pandas as pd
 import streamlit as st
@@ -79,7 +80,7 @@ DASHBOARD_COPY = {
 
 CONSOLE_CSS = """
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600&family=Noto+Sans+SC:wght@400;500;600&family=Noto+Serif+SC:wght@500;600&family=Playfair+Display:wght@500;600&family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
     :root {
         --bg:           #f7f7f5;
@@ -100,6 +101,12 @@ CONSOLE_CSS = """
         --danger:       #c2410c;
         --mouse-x:      68%;
         --mouse-y:      12%;
+        --font-sans:    'Inter', 'Noto Sans SC', 'PingFang SC', 'HarmonyOS Sans SC',
+                         'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+        --font-display: 'Playfair Display', 'Noto Serif SC', Georgia, serif;
+        --font-accent:  'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+        --font-numeric: 'Space Grotesk', 'Inter', 'Noto Sans SC', sans-serif;
+        --font-mono:    'JetBrains Mono', 'SF Mono', Consolas, monospace;
         --shadow-soft:  0 18px 45px rgba(31, 31, 31, 0.06);
         --shadow-card:  0 1px 2px rgba(31, 31, 31, 0.04);
         --radius:       8px;
@@ -107,15 +114,14 @@ CONSOLE_CSS = """
     }
 
     html, body, [class*="css"], .stApp, .stApp * {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
-                     'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
-                     sans-serif !important;
+        font-family: var(--font-sans) !important;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        text-rendering: geometricPrecision;
     }
 
     code, pre, .stCode, [data-testid="stCode"] {
-        font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace !important;
+        font-family: var(--font-mono) !important;
     }
 
     .stApp {
@@ -193,22 +199,122 @@ CONSOLE_CSS = """
         color: var(--text-muted);
     }
 
+    .sidebar-shell {
+        padding: 0.35rem 0 1rem;
+    }
+
+    .sidebar-kicker {
+        color: var(--text-subtle);
+        font-family: var(--font-mono) !important;
+        font-size: 0.68rem;
+        font-weight: 500;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.35rem;
+    }
+
+    .sidebar-title {
+        color: var(--text);
+        font-family: var(--font-accent) !important;
+        font-size: 1.22rem;
+        font-weight: 560;
+        letter-spacing: -0.025em;
+        margin-bottom: 0.35rem;
+    }
+
+    .sidebar-subtitle {
+        color: var(--text-muted);
+        font-size: 0.82rem;
+        line-height: 1.58;
+        margin-bottom: 1rem;
+    }
+
+    .sidebar-config-group {
+        background: rgba(255, 255, 255, 0.76);
+        border: 1px solid var(--border-panel);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-card);
+        margin: 0.72rem 0;
+        padding: 0.82rem 0.86rem;
+    }
+
+    .sidebar-config-title {
+        color: var(--text);
+        font-family: var(--font-accent) !important;
+        font-size: 0.88rem;
+        font-weight: 560;
+        letter-spacing: -0.018em;
+        margin-bottom: 0.64rem;
+    }
+
+    .config-row {
+        display: grid;
+        grid-template-columns: minmax(5.3rem, 0.8fr) minmax(0, 1.2fr);
+        align-items: baseline;
+        gap: 0.55rem;
+        padding: 0.28rem 0;
+    }
+
+    .config-label {
+        color: var(--text-subtle);
+        font-family: var(--font-mono) !important;
+        font-size: 0.66rem;
+        font-weight: 500;
+        letter-spacing: 0.035em;
+    }
+
+    .config-value {
+        color: var(--text);
+        font-family: var(--font-numeric) !important;
+        font-size: 0.78rem;
+        font-weight: 500;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+        text-align: right;
+    }
+
+    .config-dot {
+        display: inline-block;
+        width: 0.42rem;
+        height: 0.42rem;
+        border-radius: 999px;
+        margin-right: 0.35rem;
+        transform: translateY(-0.04rem);
+        background: var(--text-subtle);
+    }
+
+    .config-dot.success {
+        background: var(--accent);
+    }
+
+    .config-dot.warning {
+        background: var(--warning);
+    }
+
+    .config-dot.neutral {
+        background: var(--text-subtle);
+    }
+
     .block-container {
         max-width: 1280px;
-        padding-top: 0.75rem;
+        padding-top: 0.35rem;
         padding-bottom: 4rem;
         position: relative;
         z-index: 1;
     }
 
     h1, h2, h3, h4, h5 {
+        font-family: var(--font-accent) !important;
         color: var(--text);
-        font-weight: 600;
-        letter-spacing: -0.01em;
+        font-weight: 560;
+        letter-spacing: -0.018em;
     }
 
     p, span, label, div {
         letter-spacing: 0;
+    }
+
+    p, .stMarkdown, .stText, label {
+        line-height: 1.68;
     }
 
     /* Tabs — minimal underline only */
@@ -221,6 +327,7 @@ CONSOLE_CSS = """
         color: var(--text-muted);
         font-weight: 500;
         font-size: 0.9rem;
+        line-height: 1.45;
         background: transparent;
         border-bottom: 1px solid transparent;
         transition: color 120ms ease, border-color 120ms ease;
@@ -246,6 +353,7 @@ CONSOLE_CSS = """
         color: var(--text);
         font-weight: 500;
         font-size: 0.9rem;
+        letter-spacing: -0.003em;
         border: 0;
         border-radius: var(--radius);
         height: 3rem;
@@ -306,7 +414,7 @@ CONSOLE_CSS = """
 
     /* Hero */
     .console-hero {
-        margin-bottom: 2.5rem;
+        margin-bottom: 1.15rem;
         padding: 0;
     }
 
@@ -315,23 +423,24 @@ CONSOLE_CSS = """
         font-size: 0.78rem;
         font-weight: 500;
         letter-spacing: 0.04em;
-        margin-bottom: 0.85rem;
-        font-family: 'JetBrains Mono', monospace !important;
+        margin-bottom: 0.48rem;
+        font-family: var(--font-mono) !important;
     }
 
     .console-title {
+        font-family: var(--font-display) !important;
         color: var(--text);
-        font-size: clamp(2.25rem, 4vw, 3.25rem);
-        line-height: 1.05;
-        font-weight: 600;
-        letter-spacing: -0.02em;
-        margin: 0 0 0.85rem 0;
+        font-size: clamp(1.95rem, 3.1vw, 2.75rem);
+        line-height: 0.98;
+        font-weight: 560;
+        letter-spacing: -0.035em;
+        margin: 0 0 0.52rem 0;
     }
 
     .console-subtitle {
         color: var(--text-muted);
-        font-size: 1.05rem;
-        line-height: 1.55;
+        font-size: 0.96rem;
+        line-height: 1.5;
         margin: 0;
         max-width: 720px;
         font-weight: 400;
@@ -345,9 +454,9 @@ CONSOLE_CSS = """
         background: var(--bg-panel);
         border: 1px solid var(--border-panel);
         color: var(--text-muted);
-        padding: 0.7rem 0.95rem;
+        padding: 0.56rem 0.82rem;
         border-radius: var(--radius);
-        margin-bottom: 2.25rem;
+        margin-bottom: 1.35rem;
         font-size: 0.85rem;
         line-height: 1.5;
         box-shadow: var(--shadow-card);
@@ -373,13 +482,14 @@ CONSOLE_CSS = """
     }
 
     .panel-title {
+        font-family: var(--font-accent) !important;
         color: var(--text);
-        font-weight: 500;
-        font-size: 0.95rem;
+        font-weight: 560;
+        font-size: 1rem;
         margin: -0.1rem 0 1.25rem;
         padding-bottom: 0.85rem;
         border-bottom: 1px solid var(--border-soft);
-        letter-spacing: -0.005em;
+        letter-spacing: -0.02em;
     }
 
     /* Answer panel — quiet, content-first */
@@ -398,13 +508,13 @@ CONSOLE_CSS = """
         font-size: 0.78rem;
         font-weight: 500;
         letter-spacing: 0.04em;
-        font-family: 'JetBrains Mono', monospace !important;
+        font-family: var(--font-mono) !important;
     }
 
     .answer-panel > div {
         color: var(--text);
         font-size: 0.95rem;
-        line-height: 1.7;
+        line-height: 1.72;
     }
 
     /* Status grid — three info chips */
@@ -434,13 +544,14 @@ CONSOLE_CSS = """
         font-size: 0.72rem;
         font-weight: 500;
         margin-bottom: 0.5rem;
-        font-family: 'JetBrains Mono', monospace !important;
+        font-family: var(--font-mono) !important;
     }
 
     .status-card .value {
+        font-family: var(--font-numeric) !important;
         color: var(--text);
         font-size: 0.98rem;
-        font-weight: 500;
+        font-weight: 560;
         line-height: 1.35;
         overflow-wrap: anywhere;
         margin-bottom: 0.4rem;
@@ -460,7 +571,7 @@ CONSOLE_CSS = """
         font-weight: 500;
         letter-spacing: 0.04em;
         margin: 1.75rem 0 0.85rem;
-        font-family: 'JetBrains Mono', monospace !important;
+        font-family: var(--font-mono) !important;
     }
 
     /* Expander — quieter */
@@ -474,7 +585,7 @@ CONSOLE_CSS = """
 
     div[data-testid="stExpander"] summary {
         color: var(--text);
-        font-weight: 500;
+        font-weight: 560;
         font-size: 0.9rem;
     }
 
@@ -515,10 +626,11 @@ CONSOLE_CSS = """
         color: var(--text-subtle);
         font-size: 0.72rem;
         font-weight: 500;
-        font-family: 'JetBrains Mono', monospace !important;
+        font-family: var(--font-mono) !important;
     }
 
     div[data-testid="stMetricValue"] {
+        font-family: var(--font-numeric) !important;
         color: var(--text);
         font-weight: 500;
     }
@@ -535,6 +647,13 @@ CONSOLE_CSS = """
         background: var(--bg-panel);
         border: 1px solid var(--border-panel);
         box-shadow: var(--shadow-card);
+    }
+
+    div[data-testid="stStatusWidget"],
+    div[data-testid="stToolbar"],
+    div[data-testid="stMainMenu"],
+    div[data-testid="stActionButton"] {
+        display: none !important;
     }
 
     /* Sidebar text input */
@@ -560,13 +679,14 @@ CONSOLE_CSS = """
         font-weight: 500;
         margin-bottom: 0.65rem;
         letter-spacing: 0.04em;
-        font-family: 'JetBrains Mono', monospace !important;
+        font-family: var(--font-mono) !important;
     }
 
     .empty-state .empty-title {
+        font-family: var(--font-accent) !important;
         color: var(--text);
         font-size: 1.1rem;
-        font-weight: 500;
+        font-weight: 560;
         margin-bottom: 0.75rem;
     }
 
@@ -574,6 +694,84 @@ CONSOLE_CSS = """
         color: var(--text-muted);
         font-size: 0.92rem;
         line-height: 1.65;
+    }
+
+    /* Model running indicator */
+    .thinking-panel {
+        background: rgba(255, 255, 255, 0.82);
+        border: 1px solid var(--border-panel);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-card);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+        padding: 1.2rem 1.35rem;
+    }
+
+    .thinking-orbit {
+        position: relative;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 999px;
+        border: 1.5px solid rgba(16, 163, 127, 0.14);
+        border-top-color: var(--accent);
+        border-right-color: rgba(16, 163, 127, 0.42);
+        box-shadow:
+            0 0 0 0.34rem rgba(16, 163, 127, 0.055),
+            0 0 1.2rem rgba(16, 163, 127, 0.12),
+            inset 0 0 0 0.42rem rgba(16, 163, 127, 0.045);
+        flex: 0 0 auto;
+        animation:
+            thinking-spin 1.08s cubic-bezier(0.52, 0.16, 0.28, 0.92) infinite,
+            thinking-pulse 2.4s ease-in-out infinite;
+    }
+
+    .thinking-orbit::after {
+        content: "";
+        position: absolute;
+        inset: 0.48rem;
+        border-radius: 999px;
+        background:
+            radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.95), rgba(16, 163, 127, 0.16) 54%, transparent 62%);
+        box-shadow: 0 0 0.8rem rgba(16, 163, 127, 0.16);
+        animation: thinking-pulse 2.4s ease-in-out infinite reverse;
+    }
+
+    .thinking-copy {
+        min-width: 0;
+    }
+
+    .thinking-title {
+        color: var(--text);
+        font-family: var(--font-accent) !important;
+        font-size: 1rem;
+        font-weight: 560;
+        letter-spacing: -0.018em;
+        margin-bottom: 0.18rem;
+    }
+
+    .thinking-body {
+        color: var(--text-muted);
+        font-size: 0.86rem;
+        line-height: 1.5;
+    }
+
+    @keyframes thinking-spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @keyframes thinking-pulse {
+        0%, 100% {
+            opacity: 0.72;
+            filter: saturate(0.92);
+        }
+        50% {
+            opacity: 1;
+            filter: saturate(1.12);
+        }
     }
 
     /* Mobile */
@@ -675,6 +873,112 @@ def build_status_cards(result: dict) -> list[dict[str, str]]:
             "hint": str(data_source.get("path", "")),
         },
     ]
+
+
+def build_sidebar_config_groups(
+    *,
+    api_base_url: str,
+    workflow_label: str,
+    last_result: dict | None = None,
+) -> list[dict[str, object]]:
+    result = last_result or {}
+    workflow_trace = result.get("workflow_trace") or []
+    planner = _extract_planner_name(workflow_trace)
+    generator = str(result.get("answer_generator") or "deterministic / optional LLM")
+    data_source = result.get("data_source") or {}
+    data_kind = str(data_source.get("kind") or "processed_csv / fallback")
+    tools = result.get("tools") or []
+    policy_value = _summarize_policy_backend(tools)
+
+    return [
+        {
+            "title": "Connection",
+            "items": [
+                {
+                    "label": "Endpoint",
+                    "value": _compact_endpoint(api_base_url),
+                    "tone": "neutral",
+                },
+                {"label": "Service", "value": "hvac-copilot", "tone": "success"},
+            ],
+        },
+        {
+            "title": "Model Runtime",
+            "items": [
+                {"label": "Workflow", "value": workflow_label, "tone": "success"},
+                {"label": "Planner", "value": planner, "tone": _runtime_tone(planner)},
+                {"label": "Generator", "value": generator, "tone": _runtime_tone(generator)},
+            ],
+        },
+        {
+            "title": "Data & Policy",
+            "items": [
+                {"label": "Data", "value": data_kind, "tone": "success"},
+                {"label": "Policy", "value": policy_value, "tone": _runtime_tone(policy_value)},
+                {"label": "Boundary", "value": "LLM explains only", "tone": "warning"},
+            ],
+        },
+        {
+            "title": "Evaluation",
+            "items": [
+                {"label": "Eval Set", "value": "hvac_eval.jsonl", "tone": "neutral"},
+                {"label": "Metrics", "value": "deterministic proxy", "tone": "neutral"},
+                {"label": "Judge", "value": "optional", "tone": "warning"},
+            ],
+        },
+    ]
+
+
+def render_sidebar_config_group_html(group: dict[str, object]) -> str:
+    title = escape(str(group["title"]))
+    rows = []
+    for item in group["items"]:  # type: ignore[index]
+        item_dict = item if isinstance(item, dict) else {}
+        label = escape(str(item_dict.get("label", "")))
+        value = escape(str(item_dict.get("value", "")))
+        tone = escape(str(item_dict.get("tone", "neutral")))
+        rows.append(
+            '<div class="config-row">'
+            f'<div class="config-label">{label}</div>'
+            f'<div class="config-value"><span class="config-dot {tone}"></span>{value}</div>'
+            "</div>"
+        )
+    return (
+        '<div class="sidebar-config-group">'
+        f'<div class="sidebar-config-title">{title}</div>'
+        + "".join(rows)
+        + "</div>"
+    )
+
+
+def _compact_endpoint(api_base_url: str) -> str:
+    parsed = urlparse(api_base_url)
+    if parsed.netloc:
+        return parsed.netloc
+    return api_base_url.replace("http://", "").replace("https://", "").rstrip("/")
+
+
+def _extract_planner_name(workflow_trace: list[dict]) -> str:
+    for item in workflow_trace:
+        planner = item.get("planner")
+        if planner:
+            return str(planner)
+    return "deterministic / optional LLM"
+
+
+def _summarize_policy_backend(tools: list[str]) -> str:
+    if any("dropt" in str(tool).lower() or "diff" in str(tool).lower() for tool in tools):
+        return "DROPT checkpoint"
+    if any("policy" in str(tool).lower() for tool in tools):
+        return "policy tool"
+    return "rule-based fallback"
+
+
+def _runtime_tone(value: str) -> str:
+    lowered = value.lower()
+    if "fallback" in lowered or "optional" in lowered or "deterministic" in lowered:
+        return "warning"
+    return "success"
 
 
 def group_eval_metrics(metrics: dict) -> dict[str, list[tuple[str, float]]]:
@@ -839,6 +1143,38 @@ def _render_console_shell() -> None:
     )
 
 
+def _render_sidebar(last_result: dict | None = None) -> tuple[str, str]:
+    st.sidebar.markdown(
+        """
+        <div class="sidebar-shell">
+            <div class="sidebar-kicker">SYSTEM SETUP</div>
+            <div class="sidebar-title">Runtime Console</div>
+            <div class="sidebar-subtitle">Configure the demo endpoint and inspect the active model, data, policy, and evaluation profile.</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    api_base_url = st.sidebar.text_input(
+        "API Endpoint",
+        value=get_default_api_base_url(),
+        help="FastAPI service used by the Streamlit demo.",
+    )
+    workflow_label = st.sidebar.selectbox(
+        "Workflow Engine",
+        list(WORKFLOW_OPTIONS.keys()),
+        index=0,
+        help="LangGraph is the default orchestrated path; deterministic remains available for comparison.",
+    )
+    groups = build_sidebar_config_groups(
+        api_base_url=api_base_url,
+        workflow_label=workflow_label,
+        last_result=last_result,
+    )
+    for group in groups:
+        st.sidebar.markdown(render_sidebar_config_group_html(group), unsafe_allow_html=True)
+    return api_base_url, workflow_label
+
+
 def _render_panel_start(title: str) -> None:
     st.markdown(
         f'<div class="panel-title">{escape(title)}</div>',
@@ -861,6 +1197,18 @@ def render_status_grid_html(cards: list[dict[str, str]]) -> str:
             "</div>"
         )
     return '<div class="status-grid">' + "".join(card_html) + "</div>"
+
+
+def render_thinking_indicator_html(title: str = "Analyzing evidence") -> str:
+    return (
+        '<div class="thinking-panel">'
+        '<div class="thinking-orbit" aria-hidden="true"></div>'
+        '<div class="thinking-copy">'
+        f'<div class="thinking-title">{escape(title)}</div>'
+        '<div class="thinking-body">模型正在组织证据、调用工具并生成 grounded answer。</div>'
+        "</div>"
+        "</div>"
+    )
 
 
 def _render_section_label(label: str) -> None:
@@ -886,15 +1234,16 @@ def main() -> None:
     st.set_page_config(page_title="DataCenter-HVAC Copilot", layout="wide")
     _render_console_shell()
 
-    api_base_url = st.sidebar.text_input("API 地址", value=get_default_api_base_url())
+    last_result = st.session_state.get("last_result")
+    api_base_url, workflow_label = _render_sidebar(last_result)
     tab_ask, tab_eval = st.tabs(["Copilot", "评测摘要"])
     with tab_ask:
-        _render_ask_tab(api_base_url)
+        _render_ask_tab(api_base_url, workflow_label)
     with tab_eval:
         _render_eval_tab(api_base_url)
 
 
-def _render_ask_tab(api_base_url: str) -> None:
+def _render_ask_tab(api_base_url: str, workflow_label: str) -> None:
     control_col, result_col = st.columns([0.34, 0.66], gap="large")
     with control_col:
         st.markdown('<div class="panel">', unsafe_allow_html=True)
@@ -917,11 +1266,6 @@ def _render_ask_tab(api_base_url: str) -> None:
             list(TASK_OPTIONS.keys()),
             index=list(TASK_OPTIONS.keys()).index(default_task_label),
         )
-        workflow_label = st.selectbox(
-            "Workflow",
-            list(WORKFLOW_OPTIONS.keys()),
-            index=0,
-        )
         question = st.text_area(
             "问题",
             value=(
@@ -941,6 +1285,11 @@ def _render_ask_tab(api_base_url: str) -> None:
         if not question.strip():
             st.warning("请输入问题。")
             return
+        thinking_placeholder = st.empty()
+        thinking_placeholder.markdown(
+            render_thinking_indicator_html("Analyzing evidence"),
+            unsafe_allow_html=True,
+        )
         try:
             result = ask_api(
                 api_base_url=api_base_url,
@@ -949,9 +1298,12 @@ def _render_ask_tab(api_base_url: str) -> None:
                 workflow_engine=WORKFLOW_OPTIONS[workflow_label],
             )
         except ApiClientError as exc:
+            thinking_placeholder.empty()
             st.error(str(exc))
             return
 
+        st.session_state["last_result"] = result
+        thinking_placeholder.empty()
         _render_result(result)
 
 
@@ -960,11 +1312,18 @@ def _render_eval_tab(api_base_url: str) -> None:
     _render_panel_start("Evaluation Bench")
     eval_path = st.text_input("评测集路径", value="data/eval/hvac_eval.jsonl")
     if st.button("运行评测", type="primary"):
+        thinking_placeholder = st.empty()
+        thinking_placeholder.markdown(
+            render_thinking_indicator_html("Running evaluation"),
+            unsafe_allow_html=True,
+        )
         try:
             result = run_eval_api(api_base_url=api_base_url, eval_path=eval_path)
         except ApiClientError as exc:
+            thinking_placeholder.empty()
             st.error(str(exc))
             return
+        thinking_placeholder.empty()
         _render_eval_result(result)
     st.markdown("</div>", unsafe_allow_html=True)
 

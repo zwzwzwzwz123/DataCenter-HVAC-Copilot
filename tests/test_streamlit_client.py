@@ -10,6 +10,7 @@ from app.streamlit_app import (
     DEMO_WALKTHROUGHS,
     MOUSE_GLOW_SCRIPT,
     WORKFLOW_OPTIONS,
+    build_sidebar_config_groups,
     build_workflow_trace_rows,
     get_dashboard_copy,
     get_default_api_base_url,
@@ -18,7 +19,9 @@ from app.streamlit_app import (
     build_safety_audit_rows,
     build_prediction_preview,
     group_eval_metrics,
+    render_thinking_indicator_html,
     render_status_grid_html,
+    render_sidebar_config_group_html,
 )
 
 
@@ -248,6 +251,61 @@ def test_workflow_options_offer_baseline_and_langgraph():
     assert WORKFLOW_OPTIONS["Deterministic baseline"] == "deterministic"
 
 
+def test_build_sidebar_config_groups_summarizes_system_setup():
+    groups = build_sidebar_config_groups(
+        api_base_url="http://localhost:8000",
+        workflow_label="LangGraph workflow",
+        last_result={
+            "answer_generator": "deepseek:deepseek-chat",
+            "data_source": {"kind": "processed_csv"},
+            "workflow_trace": [{"planner": "llm:deepseek:deepseek-chat"}],
+            "tools": ["dropt_guided_diffno_checkpoint"],
+        },
+    )
+
+    assert [group["title"] for group in groups] == [
+        "Connection",
+        "Model Runtime",
+        "Data & Policy",
+        "Evaluation",
+    ]
+    assert groups[0]["items"][0] == {
+        "label": "Endpoint",
+        "value": "localhost:8000",
+        "tone": "neutral",
+    }
+    assert {"label": "Workflow", "value": "LangGraph workflow", "tone": "success"} in groups[1]["items"]
+    assert {"label": "Generator", "value": "deepseek:deepseek-chat", "tone": "success"} in groups[1]["items"]
+    assert {"label": "Data", "value": "processed_csv", "tone": "success"} in groups[2]["items"]
+
+
+def test_render_sidebar_config_group_html_uses_compact_config_blocks():
+    html = render_sidebar_config_group_html(
+        {
+            "title": "Model Runtime",
+            "items": [
+                {"label": "Workflow", "value": "LangGraph workflow", "tone": "success"},
+                {"label": "Planner", "value": "deterministic", "tone": "warning"},
+            ],
+        }
+    )
+
+    assert 'class="sidebar-config-group"' in html
+    assert 'class="sidebar-config-title"' in html
+    assert 'class="config-dot success"' in html
+    assert 'class="config-dot warning"' in html
+    assert "LangGraph workflow" in html
+
+
+def test_render_thinking_indicator_html_shows_model_working_state():
+    html = render_thinking_indicator_html("Analyzing evidence")
+
+    assert 'class="thinking-panel"' in html
+    assert 'class="thinking-orbit"' in html
+    assert "Analyzing evidence" in html
+    assert "模型正在组织证据" in html
+
+
 def test_build_workflow_trace_rows_summarizes_langgraph_nodes():
     rows = build_workflow_trace_rows(
         {
@@ -393,14 +451,28 @@ def test_console_css_keeps_minimal_saas_visual_language():
         assert fragment not in CONSOLE_CSS
 
     assert CONSOLE_CSS.count("linear-gradient") == 3
-    assert CONSOLE_CSS.count("radial-gradient") == 4
+    assert CONSOLE_CSS.count("radial-gradient") == 5
     assert "box-shadow: var(--shadow-card);" in CONSOLE_CSS
 
 
 def test_console_css_removes_default_streamlit_top_gap():
     assert 'header[data-testid="stHeader"]' in CONSOLE_CSS
     assert 'div[data-testid="stDecoration"]' in CONSOLE_CSS
-    assert "padding-top: 0.75rem;" in CONSOLE_CSS
+    assert "padding-top: 0.35rem;" in CONSOLE_CSS
+
+
+def test_console_css_uses_compact_hero_layout():
+    expected_fragments = [
+        "padding-top: 0.35rem;",
+        "margin-bottom: 1.15rem;",
+        "font-size: clamp(1.95rem, 3.1vw, 2.75rem);",
+        "margin: 0 0 0.52rem 0;",
+        "padding: 0.56rem 0.82rem;",
+        "margin-bottom: 1.35rem;",
+    ]
+
+    for fragment in expected_fragments:
+        assert fragment in CONSOLE_CSS
 
 
 def test_console_css_uses_light_premium_visual_theme():
@@ -418,6 +490,28 @@ def test_console_css_uses_light_premium_visual_theme():
         assert fragment in CONSOLE_CSS
 
 
+def test_console_css_uses_refined_product_typography():
+    expected_fragments = [
+        "Noto+Sans+SC:wght@400;500;600",
+        "Playfair+Display:wght@500;600",
+        "Space+Grotesk:wght@400;500;600",
+        "--font-sans:",
+        "--font-display:",
+        "--font-accent:",
+        "--font-numeric:",
+        "--font-mono:",
+        "font-family: var(--font-sans) !important;",
+        "font-family: var(--font-display) !important;",
+        "font-family: var(--font-accent) !important;",
+        "font-family: var(--font-numeric) !important;",
+        "line-height: 1.68;",
+        "letter-spacing: -0.035em;",
+    ]
+
+    for fragment in expected_fragments:
+        assert fragment in CONSOLE_CSS
+
+
 def test_console_css_adds_subtle_ambient_background_motion():
     expected_fragments = [
         "--mouse-x:",
@@ -427,6 +521,23 @@ def test_console_css_adds_subtle_ambient_background_motion():
         "animation: ambient-breathe",
         "@keyframes ambient-breathe",
         "@media (prefers-reduced-motion: reduce)",
+    ]
+
+    for fragment in expected_fragments:
+        assert fragment in CONSOLE_CSS
+
+
+def test_console_css_adds_claude_like_thinking_indicator():
+    expected_fragments = [
+        ".thinking-panel",
+        ".thinking-orbit",
+        "thinking-spin 1.08s",
+        "thinking-pulse 2.4s",
+        "@keyframes thinking-spin",
+        "@keyframes thinking-pulse",
+        "running indicator",
+        'div[data-testid="stStatusWidget"]',
+        'div[data-testid="stToolbar"]',
     ]
 
     for fragment in expected_fragments:
