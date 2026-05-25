@@ -1,3 +1,4 @@
+import sqlite3
 from pathlib import Path
 
 import pandas as pd
@@ -7,6 +8,7 @@ from fastapi.testclient import TestClient
 from src.agent.answer_generator import AnswerGeneratorInput, GeneratedAnswer
 from src.api.app import create_app
 from src.api.demo_factory import build_demo_orchestrator
+from src.memory.storage import ConversationMemoryStore
 
 
 class FactorySpyGenerator:
@@ -372,6 +374,39 @@ def test_ask_endpoint_saves_turn_when_context_load_fails(tmp_path, monkeypatch):
     assert "retrieval broken" in retrieval_trace[0]["error"]
 
 
+def test_ask_endpoint_classifies_context_storage_read_failure_as_storage(tmp_path, monkeypatch):
+    db_path = tmp_path / "memory.db"
+    monkeypatch.setenv("HVAC_COPILOT_MEMORY_DB_PATH", str(db_path))
+    client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
+    first = client.post(
+        "/ask",
+        json={"question": "first", "task_type": "document_qa", "memory_enabled": True},
+    )
+    session_id = first.json()["session_id"]
+
+    def fail_load_chunks(*args, **kwargs):
+        raise sqlite3.OperationalError("database is locked")
+
+    monkeypatch.setattr("src.memory.storage.ConversationMemoryStore.load_chunks", fail_load_chunks)
+    second = client.post(
+        "/ask",
+        json={
+            "question": "second",
+            "task_type": "document_qa",
+            "session_id": session_id,
+            "memory_enabled": True,
+        },
+    )
+    body = second.json()
+
+    assert second.status_code == 200
+    assert body["session_id"] == session_id
+    assert body["memory_status"]["storage"]["available"] is False
+    assert "database is locked" in body["memory_status"]["storage"]["error"]
+    assert body["memory_status"]["retrieval"]["available"] is False
+    assert body["memory_status"]["retrieval"]["error"] == "memory storage unavailable"
+
+
 def test_ask_endpoint_reports_indexing_failure_separately_from_turn_save(tmp_path, monkeypatch):
     db_path = tmp_path / "memory.db"
     monkeypatch.setenv("HVAC_COPILOT_MEMORY_DB_PATH", str(db_path))
@@ -397,6 +432,36 @@ def test_ask_endpoint_reports_indexing_failure_separately_from_turn_save(tmp_pat
     assert turn_saved_trace
     assert turn_saved_trace[0]["indexing_saved"] is False
     assert "indexing broken" in turn_saved_trace[0]["indexing_error"]
+    store = ConversationMemoryStore(db_path)
+    saved_turn = store.load_recent_turns(body["session_id"], limit=1)[0]
+    persisted_trace = [
+        step for step in saved_turn.workflow_trace if step["node"] == "memory_turn_saved"
+    ]
+    assert persisted_trace[0]["indexing_saved"] is False
+    assert "indexing broken" in persisted_trace[0]["indexing_error"]
+
+
+def test_ask_endpoint_persists_memory_turn_saved_trace(tmp_path, monkeypatch):
+    db_path = tmp_path / "memory.db"
+    monkeypatch.setenv("HVAC_COPILOT_MEMORY_DB_PATH", str(db_path))
+    client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
+
+    response = client.post(
+        "/ask",
+        json={"question": "q", "task_type": "document_qa", "memory_enabled": True},
+    )
+    body = response.json()
+
+    store = ConversationMemoryStore(db_path)
+    saved_turn = store.load_recent_turns(body["session_id"], limit=1)[0]
+    persisted_trace = [
+        step for step in saved_turn.workflow_trace if step["node"] == "memory_turn_saved"
+    ]
+
+    assert response.status_code == 200
+    assert persisted_trace
+    assert persisted_trace[0]["turn_id"] == body["turn_id"]
+    assert persisted_trace[0]["indexing_saved"] is True
 
 
 def test_ask_endpoint_classifies_session_create_failure_as_storage(monkeypatch):

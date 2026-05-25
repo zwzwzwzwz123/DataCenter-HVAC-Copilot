@@ -128,6 +128,19 @@ class ConversationMemoryStore:
             ).fetchall()
         return [_turn_from_row(row) for row in reversed(rows)]
 
+    def update_turn_workflow_trace(self, turn_id: str, workflow_trace: list[dict[str, Any]]) -> None:
+        with self._connect() as conn:
+            result = conn.execute(
+                """
+                UPDATE conversation_turns
+                SET workflow_trace_json = ?
+                WHERE turn_id = ?
+                """,
+                (_json_dumps(workflow_trace), turn_id),
+            )
+        if result.rowcount == 0:
+            raise KeyError(turn_id)
+
     def save_chunks(self, chunks: list[MemoryChunk | dict[str, Any]]) -> list[MemoryChunk]:
         saved: list[MemoryChunk] = []
         with self._connect() as conn:

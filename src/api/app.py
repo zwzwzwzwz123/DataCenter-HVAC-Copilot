@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sqlite3
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
@@ -115,6 +116,24 @@ def create_app(
                             "retrieved_memory_count": len(loaded.relevant_memory),
                         }
                     )
+                except sqlite3.Error as exc:
+                    memory_status.update(
+                        {
+                            "storage": {"available": False, "error": str(exc)},
+                            "retrieval": {
+                                "available": False,
+                                "error": "memory storage unavailable",
+                            },
+                        }
+                    )
+                    memory_trace.extend(
+                        _memory_context_failure_trace(
+                            session_id=session_id,
+                            storage_available=False,
+                            storage_error=str(exc),
+                            retrieval_error="memory storage unavailable",
+                        )
+                    )
                 except Exception as exc:
                     memory_status.update(
                         {
@@ -122,21 +141,12 @@ def create_app(
                             "retrieval": {"available": False, "error": str(exc)},
                         }
                     )
-                    memory_trace.append(
-                        {
-                            "node": "memory_context_loaded",
-                            "session_id": session_id,
-                            "available": False,
-                            "error": str(exc),
-                        }
-                    )
-                    memory_trace.append(
-                        {
-                            "node": "memory_retrieval",
-                            "available": False,
-                            "error": str(exc),
-                            "retrieved_memory_count": 0,
-                        }
+                    memory_trace.extend(
+                        _memory_context_failure_trace(
+                            session_id=session_id,
+                            storage_available=True,
+                            retrieval_error=str(exc),
+                        )
                     )
 
         if request.workflow_engine == "deterministic":
@@ -210,6 +220,7 @@ def create_app(
                         **({"indexing_error": indexing_error} if indexing_error else {}),
                     }
                 )
+                manager.store.update_turn_workflow_trace(turn_id, workflow_trace)
             except Exception as exc:
                 memory_status["storage"] = {
                     **memory_status.get("storage", {}),
@@ -250,3 +261,28 @@ app = create_app()
 def _session_title(question: str) -> str:
     text = " ".join(question.split())
     return text[:80] if text else "New HVAC analysis session"
+
+
+def _memory_context_failure_trace(
+    *,
+    session_id: str | None,
+    storage_available: bool,
+    retrieval_error: str,
+    storage_error: str | None = None,
+) -> list[dict[str, Any]]:
+    context_node = {
+        "node": "memory_context_loaded",
+        "session_id": session_id,
+        "available": False,
+        "storage_available": storage_available,
+        "error": storage_error or retrieval_error,
+    }
+    retrieval_node = {
+        "node": "memory_retrieval",
+        "available": False,
+        "error": retrieval_error,
+        "retrieved_memory_count": 0,
+    }
+    if storage_error is not None:
+        retrieval_node["storage_error"] = storage_error
+    return [context_node, retrieval_node]
