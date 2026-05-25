@@ -17,3 +17,5 @@ data/bear_processed/*
 !data/bear_processed/.gitkeep
 !data/bear_processed/bear_rollout.csv
 data/eval/*_predictions.jsonl
+data/memory/*
+!data/memory/.gitkeep
