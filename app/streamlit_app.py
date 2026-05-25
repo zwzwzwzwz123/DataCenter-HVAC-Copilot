@@ -7,6 +7,7 @@ import sys
 
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
@@ -81,22 +82,27 @@ CONSOLE_CSS = """
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
     :root {
-        --bg:           #0a0a0b;
-        --bg-elevated:  #18181b;
-        --bg-panel:     #202024;
-        --bg-hover:     #25252a;
-        --border:       #303038;
-        --border-soft:  #26262c;
-        --border-panel: #3a3a42;
-        --text:         #ededee;
-        --text-muted:   #8b8b94;
-        --text-subtle:  #5c5c66;
-        --accent:       #ededee;
-        --accent-soft:  #2a2a30;
-        --success:      #4ade80;
-        --warning:      #fbbf24;
-        --danger:       #f87171;
-        --radius:       6px;
+        --bg:           #f7f7f5;
+        --bg-elevated:  #ffffff;
+        --bg-panel:     #ffffff;
+        --bg-hover:     #f5f5f2;
+        --bg-soft:      #f1f1ef;
+        --border:       #deded8;
+        --border-soft:  #ecece7;
+        --border-panel: #e4e4df;
+        --text:         #1f1f1f;
+        --text-muted:   #6e6e73;
+        --text-subtle:  #9a9a92;
+        --accent:       #10a37f;
+        --accent-soft:  #e7f5f0;
+        --success:      #15803d;
+        --warning:      #b7791f;
+        --danger:       #c2410c;
+        --mouse-x:      68%;
+        --mouse-y:      12%;
+        --shadow-soft:  0 18px 45px rgba(31, 31, 31, 0.06);
+        --shadow-card:  0 1px 2px rgba(31, 31, 31, 0.04);
+        --radius:       8px;
         --radius-lg:    10px;
     }
 
@@ -113,8 +119,59 @@ CONSOLE_CSS = """
     }
 
     .stApp {
-        background: var(--bg);
+        background:
+            radial-gradient(circle at var(--mouse-x) var(--mouse-y), rgba(16, 163, 127, 0.10), transparent 24rem),
+            radial-gradient(circle at top left, rgba(31, 31, 31, 0.035), transparent 26rem),
+            var(--bg);
         color: var(--text);
+        isolation: isolate;
+        overflow-x: hidden;
+    }
+
+    .stApp::before,
+    .stApp::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: -1;
+    }
+
+    .stApp::before {
+        background:
+            radial-gradient(ellipse at calc(var(--mouse-x) + 4%) calc(var(--mouse-y) + 7%), rgba(16, 163, 127, 0.12), transparent 18rem),
+            radial-gradient(ellipse at 18% 88%, rgba(31, 31, 31, 0.035), transparent 22rem);
+        filter: blur(2px);
+        opacity: 0.72;
+        animation: ambient-breathe 11s ease-in-out infinite;
+    }
+
+    .stApp::after {
+        background:
+            linear-gradient(118deg, transparent 0 18%, rgba(16, 163, 127, 0.11) 18.4%, transparent 18.9% 100%),
+            linear-gradient(142deg, transparent 0 61%, rgba(31, 31, 31, 0.055) 61.35%, transparent 61.8% 100%),
+            linear-gradient(32deg, transparent 0 70%, rgba(16, 163, 127, 0.07) 70.2%, transparent 70.55% 100%);
+        opacity: 0.42;
+        transform: translate3d(0, 0, 0);
+        animation: ambient-breathe 14s ease-in-out infinite reverse;
+    }
+
+    @keyframes ambient-breathe {
+        0%, 100% {
+            opacity: 0.38;
+            transform: translate3d(0, 0, 0) scale(1);
+        }
+        50% {
+            opacity: 0.68;
+            transform: translate3d(0.45rem, -0.35rem, 0) scale(1.015);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .stApp::before,
+        .stApp::after {
+            animation: none;
+        }
     }
 
     header[data-testid="stHeader"] {
@@ -127,7 +184,7 @@ CONSOLE_CSS = """
     }
 
     section[data-testid="stSidebar"] {
-        background: var(--bg);
+        background: rgba(255, 255, 255, 0.86);
         border-right: 1px solid var(--border-soft);
     }
 
@@ -140,6 +197,8 @@ CONSOLE_CSS = """
         max-width: 1280px;
         padding-top: 0.75rem;
         padding-bottom: 4rem;
+        position: relative;
+        z-index: 1;
     }
 
     h1, h2, h3, h4, h5 {
@@ -173,7 +232,7 @@ CONSOLE_CSS = """
 
     div[data-testid="stTabs"] button[aria-selected="true"] {
         color: var(--text);
-        border-bottom-color: var(--text);
+        border-bottom-color: var(--accent);
     }
 
     .stButton {
@@ -183,7 +242,7 @@ CONSOLE_CSS = """
     /* Buttons — flat, no gradient */
     .stButton > button {
         width: 100%;
-        background: var(--bg-panel);
+        background: rgba(255, 255, 255, 0.72);
         color: var(--text);
         font-weight: 500;
         font-size: 0.9rem;
@@ -192,55 +251,57 @@ CONSOLE_CSS = """
         height: 3rem;
         min-height: 3rem;
         box-sizing: border-box;
-        box-shadow: inset 0 0 0 1px var(--border-panel);
+        box-shadow: inset 0 0 0 1px var(--border-panel), var(--shadow-card);
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        transition: background 120ms ease, box-shadow 120ms ease, color 120ms ease;
+        transition: background 140ms ease, box-shadow 140ms ease, transform 140ms ease;
     }
 
     button[data-testid="stBaseButton-primary"] {
-        background: var(--bg-panel);
+        background: rgba(255, 255, 255, 0.72);
         color: var(--text);
         border: 0;
-        box-shadow: inset 0 0 0 1px var(--border-panel);
+        box-shadow: inset 0 0 0 1px var(--border-panel), var(--shadow-card);
     }
 
     .stButton > button:hover {
-        background: var(--bg-hover);
-        color: var(--text);
-        border-color: var(--text-muted);
-        box-shadow: inset 0 0 0 1px var(--text-muted);
+        background: var(--accent-soft);
+        color: #0f6f58;
+        border-color: transparent;
+        box-shadow: inset 0 0 0 1px rgba(16, 163, 127, 0.32), 0 8px 22px rgba(16, 163, 127, 0.10);
     }
 
     button[data-testid="stBaseButton-primary"]:hover {
-        background: var(--bg-hover);
-        color: var(--text);
-        border-color: var(--text-muted);
-        box-shadow: inset 0 0 0 1px var(--text-muted);
+        background: var(--accent-soft);
+        color: #0f6f58;
+        border-color: transparent;
+        box-shadow: inset 0 0 0 1px rgba(16, 163, 127, 0.32), 0 8px 22px rgba(16, 163, 127, 0.10);
     }
 
     .stButton > button:active {
-        background: var(--bg-elevated);
+        background: #dff2eb;
+        color: #0f6f58;
     }
 
     /* Form inputs */
     .stTextArea textarea,
     .stTextInput input,
     div[data-baseweb="select"] > div {
-        background: var(--bg-elevated) !important;
+        background: var(--bg-soft) !important;
         border: 1px solid var(--border) !important;
         color: var(--text) !important;
         border-radius: var(--radius) !important;
         font-size: 0.9rem !important;
-        transition: border-color 120ms ease;
+        transition: border-color 140ms ease, background 140ms ease;
     }
 
     .stTextArea textarea:focus,
     .stTextInput input:focus {
-        border-color: var(--text-muted) !important;
-        box-shadow: none !important;
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 0 3px rgba(16, 163, 127, 0.12) !important;
         outline: none !important;
+        background: #ffffff !important;
     }
 
     /* Hero */
@@ -289,6 +350,7 @@ CONSOLE_CSS = """
         margin-bottom: 2.25rem;
         font-size: 0.85rem;
         line-height: 1.5;
+        box-shadow: var(--shadow-card);
     }
 
     .boundary-strip::before {
@@ -307,6 +369,7 @@ CONSOLE_CSS = """
         border-radius: var(--radius-lg);
         padding: 1.5rem;
         margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-card);
     }
 
     .panel-title {
@@ -326,6 +389,7 @@ CONSOLE_CSS = """
         border-radius: var(--radius-lg);
         padding: 1.75rem 2rem;
         margin-bottom: 1.75rem;
+        box-shadow: var(--shadow-card);
     }
 
     .answer-panel h3 {
@@ -358,10 +422,11 @@ CONSOLE_CSS = """
         padding: 1rem 1.15rem;
         min-height: 92px;
         transition: border-color 120ms ease;
+        box-shadow: var(--shadow-card);
     }
 
     .status-card:hover {
-        border-color: var(--border);
+        border-color: var(--accent);
     }
 
     .status-card .label {
@@ -404,6 +469,7 @@ CONSOLE_CSS = """
         border: 1px solid var(--border-panel);
         border-radius: var(--radius-lg);
         margin-bottom: 1rem;
+        box-shadow: var(--shadow-card);
     }
 
     div[data-testid="stExpander"] summary {
@@ -424,7 +490,7 @@ CONSOLE_CSS = """
     }
 
     div[data-testid="stDataFrame"] [data-testid="stDataFrameResizable"] {
-        background: var(--bg-elevated);
+        background: var(--bg-panel);
     }
 
     /* Inline code */
@@ -442,6 +508,7 @@ CONSOLE_CSS = """
         border: 1px solid var(--border-panel);
         border-radius: var(--radius);
         padding: 0.85rem 1rem;
+        box-shadow: var(--shadow-card);
     }
 
     div[data-testid="stMetricLabel"] {
@@ -467,11 +534,12 @@ CONSOLE_CSS = """
         border-radius: var(--radius);
         background: var(--bg-panel);
         border: 1px solid var(--border-panel);
+        box-shadow: var(--shadow-card);
     }
 
     /* Sidebar text input */
     section[data-testid="stSidebar"] input {
-        background: var(--bg-elevated) !important;
+        background: var(--bg-soft) !important;
         border: 1px solid var(--border-soft) !important;
     }
 
@@ -483,6 +551,7 @@ CONSOLE_CSS = """
         padding: 2rem 2rem;
         margin-bottom: 1.25rem;
         text-align: left;
+        box-shadow: var(--shadow-card);
     }
 
     .empty-state .empty-kicker {
@@ -523,6 +592,44 @@ CONSOLE_CSS = """
         }
     }
 </style>
+"""
+
+MOUSE_GLOW_SCRIPT = """
+<script>
+(() => {
+    try {
+        const targetDocument = window.parent?.document || document;
+        let mouseX = 68;
+        let mouseY = 12;
+        let frameRequested = false;
+
+        const applyGlowPosition = () => {
+            const app = targetDocument.querySelector(".stApp");
+            if (app) {
+                app.style.setProperty("--mouse-x", `${mouseX}%`);
+                app.style.setProperty("--mouse-y", `${mouseY}%`);
+            }
+            frameRequested = false;
+        };
+
+        const handleMouseMove = (event) => {
+            const width = targetDocument.documentElement.clientWidth || window.innerWidth || 1;
+            const height = targetDocument.documentElement.clientHeight || window.innerHeight || 1;
+            mouseX = Math.max(0, Math.min(100, (event.clientX / width) * 100));
+            mouseY = Math.max(0, Math.min(100, (event.clientY / height) * 100));
+            if (!frameRequested) {
+                window.requestAnimationFrame(applyGlowPosition);
+                frameRequested = true;
+            }
+        };
+
+        targetDocument.addEventListener("mousemove", handleMouseMove, { passive: true });
+        applyGlowPosition();
+    } catch (error) {
+        // Static CSS defaults remain active when iframe access is restricted.
+    }
+})();
+</script>
 """
 
 
@@ -718,6 +825,7 @@ def _summarize_citations(citations: list[dict]) -> str:
 def _render_console_shell() -> None:
     copy = get_dashboard_copy()
     st.markdown(CONSOLE_CSS, unsafe_allow_html=True)
+    components.html(MOUSE_GLOW_SCRIPT, height=0, width=0)
     st.markdown(
         f"""
         <div class="console-hero">

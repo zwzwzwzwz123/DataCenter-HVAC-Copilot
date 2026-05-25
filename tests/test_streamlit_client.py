@@ -8,6 +8,7 @@ from app.api_client import ApiClientError, ask_api, run_eval_api
 from app.streamlit_app import (
     CONSOLE_CSS,
     DEMO_WALKTHROUGHS,
+    MOUSE_GLOW_SCRIPT,
     WORKFLOW_OPTIONS,
     build_workflow_trace_rows,
     get_dashboard_copy,
@@ -383,16 +384,17 @@ def test_render_status_grid_html_does_not_emit_indented_code_blocks():
 
 def test_console_css_keeps_minimal_saas_visual_language():
     forbidden_fragments = [
-        "linear-gradient",
-        "radial-gradient",
         "text-transform: uppercase",
         "font-weight: 700",
         "font-weight: 800",
-        "box-shadow: 0",
     ]
 
     for fragment in forbidden_fragments:
         assert fragment not in CONSOLE_CSS
+
+    assert CONSOLE_CSS.count("linear-gradient") == 3
+    assert CONSOLE_CSS.count("radial-gradient") == 4
+    assert "box-shadow: var(--shadow-card);" in CONSOLE_CSS
 
 
 def test_console_css_removes_default_streamlit_top_gap():
@@ -401,18 +403,47 @@ def test_console_css_removes_default_streamlit_top_gap():
     assert "padding-top: 0.75rem;" in CONSOLE_CSS
 
 
-def test_console_css_distinguishes_panels_from_page_background():
+def test_console_css_uses_light_premium_visual_theme():
     expected_fragments = [
-        "--bg-elevated:  #18181b;",
-        "--bg-panel:     #202024;",
-        "--border-panel: #3a3a42;",
+        "--bg:           #f7f7f5;",
+        "--bg-panel:     #ffffff;",
+        "--accent:       #10a37f;",
+        "--shadow-card:",
         "background: var(--bg-panel);",
         "border: 1px solid var(--border-panel);",
-        "border-bottom: 1px solid var(--border-soft);",
+        "box-shadow: var(--shadow-card);",
     ]
 
     for fragment in expected_fragments:
         assert fragment in CONSOLE_CSS
+
+
+def test_console_css_adds_subtle_ambient_background_motion():
+    expected_fragments = [
+        "--mouse-x:",
+        "--mouse-y:",
+        ".stApp::before",
+        ".stApp::after",
+        "animation: ambient-breathe",
+        "@keyframes ambient-breathe",
+        "@media (prefers-reduced-motion: reduce)",
+    ]
+
+    for fragment in expected_fragments:
+        assert fragment in CONSOLE_CSS
+
+
+def test_mouse_glow_script_updates_streamlit_app_css_variables():
+    expected_fragments = [
+        "mousemove",
+        "--mouse-x",
+        "--mouse-y",
+        "requestAnimationFrame",
+        ".stApp",
+    ]
+
+    for fragment in expected_fragments:
+        assert fragment in MOUSE_GLOW_SCRIPT
 
 
 def test_console_css_spaces_stacked_cards_in_empty_state():
@@ -422,10 +453,12 @@ def test_console_css_spaces_stacked_cards_in_empty_state():
 def test_console_css_gives_primary_buttons_visible_boundaries():
     expected_fragments = [
         "button[data-testid=\"stBaseButton-primary\"]",
-        "background: var(--bg-panel);",
+        "background: rgba(255, 255, 255, 0.72);",
+        "color: var(--text);",
         "border: 0;",
-        "box-shadow: inset 0 0 0 1px var(--border-panel);",
-        "border-color: var(--text-muted);",
+        "box-shadow: inset 0 0 0 1px var(--border-panel), var(--shadow-card);",
+        "background: var(--accent-soft);",
+        "color: #0f6f58;",
     ]
 
     for fragment in expected_fragments:
