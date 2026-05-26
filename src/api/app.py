@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sqlite3
+import uuid
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
@@ -176,9 +177,19 @@ def create_app(
         turn_id = None
         if manager is not None and session_id is not None:
             try:
+                pending_turn_id = f"turn_{uuid.uuid4().hex}"
+                turn_saved_trace = {
+                    "node": "memory_turn_saved",
+                    "session_id": session_id,
+                    "turn_id": pending_turn_id,
+                    "indexing_saved": False,
+                    "trace_persisted": False,
+                }
+                workflow_trace.append(turn_saved_trace)
                 saved = manager.store.save_turn(
                     ConversationTurn(
                         session_id=session_id,
+                        turn_id=pending_turn_id,
                         question=request.question,
                         answer=str(result.get("answer", "")),
                         route=str(result.get("route", "")),
@@ -194,6 +205,7 @@ def create_app(
                     )
                 )
                 turn_id = saved.turn_id
+                turn_saved_trace["turn_index"] = saved.turn_index
                 memory_status["storage"] = {
                     **memory_status.get("storage", {"available": True}),
                     "saved": True,
@@ -210,15 +222,9 @@ def create_app(
                     }
                     indexing_saved = False
                     indexing_error = str(exc)
-                turn_saved_trace = {
-                    "node": "memory_turn_saved",
-                    "session_id": session_id,
-                    "turn_id": turn_id,
-                    "turn_index": saved.turn_index,
-                    "indexing_saved": indexing_saved,
-                    **({"indexing_error": indexing_error} if indexing_error else {}),
-                }
-                workflow_trace.append(turn_saved_trace)
+                turn_saved_trace["indexing_saved"] = indexing_saved
+                if indexing_error:
+                    turn_saved_trace["indexing_error"] = indexing_error
                 try:
                     turn_saved_trace["trace_persisted"] = True
                     manager.store.update_turn_workflow_trace(turn_id, workflow_trace)
@@ -231,6 +237,12 @@ def create_app(
                     turn_saved_trace["trace_persisted"] = False
                     turn_saved_trace["trace_persistence_error"] = str(exc)
             except Exception as exc:
+                workflow_trace = [
+                    step
+                    for step in workflow_trace
+                    if step.get("node") != "memory_turn_saved"
+                ]
+                turn_id = None
                 memory_status["storage"] = {
                     **memory_status.get("storage", {}),
                     "available": False,
