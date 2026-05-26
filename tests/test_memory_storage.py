@@ -216,6 +216,41 @@ def test_storage_loads_recent_turns_in_chronological_order(tmp_path: Path):
     assert [turn.question for turn in turns] == ["question 1", "question 2", "question 3"]
 
 
+def test_storage_updates_turn_workflow_trace(tmp_path: Path):
+    store = ConversationMemoryStore(tmp_path / "conversations.db")
+    session = store.create_session()
+    turn = store.save_turn(
+        ConversationTurn(
+            session_id=session.session_id,
+            question="q",
+            answer="a",
+            route="document_qa",
+            workflow_trace=[{"node": "answer_generator"}],
+        )
+    )
+
+    store.update_turn_workflow_trace(
+        turn.turn_id,
+        [
+            {"node": "answer_generator"},
+            {"node": "memory_turn_saved", "turn_id": turn.turn_id},
+        ],
+    )
+
+    saved = store.load_recent_turns(session.session_id, limit=1)[0]
+    assert saved.workflow_trace[-1] == {
+        "node": "memory_turn_saved",
+        "turn_id": turn.turn_id,
+    }
+
+
+def test_storage_update_turn_workflow_trace_rejects_unknown_turn_id(tmp_path: Path):
+    store = ConversationMemoryStore(tmp_path / "conversations.db")
+
+    with pytest.raises(KeyError, match="missing_turn"):
+        store.update_turn_workflow_trace("missing_turn", [{"node": "memory_turn_saved"}])
+
+
 def test_storage_rejects_turn_for_unknown_session(tmp_path: Path):
     store = ConversationMemoryStore(tmp_path / "conversations.db")
 

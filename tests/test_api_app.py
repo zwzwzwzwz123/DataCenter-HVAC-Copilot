@@ -459,9 +459,41 @@ def test_ask_endpoint_persists_memory_turn_saved_trace(tmp_path, monkeypatch):
     ]
 
     assert response.status_code == 200
+    assert body["memory_status"]["trace_persistence"]["saved"] is True
     assert persisted_trace
     assert persisted_trace[0]["turn_id"] == body["turn_id"]
     assert persisted_trace[0]["indexing_saved"] is True
+    assert persisted_trace[0]["trace_persisted"] is True
+
+
+def test_ask_endpoint_keeps_turn_saved_when_trace_persistence_fails(tmp_path, monkeypatch):
+    db_path = tmp_path / "memory.db"
+    monkeypatch.setenv("HVAC_COPILOT_MEMORY_DB_PATH", str(db_path))
+
+    def fail_trace_update(*args, **kwargs):
+        raise sqlite3.OperationalError("trace write failed")
+
+    monkeypatch.setattr(
+        "src.memory.storage.ConversationMemoryStore.update_turn_workflow_trace",
+        fail_trace_update,
+    )
+    client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
+
+    response = client.post(
+        "/ask",
+        json={"question": "q", "task_type": "document_qa", "memory_enabled": True},
+    )
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["turn_id"]
+    assert body["memory_status"]["storage"]["saved"] is True
+    assert body["memory_status"]["trace_persistence"]["saved"] is False
+    assert "trace write failed" in body["memory_status"]["trace_persistence"]["error"]
+    turn_saved_trace = [step for step in body["workflow_trace"] if step["node"] == "memory_turn_saved"]
+    assert turn_saved_trace
+    assert turn_saved_trace[0]["trace_persisted"] is False
+    assert "trace write failed" in turn_saved_trace[0]["trace_persistence_error"]
 
 
 def test_ask_endpoint_classifies_session_create_failure_as_storage(monkeypatch):

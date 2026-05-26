@@ -210,17 +210,26 @@ def create_app(
                     }
                     indexing_saved = False
                     indexing_error = str(exc)
-                workflow_trace.append(
-                    {
-                        "node": "memory_turn_saved",
-                        "session_id": session_id,
-                        "turn_id": turn_id,
-                        "turn_index": saved.turn_index,
-                        "indexing_saved": indexing_saved,
-                        **({"indexing_error": indexing_error} if indexing_error else {}),
+                turn_saved_trace = {
+                    "node": "memory_turn_saved",
+                    "session_id": session_id,
+                    "turn_id": turn_id,
+                    "turn_index": saved.turn_index,
+                    "indexing_saved": indexing_saved,
+                    **({"indexing_error": indexing_error} if indexing_error else {}),
+                }
+                workflow_trace.append(turn_saved_trace)
+                try:
+                    turn_saved_trace["trace_persisted"] = True
+                    manager.store.update_turn_workflow_trace(turn_id, workflow_trace)
+                    memory_status["trace_persistence"] = {"saved": True}
+                except Exception as exc:
+                    memory_status["trace_persistence"] = {
+                        "saved": False,
+                        "error": str(exc),
                     }
-                )
-                manager.store.update_turn_workflow_trace(turn_id, workflow_trace)
+                    turn_saved_trace["trace_persisted"] = False
+                    turn_saved_trace["trace_persistence_error"] = str(exc)
             except Exception as exc:
                 memory_status["storage"] = {
                     **memory_status.get("storage", {}),
