@@ -1,16 +1,31 @@
 from __future__ import annotations
 
+import os
+import shutil
 import sqlite3
+import tempfile
 import uuid
-from typing import Any
+from pathlib import Path
+from typing import Annotated, Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, HTTPException, UploadFile
 
 from src.agent.langgraph_workflow import LangGraphOrchestrator
 from src.api.demo_factory import build_demo_orchestrator
 from src.agent.planner import DeterministicRoutePlanner, build_route_planner_from_env
-from src.api.schemas import AskRequest, AskResponse, EvalRunRequest, EvalRunResponse
+from src.api.schemas import (
+    AskRequest,
+    AskResponse,
+    EvalRunRequest,
+    EvalRunResponse,
+    KnowledgeDeleteResponse,
+    KnowledgeDocumentResponse,
+    KnowledgeDocumentListResponse,
+    KnowledgeStatusResponse,
+    KnowledgeUploadResponse,
+)
 from src.evaluation.runner import run_baseline_eval
+from src.knowledge.service import KnowledgeBaseService
 from src.memory.context_manager import ContextManager, memory_enabled_from_env
 from src.memory.schemas import ConversationTurn
 from src.memory.storage import UnknownSessionError
@@ -35,6 +50,9 @@ def create_app(
         ),
     )
     context_manager: ContextManager | None = None
+    knowledge_service: KnowledgeBaseService | None = None
+    knowledge_refresh_dirty = False
+    last_refresh_error: str | None = None
 
     @app.get("/health")
     def health() -> dict[str, Any]:
@@ -46,6 +64,7 @@ def create_app(
 
     @app.post("/ask", response_model=AskResponse)
     def ask(request: AskRequest) -> dict:
+        _try_refresh_dirty_knowledge()
         memory_enabled = bool(request.memory_enabled and memory_enabled_from_env())
         session_id = request.session_id
         conversation_context: dict[str, Any] = {}
@@ -252,6 +271,7 @@ def create_app(
 
         return {
             **result,
+            **_current_refresh_state(),
             "session_id": session_id if memory_enabled else None,
             "turn_id": turn_id,
             "memory_status": memory_status,
@@ -267,11 +287,129 @@ def create_app(
         )
         return run_baseline_eval(request.eval_path, eval_orchestrator)
 
+    @app.post("/knowledge/documents/upload", response_model=KnowledgeUploadResponse)
+    def upload_knowledge_document(file: Annotated[UploadFile, File()]) -> dict:
+        safe_filename = _safe_upload_filename(file.filename or "")
+        suffix = Path(safe_filename).suffix.lower()
+        if suffix not in {".md", ".txt", ".pdf", ".docx"}:
+            raise HTTPException(
+                status_code=400,
+                detail="Supported file types: .md, .txt, .pdf, .docx",
+            )
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir) / (safe_filename or f"upload{suffix}")
+            with tmp_path.open("wb") as handle:
+                shutil.copyfileobj(file.file, handle)
+            result = _get_knowledge_service().ingest_existing_file(tmp_path)
+            _mark_knowledge_refresh_dirty()
+            _attach_refresh_status(result)
+            return result
+
+    @app.get("/knowledge/documents", response_model=KnowledgeDocumentListResponse)
+    def list_knowledge_documents() -> dict:
+        return {"documents": _get_knowledge_service().list_documents()}
+
+    @app.get("/knowledge/documents/{document_id}", response_model=KnowledgeDocumentResponse)
+    def get_knowledge_document(document_id: str) -> dict:
+        document = _get_knowledge_service().get_document(document_id)
+        if document is None:
+            raise HTTPException(status_code=404, detail=f"Unknown document_id: {document_id}")
+        return {"document": document}
+
+    @app.get("/knowledge/status", response_model=KnowledgeStatusResponse)
+    def knowledge_status() -> dict:
+        _try_refresh_dirty_knowledge()
+        result = _get_knowledge_service().status()
+        _attach_refresh_state(result)
+        return result
+
+    @app.post("/knowledge/reindex", response_model=KnowledgeStatusResponse)
+    def reindex_knowledge() -> dict:
+        reindex_result = _get_knowledge_service().reindex()
+        result = _get_knowledge_service().status()
+        _merge_index_rebuild_metadata(result, reindex_result)
+        _mark_knowledge_refresh_dirty()
+        _attach_refresh_status(result)
+        return result
+
+    @app.delete("/knowledge/documents/{document_id}", response_model=KnowledgeDeleteResponse)
+    def delete_knowledge_document(document_id: str) -> dict:
+        result = _get_knowledge_service().delete_document(document_id)
+        _mark_knowledge_refresh_dirty()
+        _attach_refresh_status(result)
+        return result
+
     def _get_context_manager() -> ContextManager:
         nonlocal context_manager
         if context_manager is None:
             context_manager = ContextManager()
         return context_manager
+
+    def _get_knowledge_service() -> KnowledgeBaseService:
+        nonlocal knowledge_service
+        if knowledge_service is None:
+            knowledge_service = KnowledgeBaseService(
+                knowledge_dir=os.getenv("KNOWLEDGE_BASE_DIR", "data/knowledge"),
+                embedding_provider_name=os.getenv(
+                    "KNOWLEDGE_EMBEDDING_PROVIDER",
+                    "sentence-transformers",
+                ),
+                embedding_model=os.getenv(
+                    "KNOWLEDGE_EMBEDDING_MODEL",
+                    "BAAI/bge-small-zh-v1.5",
+                ),
+            )
+        return knowledge_service
+
+    def _refresh_orchestrators() -> None:
+        nonlocal orchestrator, langgraph_orchestrator
+        new_orchestrator = build_demo_orchestrator(
+            use_env_answer_generator=use_env_answer_generator,
+            use_dropt_policy=use_dropt_policy,
+        )
+        new_langgraph_orchestrator = LangGraphOrchestrator(
+            new_orchestrator,
+            route_planner=(
+                build_route_planner_from_env()
+                if use_env_intent_classifier
+                else DeterministicRoutePlanner()
+            ),
+        )
+        orchestrator = new_orchestrator
+        langgraph_orchestrator = new_langgraph_orchestrator
+
+    def _mark_knowledge_refresh_dirty() -> None:
+        nonlocal knowledge_refresh_dirty
+        knowledge_refresh_dirty = True
+
+    def _attach_refresh_status(result: dict) -> None:
+        nonlocal knowledge_refresh_dirty, last_refresh_error
+        try:
+            _refresh_orchestrators()
+            knowledge_refresh_dirty = False
+            last_refresh_error = None
+        except Exception as exc:
+            knowledge_refresh_dirty = True
+            last_refresh_error = str(exc)
+        _attach_refresh_state(result)
+
+    def _try_refresh_dirty_knowledge() -> None:
+        if knowledge_refresh_dirty:
+            _attach_refresh_status({})
+
+    def _attach_refresh_state(result: dict) -> None:
+        result.update(_current_refresh_state())
+
+    def _current_refresh_state() -> dict[str, Any]:
+        state: dict[str, Any] = {"refresh_dirty": knowledge_refresh_dirty}
+        if last_refresh_error is not None:
+            state["refresh_error"] = last_refresh_error
+        return state
+
+    def _merge_index_rebuild_metadata(result: dict, reindex_result: dict) -> None:
+        index_status = result.setdefault("index", {})
+        if "metadata_error" in reindex_result:
+            index_status["metadata_error"] = reindex_result["metadata_error"]
 
     return app
 
@@ -307,3 +445,8 @@ def _memory_context_failure_trace(
     if storage_error is not None:
         retrieval_node["storage_error"] = storage_error
     return [context_node, retrieval_node]
+
+
+def _safe_upload_filename(filename: str) -> str:
+    basename = filename.replace("\\", "/").split("/")[-1]
+    return "".join(char if char.isalnum() or char in "._-" else "_" for char in basename)

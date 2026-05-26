@@ -17,6 +17,8 @@
 
 - **不是普通 ChatPDF**：系统同时支持文档问答、BEAR-like 时序查询、异常诊断和策略建议。
 - **RAG + Tool Agent 闭环**：问题先路由，再检索文档、调用时序工具或 policy 工具，最后基于证据生成回答。
+- **Persistent Knowledge Base 长期知识记忆**：支持 PDF / DOCX / TXT / MD 上传，SQLite 保存 document/chunk/index 元数据，FAISS + sidecar + manifest 持久化，并让 `/ask` 默认检索上传后的知识库。
+- **Conversation Memory 多轮上下文**：`/ask` 支持 session 级持久记忆，SQLite 记录每轮问题、证据、工具结果、trace 和回答，并按 `session_id` 隔离检索历史。
 - **多 LLM 后端可选接入**：`/ask` 支持 deterministic fallback、DeepSeek 和本地 Ollama evidence-grounded answer generation；未配置或调用失败时自动回退 deterministic generator。
 - **控制边界清晰**：控制建议只来自 rule-based、MPC-like、DiffFNO / Guided-DiffFNO adapter 或 offline replay 等工具，LLM 不直接控制环境。
 - **Safety Audit**：每个回答都会进行确定性安全审计，检查生产遥测误述、LLM 直接控制声明和未验证策略动作。
@@ -28,15 +30,18 @@
 项目已经超过 MVP 阶段，当前可以端到端运行：
 
 - 文档加载、chunk、检索、rerank
+- 持久化知识库：PDF / DOCX / TXT / MD 上传、SQLite 元数据、FAISS sidecar/manifest、Knowledge Base UI
 - BEAR schema、processed CSV / BEAR sample CSV / mock fallback
 - 时序工具和 policy adapter
 - DeepSeek / Ollama / deterministic answer generator
 - answer safety audit
+- SQLite conversation memory、session context retrieval、turn indexing
 - FastAPI 服务
 - Streamlit demo
 - 100 条评测集和 baseline comparison
 
-当前更适合继续补的是展示材料、截图、Docker 启动体验、真实 embedding 检索和工作流增强，而不是重写核心架构。人工评测是可选增强项，不阻塞当前简历展示版本。
+当前更适合继续补的是展示材料、截图、Docker 启动体验、更完整的 memory UI 和长期检索增强，而不是重写核心架构。人工评测是可选增强项，不阻塞当前简历展示版本。
+持久化知识库已完成第一版生产化实现；后续长期检索增强主要指更大规模索引、增量索引和向量数据库服务化。
 
 ## 系统架构
 
@@ -45,6 +50,11 @@
   |
   v
 FastAPI / Streamlit (/ask, default workflow_engine=langgraph)
+  |
+  +-- Conversation Memory ContextManager
+  |     - session_id scoped SQLite source of truth
+  |     - recent turns + dense retrieved memory + stable context
+  |     - storage / retrieval / indexing / trace persistence status
   |
   +-- LangGraph Route Planner
   |     - LLMRoutePlanner when configured
@@ -96,6 +106,8 @@ flowchart TD
 src/core/          共享 schema、字段来源、env loader
 src/ingestion/     BEAR 轨迹标准化、BEAR adapter、processed/sample loader
 src/retrieval/     文档加载、chunk、keyword / hybrid / rerank 检索、RAG baseline
+src/knowledge/     持久化知识库：文档解析、chunk、SQLite metadata、FAISS index、retriever、service
+src/memory/        SQLite session memory、turn indexing、FAISS/dense memory retrieval、context budget
 src/tools/         时序查询、周期对比、异常检测、能耗拆分、趋势数据
 src/policies/      rule-based、MPC-like、diffusion adapter、DROPT checkpoint adapter、offline replay
 src/agent/         router、planner、intent classifier、shared task executor、orchestrator、answer generator、DeepSeek/Ollama adapter、answer audit
@@ -145,6 +157,102 @@ pip install -e ".[dev,dense]"
 ```
 
 FAISS 是本地向量索引库，本身不需要 API 或按次付费；`sentence-transformers` 会在本地生成 embedding，首次使用可能下载模型。当前 Stage 2 已用 `BAAI/bge-small-zh-v1.5` + FAISS 跑通真实 dense baseline。Qdrant 更偏生产化向量数据库和服务部署，当前保留在 Roadmap。
+
+## Persistent Knowledge Base / 持久化知识库
+
+Copilot 支持把运维 SOP、设备手册和操作说明上传到持久化 FAISS-backed RAG 知识库。上传后后端会解析文本、切分 chunk、保存 SQLite 元数据，并全量重建 FAISS 索引；下一次 `/ask` 会优先检索上传知识库，无需重启 API。
+
+支持格式：
+
+- `.md`
+- `.txt`
+- `.pdf`
+- `.docx`
+
+默认存储布局：
+
+```text
+data/knowledge/
+  uploads/       original uploaded files
+  parsed/        parsed document text JSON
+  faiss/         index.faiss, chunks.jsonl, manifest.json
+  knowledge.db   SQLite metadata store
+```
+
+实现要点：
+
+- SQLite 是 document / chunk / index metadata 的 source of truth，FAISS 是可重建的派生索引。
+- `chunks.jsonl` 作为 FAISS row 到 chunk metadata 的 sidecar；`manifest.json` 记录 chunk count、文件 hash 和索引可用状态。
+- 上传、删除和手动 reindex 后都会基于 SQLite 中的有效 chunks 全量 rebuild FAISS，并用临时文件原子替换正式索引文件。
+- retriever 加载时校验 manifest、FAISS 行数和 sidecar 行数；不一致时将索引标记为 unavailable，避免返回错误 citation。
+- embedding provider 懒加载，`/knowledge/status` 和 `/knowledge/documents` 不会因为只查状态而初始化 sentence-transformers。
+- runtime orchestrator refresh 与持久化提交解耦；如果刷新失败，API 会暴露 `refresh_dirty` / `refresh_error`，后续 `/ask` 或 `/knowledge/status` 会继续尝试自愈刷新。
+
+常用 API：
+
+```bash
+curl -F "file=@manual.pdf" http://localhost:8000/knowledge/documents/upload
+curl http://localhost:8000/knowledge/status
+curl http://localhost:8000/knowledge/documents
+curl -X POST http://localhost:8000/knowledge/reindex
+```
+
+每次上传、删除或手动 reindex 都会全量 rebuild FAISS，并先写入 `index.faiss.tmp` / `chunks.jsonl.tmp`，成功后再原子替换正式文件，避免部分索引损坏。
+
+工程复盘和面试讲述素材见：[docs/persistent_knowledge_base_interview_notes.md](docs/persistent_knowledge_base_interview_notes.md)
+
+## Conversation Memory / 多轮上下文
+
+`/ask` 默认启用 session 级 conversation memory。首次请求不传 `session_id` 时，后端会创建新 session；后续请求把响应里的 `session_id` 传回即可加载同一会话的 recent turns、retrieved memory chunks 和 stable context。记忆只用于上下文连续性、指代消解和历史解释；当前轮 RAG / timeseries / policy 工具产生的 fresh evidence 仍是回答的最高证据来源。
+
+SQLite 是 source of truth，默认路径：
+
+```text
+data/memory/conversations.db
+```
+
+可用配置：
+
+```bash
+HVAC_COPILOT_MEMORY_ENABLED=true
+HVAC_COPILOT_MEMORY_DB_PATH=data/memory/conversations.db
+HVAC_COPILOT_MEMORY_RETRIEVER=faiss_dense
+HVAC_COPILOT_MEMORY_ALLOW_FALLBACK=false
+HVAC_COPILOT_MEMORY_EMBEDDING_PROVIDER=sentence-transformers
+HVAC_COPILOT_MEMORY_EMBEDDING_MODEL=BAAI/bge-small-zh-v1.5
+```
+
+实现要点：
+
+- `src/memory/storage.py` 持久化 sessions、turns、memory chunks 和 index metadata。
+- `src/memory/indexer.py` 把每轮完整分析压成可检索 chunk；完整结构化结果仍保存在 `conversation_turns`。
+- `src/memory/retriever.py` 默认使用 `faiss_dense`，也支持 `dense_memory`、`hybrid`、`hybrid_rerank`。fallback 只有在 `HVAC_COPILOT_MEMORY_ALLOW_FALLBACK=true` 时显式启用。
+- retrieval 按 `session_id` 过滤，避免跨会话泄露历史。
+- storage、retrieval、indexing、trace persistence 状态分开上报。即使 FAISS / embedding 不可用，SQLite 仍可保存 turn。
+- `workflow_trace` 包含 `memory_context_loaded`、`memory_retrieval`、`memory_turn_saved`；保存成功但 trace 回写失败时，`memory_status.trace_persistence.saved=false`，不会误报成 turn 未保存。
+
+`POST /ask` 请求字段：
+
+```json
+{
+  "question": "上一轮那个 zone 后续怎么样？",
+  "task_type": "timeseries_query",
+  "workflow_engine": "langgraph",
+  "session_id": "session_...",
+  "memory_enabled": true
+}
+```
+
+响应会额外包含：
+
+```text
+session_id
+turn_id
+memory_status
+conversation_context
+```
+
+`memory_enabled=false` 会保持单轮行为，不读写 memory。`/eval/run` 和 `scripts/run_eval.py` 也保持 memory disabled，避免污染可复现评测。
 
 ## 默认 DROPT / Guided-DiffFNO 策略后端
 
@@ -231,8 +339,13 @@ uvicorn src.api.app:app --reload
 可用接口：
 
 - `GET /health`
-- `POST /ask`
+- `POST /ask`：支持 `session_id` / `memory_enabled`，返回 `turn_id`、`memory_status`、`conversation_context` 和 `workflow_trace`
 - `POST /eval/run`
+- `POST /knowledge/documents/upload`
+- `GET /knowledge/documents`
+- `GET /knowledge/status`
+- `POST /knowledge/reindex`
+- `DELETE /knowledge/documents/{document_id}`
 
 启动 Streamlit：
 
@@ -265,6 +378,8 @@ Streamlit 包含：
 
 - 专业深色控制台布局：左侧 Mission Control 输入区，右侧 Grounded Answer、状态卡片和结构化证据区，便于面试截图展示。
 - Copilot tab：输入问题、选择任务类型、查看回答、route、tools、answer generator、evidence、audit、data source。
+- Knowledge Base tab：上传 PDF / DOCX / TXT / Markdown，查看文档列表、chunk 数和 FAISS index 状态，并可手动重建索引。
+- Session memory：自动保存当前 `session_id` 并随下一轮 `/ask` 传回后端；当前 UI 只做最小兼容，不提供 session 列表、重命名或删除。
 - 典型案例 walkthrough：BEAR 数据边界、温度时序查询、策略建议边界。
 - Execution Timeline：展示 Route、Retrieval、Tool Call、Answer Generator、Data Boundary。
 - Safety Audit：展示回答是否触发边界风险。
@@ -275,11 +390,12 @@ Streamlit 包含：
 推荐 5 到 8 分钟演示顺序：
 
 1. 启动 API 和 Streamlit。
-2. 在 Copilot tab 选择 `BEAR 数据边界`，展示 RAG 引用和数据边界。
-3. 选择 `温度时序查询`，展示 router 调用 `query_metric` 和 metric summary。
-4. 选择 `策略建议边界`，展示 policy tool 输出和 LLM 不直接控制。
-5. 展示 Execution Timeline 和 Safety Audit。
-6. 打开评测摘要 tab，说明 100 条 eval 和 baseline comparison。
+2. 打开 Knowledge Base tab，上传一份 PDF / DOCX / TXT / Markdown 运维文档，展示文档列表、chunk 数和 FAISS index 状态。
+3. 在 Copilot tab 选择 `BEAR 数据边界`，展示 RAG 引用和数据边界。
+4. 选择 `温度时序查询`，展示 router 调用 `query_metric` 和 metric summary。
+5. 选择 `策略建议边界`，展示 policy tool 输出和 LLM 不直接控制。
+6. 展示 Execution Timeline 和 Safety Audit。
+7. 打开评测摘要 tab，说明 100 条 eval 和 baseline comparison。
 
 详细讲解脚本见：[docs/demo_walkthrough.md](docs/demo_walkthrough.md)
 
@@ -297,9 +413,11 @@ python -m pytest -q
 - time-series tools
 - policy adapters
 - retrieval / RAG
+- persistent knowledge base parsing / SQLite metadata / FAISS indexing / API integration
 - orchestrator
 - DeepSeek / Ollama answer generator
 - answer safety audit
+- conversation memory storage / retrieval / indexing / API integration
 - API
 - Streamlit helper
 - evaluation metrics / report
@@ -505,15 +623,17 @@ python scripts/export_bear_data.py --bear-root C:\Users\zouwei\Desktop\PROJECT\_
 - 时序工具：`query_metric`、`compare_period`、`detect_anomaly`、`compute_energy_breakdown`、`plot_metric_trend`
 - policy adapter：rule-based、MPC-like placeholder、diffusion adapter 边界、DROPT Guided-DiffFNO checkpoint adapter、offline replay
 - 多文档 RAG：Markdown/TXT loader、chunk、Keyword、Hybrid、Reranking retriever
+- Persistent Knowledge Base：PDF/DOCX/TXT/MD 上传、解析、SQLite 元数据、FAISS sidecar/manifest、删除回滚、runtime refresh 自愈、Streamlit Knowledge Base tab
 - deterministic router + baseline orchestrator
 - LangGraph StateGraph workflow + optional DeepSeek LLM route planner
 - LangGraph multi-step execution uses `collect_*_evidence` and generates one final merged-evidence answer
+- Conversation Memory：SQLite source of truth、session-scoped retrieval、context budget、trace persistence status
 - shared AgentTaskExecutor for baseline and LangGraph tool execution
 - DeepSeek / Ollama evidence-grounded answer generator
 - deterministic fallback answer generator
 - answer safety audit
 - FastAPI `/health`、`/ask`、`/eval/run`
-- Streamlit Copilot / 评测摘要双 tab
+- Streamlit Copilot / session memory 兼容 / 评测摘要双 tab
 - 100 条 eval JSONL、baseline comparison 和 intent routing comparison
 - optional LLM judge adapter smoke provider
 - demo walkthrough 文档
@@ -524,7 +644,8 @@ python scripts/export_bear_data.py --bear-root C:\Users\zouwei\Desktop\PROJECT\_
 
 - README / demo 截图素材
 - 更强 prompt 审计样例
-- README / demo 截图素材
+- 更完整的 conversation memory session 管理 UI
+- 持久化知识库增量索引和更大规模文档集压测
 
 长期加分项：
 
@@ -536,4 +657,4 @@ python scripts/export_bear_data.py --bear-root C:\Users\zouwei\Desktop\PROJECT\_
 
 ## 一句话简历表达
 
-构建 DataCenter-HVAC Copilot：基于 BEAR HVAC 仿真轨迹，设计 RAG + Tool Agent + Evaluation 系统，支持文档问答、时序查询、异常诊断和策略建议；实现 DeepSeek evidence-grounded answer generation、answer safety audit、时序工具、policy adapter 边界、FastAPI/Streamlit demo 和 100 条评测集，并通过多 baseline comparison 验证检索、工具调用、证据覆盖和回答质量代理指标。
+构建 DataCenter-HVAC Copilot：基于 BEAR HVAC 仿真轨迹，设计 Persistent Knowledge Base + RAG + Tool Agent + Conversation Memory + Evaluation 系统，支持文档上传检索、文档问答、时序查询、异常诊断、策略建议和多轮上下文管理；实现 FAISS/SQLite 持久化知识库、DeepSeek evidence-grounded answer generation、answer safety audit、时序工具、policy adapter 边界、FastAPI/Streamlit demo 和 100 条评测集，并通过多 baseline comparison 验证检索、工具调用、证据覆盖和回答质量代理指标。

@@ -14,7 +14,15 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from app.api_client import ApiClientError, ask_api, run_eval_api
+from app.api_client import (
+    ApiClientError,
+    ask_api,
+    get_knowledge_status_api,
+    list_knowledge_documents_api,
+    reindex_knowledge_api,
+    run_eval_api,
+    upload_knowledge_document_api,
+)
 
 
 TASK_OPTIONS = {
@@ -1236,9 +1244,11 @@ def main() -> None:
 
     last_result = st.session_state.get("last_result")
     api_base_url, workflow_label = _render_sidebar(last_result)
-    tab_ask, tab_eval = st.tabs(["Copilot", "评测摘要"])
+    tab_ask, tab_knowledge, tab_eval = st.tabs(["Copilot", "Knowledge Base", "评测摘要"])
     with tab_ask:
         _render_ask_tab(api_base_url, workflow_label)
+    with tab_knowledge:
+        _render_knowledge_base_tab(api_base_url)
     with tab_eval:
         _render_eval_tab(api_base_url)
 
@@ -1329,6 +1339,58 @@ def _render_eval_tab(api_base_url: str) -> None:
             return
         thinking_placeholder.empty()
         _render_eval_result(result)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
+def _render_knowledge_base_tab(api_base_url: str) -> None:
+    st.markdown('<div class="panel">', unsafe_allow_html=True)
+    _render_panel_start("Knowledge Base")
+    uploaded = st.file_uploader(
+        "Upload SOP, manual, or operation guide",
+        type=["md", "txt", "pdf", "docx"],
+    )
+    if uploaded is not None and st.button("Index document", type="primary"):
+        try:
+            result = upload_knowledge_document_api(
+                api_base_url,
+                uploaded.name,
+                uploaded.getvalue(),
+            )
+            st.success(f"Indexed {result['document']['filename']}")
+            st.json(result.get("index_status", {}))
+            st.session_state["knowledge_status"] = get_knowledge_status_api(api_base_url)
+        except ApiClientError as exc:
+            st.error(str(exc))
+
+    columns = st.columns(2)
+    with columns[0]:
+        if st.button("Refresh knowledge status"):
+            try:
+                st.session_state["knowledge_status"] = get_knowledge_status_api(api_base_url)
+            except ApiClientError as exc:
+                st.warning(str(exc))
+    with columns[1]:
+        if st.button("Rebuild FAISS index"):
+            try:
+                st.session_state["knowledge_status"] = reindex_knowledge_api(api_base_url)
+            except ApiClientError as exc:
+                st.warning(str(exc))
+
+    try:
+        status = st.session_state.get("knowledge_status") or get_knowledge_status_api(api_base_url)
+        documents = list_knowledge_documents_api(api_base_url)["documents"]
+        metric_columns = st.columns(2)
+        with metric_columns[0]:
+            st.metric("Documents", status.get("document_count", 0))
+        with metric_columns[1]:
+            st.metric("Chunks", status.get("chunk_count", 0))
+        st.json(status.get("index", {}))
+        if documents:
+            st.dataframe(pd.DataFrame(documents), use_container_width=True)
+        else:
+            st.info("No uploaded knowledge documents yet.")
+    except ApiClientError as exc:
+        st.warning(str(exc))
     st.markdown("</div>", unsafe_allow_html=True)
 
 

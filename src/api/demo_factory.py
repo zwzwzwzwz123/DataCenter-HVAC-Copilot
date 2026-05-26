@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pandas as pd
@@ -10,6 +11,7 @@ from src.agent.orchestrator import BaselineOrchestrator
 from src.policies.dropt_adapter import DROPTCheckpointPolicy
 from src.policies.offline_replay import OfflineReplayPolicy
 from src.policies.rule_based import run_rule_based_policy
+from src.knowledge.service import KnowledgeBaseService
 from src.ingestion.bear_sample_loader import load_bear_sample_timeseries
 from src.ingestion.processed_loader import load_processed_bear_trajectory
 from src.retrieval.chunking import chunk_document
@@ -26,10 +28,7 @@ def build_demo_orchestrator(
     """Build a demo orchestrator from sample docs and mock trajectory data."""
 
     project_root = project_root or Path(__file__).resolve().parents[2]
-    chunks = []
-    for document in _load_demo_documents(project_root):
-        chunks.extend(chunk_document(document, chunk_size=45, overlap=5))
-    rag = ExtractiveRAGPipeline(HybridRetriever(chunks))
+    rag = build_rag_pipeline(project_root)
     trajectory = _load_demo_trajectory(project_root)
     return BaselineOrchestrator(
         rag_pipeline=rag,
@@ -42,6 +41,38 @@ def build_demo_orchestrator(
         ),
         policy_runner=_build_policy_runner(project_root, use_dropt_policy=use_dropt_policy),
     )
+
+
+def build_rag_pipeline(project_root: Path | None = None) -> ExtractiveRAGPipeline:
+    project_root = project_root or Path(__file__).resolve().parents[2]
+    knowledge_dir = Path(os.getenv("KNOWLEDGE_BASE_DIR", project_root / "data" / "knowledge"))
+    provider = os.getenv("KNOWLEDGE_EMBEDDING_PROVIDER", "sentence-transformers")
+    model = os.getenv("KNOWLEDGE_EMBEDDING_MODEL", "BAAI/bge-small-zh-v1.5")
+    if (knowledge_dir / "faiss" / "index.faiss").exists():
+        service = KnowledgeBaseService(
+            knowledge_dir=knowledge_dir,
+            embedding_provider_name=provider,
+            embedding_model=model,
+        )
+        status = service.status()["index"]
+        if status.get("available") and status.get("chunk_count", 0) > 0:
+            return ExtractiveRAGPipeline(_LazyKnowledgeRetriever(service))
+
+    chunks = []
+    for document in _load_demo_documents(project_root):
+        chunks.extend(chunk_document(document, chunk_size=45, overlap=5))
+    return ExtractiveRAGPipeline(HybridRetriever(chunks))
+
+
+class _LazyKnowledgeRetriever:
+    def __init__(self, service: KnowledgeBaseService) -> None:
+        self.service = service
+        self._retriever = None
+
+    def search(self, query: str, top_k: int = 5) -> list[dict]:
+        if self._retriever is None:
+            self._retriever = self.service.retriever()
+        return self._retriever.search(query, top_k=top_k)
 
 
 def _load_demo_documents(project_root: Path) -> list:

@@ -4,7 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from app.api_client import ApiClientError, ask_api, run_eval_api
+from app.api_client import (
+    ApiClientError,
+    ask_api,
+    get_knowledge_status_api,
+    list_knowledge_documents_api,
+    run_eval_api,
+)
 from app.streamlit_app import (
     CONSOLE_CSS,
     DEMO_WALKTHROUGHS,
@@ -47,6 +53,15 @@ class FakeHttpClient:
         self.last_json = json
         self.last_timeout = timeout
         return self.response
+
+
+def _fake_get(self, url: str, timeout: float) -> FakeResponse:
+    self.last_url = url
+    self.last_timeout = timeout
+    return self.response
+
+
+FakeHttpClient.get = _fake_get
 
 
 def test_ask_api_posts_question_and_task_type():
@@ -146,6 +161,26 @@ def test_run_eval_api_posts_eval_path():
     assert http_client.last_url == "http://localhost:8000/eval/run"
     assert http_client.last_json == {"eval_path": "data/eval/hvac_eval.jsonl"}
     assert result["metrics"]["citation_hit_rate"] == 0.6
+
+
+def test_list_knowledge_documents_api_gets_documents():
+    http_client = FakeHttpClient(FakeResponse(200, {"documents": [{"filename": "ops.md"}]}))
+
+    result = list_knowledge_documents_api("http://localhost:8000", http_client=http_client)
+
+    assert http_client.last_url == "http://localhost:8000/knowledge/documents"
+    assert result["documents"][0]["filename"] == "ops.md"
+
+
+def test_get_knowledge_status_api_gets_status():
+    http_client = FakeHttpClient(
+        FakeResponse(200, {"document_count": 1, "chunk_count": 2, "index": {"available": True}})
+    )
+
+    result = get_knowledge_status_api("http://localhost:8000", http_client=http_client)
+
+    assert http_client.last_url == "http://localhost:8000/knowledge/status"
+    assert result["index"]["available"] is True
 
 
 def test_default_api_base_url_can_be_overridden_for_docker(monkeypatch):

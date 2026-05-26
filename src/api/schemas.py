@@ -30,6 +30,8 @@ class AskResponse(BaseModel):
     turn_id: str | None = None
     memory_status: dict = Field(default_factory=dict)
     conversation_context: dict = Field(default_factory=dict)
+    refresh_dirty: bool = False
+    refresh_error: str | None = None
 
 
 class EvalRunRequest(BaseModel):
@@ -39,3 +41,35 @@ class EvalRunRequest(BaseModel):
 class EvalRunResponse(BaseModel):
     metrics: dict[str, float]
     predictions: list[dict]
+
+
+class KnowledgeUploadResponse(BaseModel):
+    document: dict
+    deduplicated: bool = False
+    index_status: dict = Field(default_factory=dict)
+    refresh_error: str | None = None
+    refresh_dirty: bool = False
+
+
+class KnowledgeDocumentListResponse(BaseModel):
+    documents: list[dict] = Field(default_factory=list)
+
+
+class KnowledgeDocumentResponse(BaseModel):
+    document: dict
+
+
+class KnowledgeStatusResponse(BaseModel):
+    document_count: int
+    chunk_count: int
+    index: dict = Field(default_factory=dict)
+    refresh_error: str | None = None
+    refresh_dirty: bool = False
+
+
+class KnowledgeDeleteResponse(BaseModel):
+    deleted: str
+    index_status: dict = Field(default_factory=dict)
+    cleanup_errors: list[str] = Field(default_factory=list)
+    refresh_error: str | None = None
+    refresh_dirty: bool = False
