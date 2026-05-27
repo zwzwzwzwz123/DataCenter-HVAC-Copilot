@@ -93,7 +93,7 @@ Copilot tab 默认使用 LangGraph workflow，并展示 `LangGraph Workflow Trac
 
 讲解重点：
 
-> 项目不是只展示单个 demo，而是有 100 条 JSONL 评测集和多 baseline comparison。报告由 `scripts/run_eval.py` 生成，保证评测结果可复现。
+> 项目不是只展示单个 demo，而是有 108 条 JSONL 评测集和多 baseline comparison。报告由 `scripts/run_eval.py` 生成，保证评测结果可复现。
 
 ## 常见追问回答
 
@@ -123,4 +123,4 @@ LangGraph / FAISS 现在怎么讲？
 
 ## 一分钟简历表达
 
-> 构建 DataCenter-HVAC Copilot：基于 BEAR HVAC 仿真轨迹，设计 RAG + Tool Agent + Evaluation 系统，支持文档问答、时序查询、异常诊断和策略建议。实现 UTF-8 多文档检索、BM25-style hybrid retrieval、metadata-aware reranking、DeepSeek evidence-grounded answer generation、时序工具、policy adapter 边界、FastAPI/Streamlit demo 和 100 条评测集。通过 baseline comparison 验证检索、工具调用、证据覆盖和回答质量代理指标。
+> 构建 DataCenter-HVAC Copilot：基于 BEAR HVAC 仿真轨迹，设计 RAG + Tool Agent + Evaluation 系统，支持文档问答、时序查询、异常诊断和策略建议。实现 UTF-8 多文档检索、BM25-style hybrid retrieval、metadata-aware reranking、DeepSeek evidence-grounded answer generation、时序工具、policy adapter 边界、FastAPI/Streamlit demo 和 108 条评测集。通过 baseline comparison 验证检索、工具调用、证据覆盖和回答质量代理指标。

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from time import perf_counter
 from typing import Any
 
 from src.agent.orchestrator import BaselineOrchestrator
@@ -35,12 +36,19 @@ from src.retrieval.embeddings import (
 )
 from src.retrieval.faiss_retriever import FaissDenseRetriever
 from src.retrieval.query_rewrite import (
+    LLMMultiQueryRAGPipeline,
     HyDERAGPipeline,
     RewriteRAGPipeline,
     RuleBasedHVACQueryRewriter,
+    build_multi_query_rewriter_from_env,
 )
 from src.retrieval.schemas import DocumentChunk
-from src.retrieval.retriever import HybridRetriever, KeywordRetriever, RerankingRetriever
+from src.retrieval.retriever import (
+    HybridRetriever,
+    HybridRRFRetriever,
+    KeywordRetriever,
+    RerankingRetriever,
+)
 
 
 def run_baseline_eval(
@@ -114,10 +122,21 @@ def run_baseline_comparison(
         model_name=dense_model,
     )
     hybrid_rag = ExtractiveRAGPipeline(HybridRetriever(chunks))
+    hybrid_rrf_rag = build_hybrid_rrf_rag_pipeline(
+        chunks,
+        provider=dense_provider,
+        backend=dense_backend,
+        model_name=dense_model,
+    )
     hybrid_rerank_rag = ExtractiveRAGPipeline(
         RerankingRetriever(HybridRetriever(chunks), candidate_k=10)
     )
     rewrite_rag = RewriteRAGPipeline(HybridRetriever(chunks))
+    rewrite_llm_rag = LLMMultiQueryRAGPipeline(
+        HybridRetriever(chunks),
+        query_rewriter=build_multi_query_rewriter_from_env(),
+        candidate_k=10,
+    )
     rewrite_grounded_rag = GroundedRAGPipeline(
         RewritingSearcher(HybridRetriever(chunks))
     )
@@ -153,6 +172,11 @@ def run_baseline_comparison(
             _run_rag_only(records, hybrid_rag),
         ),
         _evaluate_predictions(
+            "hybrid_rrf",
+            records,
+            _run_rag_only(records, hybrid_rrf_rag),
+        ),
+        _evaluate_predictions(
             "rag_hybrid_rerank",
             records,
             _run_rag_only(records, hybrid_rerank_rag),
@@ -161,6 +185,11 @@ def run_baseline_comparison(
             "rag_rewrite",
             records,
             _run_rag_only(records, rewrite_rag),
+        ),
+        _evaluate_predictions(
+            "rewrite_llm",
+            records,
+            _run_rag_only(records, rewrite_llm_rag, include_latency=True),
         ),
         _evaluate_predictions(
             "rag_rewrite_grounded",
@@ -268,6 +297,31 @@ def build_dense_rag_pipeline(
     return ExtractiveRAGPipeline(retriever)
 
 
+def build_hybrid_rrf_rag_pipeline(
+    chunks: list[DocumentChunk],
+    *,
+    provider: str = "deterministic",
+    backend: str = "memory",
+    model_name: str | None = None,
+    candidate_k: int = 20,
+    rrf_k: int = 60,
+) -> ExtractiveRAGPipeline:
+    dense_rag = build_dense_rag_pipeline(
+        chunks,
+        provider=provider,
+        backend=backend,
+        model_name=model_name,
+    )
+    return ExtractiveRAGPipeline(
+        HybridRRFRetriever(
+            HybridRetriever(chunks),
+            dense_rag.retriever,
+            candidate_k=candidate_k,
+            rrf_k=rrf_k,
+        )
+    )
+
+
 def build_grounded_rag_pipeline(
     chunks: list[DocumentChunk],
     *,
@@ -313,23 +367,27 @@ class RewritingSearcher:
 def _run_rag_only(
     records: list[EvalRecord],
     rag_pipeline: ExtractiveRAGPipeline,
+    *,
+    include_latency: bool = False,
 ) -> list[dict[str, Any]]:
     predictions = []
     for record in records:
+        started_at = perf_counter()
         answer = rag_pipeline.answer(record.question, top_k=3)
-        predictions.append(
-            {
-                "id": record.id,
-                "question": record.question,
-                "task_type": record.task_type,
-                "answer": answer.answer,
-                "route": "rag",
-                "tools": [],
-                "citations": answer.citations,
-                "retrieved_contexts": answer.retrieved_contexts,
-                "tool_results": [],
-            }
-        )
+        prediction = {
+            "id": record.id,
+            "question": record.question,
+            "task_type": record.task_type,
+            "answer": answer.answer,
+            "route": "rag",
+            "tools": [],
+            "citations": answer.citations,
+            "retrieved_contexts": answer.retrieved_contexts,
+            "tool_results": [],
+        }
+        if include_latency:
+            prediction["latency_seconds"] = perf_counter() - started_at
+        predictions.append(prediction)
     return predictions
 
 
@@ -364,6 +422,13 @@ def _compute_metrics(records: list[EvalRecord], prediction_map: dict[str, dict])
         "required_step_recall": required_step_recall(records, prediction_map),
         "policy_final_step_rate": policy_final_step_rate(records, prediction_map),
     }
+    latencies = [
+        float(prediction["latency_seconds"])
+        for prediction in prediction_map.values()
+        if prediction.get("latency_seconds") is not None
+    ]
+    if latencies:
+        metrics["average_latency_seconds"] = sum(latencies) / len(latencies)
     return {
         name: value
         for name, value in metrics.items()

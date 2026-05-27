@@ -25,7 +25,7 @@ def detokenize_chunk(tokens: list[str]) -> str:
         if not parts:
             parts.append(token)
             continue
-        if _is_cjk_token(parts[-1][-1]) or _is_cjk_token(token[0]):
+        if _is_cjk_token(parts[-1][-1]) and _is_cjk_token(token[0]):
             parts.append(token)
         else:
             parts.append(f" {token}")

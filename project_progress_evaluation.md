@@ -167,9 +167,9 @@
 
 #### ❌ 建议 10：扩展评测集到 150-200 条 — 0/10
 
-**未执行：**
-- ❌ [hvac_eval.jsonl](file:///C:/Users/zouwei/Desktop/PROJECT/DataCenter-HVAC-Copilot/data/eval/hvac_eval.jsonl) 仍为 **100 条**
-- ❌ 实验报告确认 "当前评测集包含 100 条样例"
+**当前状态：**
+- ✅ [hvac_eval.jsonl](file:///C:/Users/zouwei/Desktop/PROJECT/DataCenter-HVAC-Copilot/data/eval/hvac_eval.jsonl) 已为 **108 条**
+- ✅ 实验报告确认 "当前评测集包含 108 条样例"
 
 ---
 
@@ -497,12 +497,12 @@ eval:          ## 运行评测
 
 > [!WARNING]
 > - LangGraph：可以说"用 LangGraph 编排工作流，并支持 DeepSeek/Ollama LLM intent routing"；同时说明默认评测仍用 rule-based classifier 保证可复现。
-> - 评测：说"100 条评测集"，**不能说**"包含人工标注校准"（人工标注全部 pending）
+> - 评测：说"108 条评测集"，**不能说**"包含人工标注校准"（人工标注全部 pending）
 > - 检索：说"支持 dense retrieval"，注意 dense 是 optional extra，Docker 镜像默认不含
 
 ### 补齐 P0 后的简历一句话
 
-> 构建 DataCenter-HVAC Copilot：基于 **LangGraph StateGraph** 的 RAG + Tool Agent 系统，面向数据中心 HVAC 仿真场景。集成 **Hybrid 检索**（BM25 + BGE-small-zh + FAISS + Rerank）、Query Rewrite / template HyDE、时序分析工具、RL/扩散策略推理适配器和 Safety Audit；支持 **DeepSeek/Ollama 可选接入**。在 **100 条评测集**上对比 10+ 组 baseline，检索 citation_hit_rate 从 keyword 的 0.554 提升到 dense_real 的 0.692，query rewrite 达到 0.646。Docker 容器化部署，FastAPI + Streamlit Demo。
+> 构建 DataCenter-HVAC Copilot：基于 **LangGraph StateGraph** 的 RAG + Tool Agent 系统，面向数据中心 HVAC 仿真场景。集成 **Hybrid 检索**（BM25 + BGE-small-zh + FAISS + Rerank）、Query Rewrite / template HyDE、时序分析工具、RL/扩散策略推理适配器和 Safety Audit；支持 **DeepSeek/Ollama 可选接入**。在 **108 条评测集**上对比 10+ 组 baseline，检索 citation_hit_rate 从 keyword 的 0.554 提升到 dense_real 的 0.692，query rewrite 达到 0.646。Docker 容器化部署，FastAPI + Streamlit Demo。
 
 ---
 

@@ -1,9 +1,17 @@
 from __future__ import annotations
 
+import json
+import os
+import re
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
 from typing import Protocol
 
+from src.agent.deepseek_generator import Transport
+from src.core.env import load_env_file
 from src.retrieval.rag import RAGAnswer
+from src.retrieval.retriever import reciprocal_rank_fusion
 
 
 @dataclass(frozen=True)
@@ -21,8 +29,22 @@ class HyDEResult:
     strategy: str = "template_hyde"
 
 
+@dataclass(frozen=True)
+class MultiQueryRewriteResult:
+    original_query: str
+    queries: list[str]
+    strategy: str
+    fallback_used: bool = False
+    error: str | None = None
+
+
 class QueryRewriter(Protocol):
     def rewrite(self, query: str, task_type: str | None = None) -> QueryRewriteResult:
+        ...
+
+
+class MultiQueryRewriter(Protocol):
+    def rewrite_queries(self, query: str, task_type: str | None = None) -> MultiQueryRewriteResult:
         ...
 
 
@@ -68,6 +90,88 @@ class TemplateHyDEGenerator:
         return HyDEResult(original_query=query, hypothetical_document=hypothetical)
 
 
+class LLMMultiQueryRewriter:
+    """OpenAI-compatible multi-query rewriter with rule-based fallback."""
+
+    def __init__(
+        self,
+        provider: str,
+        api_key: str,
+        base_url: str,
+        model: str,
+        timeout_seconds: float = 20.0,
+        fallback: QueryRewriter | None = None,
+        transport: Transport | None = None,
+    ) -> None:
+        self.provider = provider
+        self.api_key = api_key
+        self.base_url = base_url.rstrip("/")
+        self.model = model
+        self.timeout_seconds = timeout_seconds
+        self.fallback = fallback or RuleBasedHVACQueryRewriter()
+        self.transport = transport or _default_transport
+
+    def rewrite_queries(self, query: str, task_type: str | None = None) -> MultiQueryRewriteResult:
+        body = json.dumps(
+            {
+                "model": self.model,
+                "messages": [
+                    {"role": "system", "content": _multi_query_system_prompt()},
+                    {
+                        "role": "user",
+                        "content": json.dumps(
+                            {"query": query, "task_type": task_type},
+                            ensure_ascii=False,
+                        ),
+                    },
+                ],
+                "temperature": 0.0,
+            },
+            ensure_ascii=False,
+        ).encode("utf-8")
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+        try:
+            response = self.transport(
+                f"{self.base_url}/chat/completions",
+                headers,
+                body,
+                self.timeout_seconds,
+            )
+            content = str(response["choices"][0]["message"]["content"])
+            queries = _parse_multi_query_payload(content)
+            return MultiQueryRewriteResult(
+                original_query=query,
+                queries=queries,
+                strategy="llm_multi_query_rewrite",
+                fallback_used=False,
+            )
+        except Exception as exc:
+            return _fallback_multi_query_result(
+                query=query,
+                task_type=task_type,
+                fallback=self.fallback,
+                error=str(exc),
+            )
+
+
+class DeterministicMultiQueryRewriter:
+    """Deterministic adapter that exposes rule rewrite through the multi-query API."""
+
+    def __init__(self, fallback: QueryRewriter | None = None) -> None:
+        self.fallback = fallback or RuleBasedHVACQueryRewriter()
+
+    def rewrite_queries(self, query: str, task_type: str | None = None) -> MultiQueryRewriteResult:
+        return _fallback_multi_query_result(
+            query=query,
+            task_type=task_type,
+            fallback=self.fallback,
+            error=None,
+        )
+
+
 class RewriteRAGPipeline:
     """RAG pipeline that retrieves with a rewritten query and answers the original query."""
 
@@ -87,6 +191,50 @@ class RewriteRAGPipeline:
         contexts = [
             _with_retrieval_metadata(context, rewritten.rewritten_query, rewritten.strategy)
             for context in self.retriever.search(rewritten.rewritten_query, top_k=top_k)
+        ]
+        return _answer_from_contexts(question, contexts)
+
+
+class LLMMultiQueryRAGPipeline:
+    """RAG pipeline that retrieves LLM query variants and fuses them with RRF."""
+
+    def __init__(
+        self,
+        retriever,
+        *,
+        query_rewriter: MultiQueryRewriter | None = None,
+        task_type: str | None = None,
+        candidate_k: int = 10,
+        rrf_k: int = 60,
+    ) -> None:
+        if candidate_k <= 0:
+            raise ValueError("candidate_k must be positive.")
+        if rrf_k <= 0:
+            raise ValueError("rrf_k must be positive.")
+        self.retriever = retriever
+        self.query_rewriter = query_rewriter or DeterministicMultiQueryRewriter()
+        self.task_type = task_type
+        self.candidate_k = candidate_k
+        self.rrf_k = rrf_k
+
+    def answer(self, question: str, top_k: int = 3) -> RAGAnswer:
+        if top_k <= 0:
+            raise ValueError("top_k must be positive.")
+        rewritten = self.query_rewriter.rewrite_queries(question, task_type=self.task_type)
+        ranked_lists = []
+        for retrieval_query in rewritten.queries:
+            results = [
+                _with_retrieval_metadata(context, retrieval_query, rewritten.strategy)
+                for context in self.retriever.search(retrieval_query, top_k=self.candidate_k)
+            ]
+            ranked_lists.append(results)
+        contexts = [
+            _with_multi_query_metadata(context, rewritten)
+            for context in reciprocal_rank_fusion(
+                ranked_lists,
+                k=self.rrf_k,
+                top_k=top_k,
+            )
         ]
         return _answer_from_contexts(question, contexts)
 
@@ -135,6 +283,103 @@ def _with_retrieval_metadata(context: dict, retrieval_query: str, strategy: str)
     updated["retrieval_query"] = retrieval_query
     updated["retrieval_query_strategy"] = strategy
     return updated
+
+
+def _with_multi_query_metadata(context: dict, rewritten: MultiQueryRewriteResult) -> dict:
+    updated = dict(context)
+    updated["retrieval_queries"] = rewritten.queries
+    updated["retrieval_query_strategy"] = rewritten.strategy
+    updated["retrieval_query_fallback_used"] = rewritten.fallback_used
+    if rewritten.error:
+        updated["retrieval_query_error"] = rewritten.error
+    return updated
+
+
+def build_multi_query_rewriter_from_env(
+    project_root: str | Path | None = None,
+    transport: Transport | None = None,
+) -> MultiQueryRewriter:
+    root = Path(project_root) if project_root else Path(__file__).resolve().parents[2]
+    load_env_file(root / ".env")
+    provider = os.getenv("QUERY_REWRITE_PROVIDER", "auto").strip().lower()
+    if provider in {"", "auto"}:
+        provider = "deepseek" if os.getenv("DEEPSEEK_API_KEY", "").strip() else "deterministic"
+    if provider in {"deterministic", "rule_based"}:
+        return DeterministicMultiQueryRewriter()
+    if provider == "deepseek":
+        api_key = os.getenv("DEEPSEEK_API_KEY", "").strip()
+        if not api_key:
+            return DeterministicMultiQueryRewriter()
+        return LLMMultiQueryRewriter(
+            provider="deepseek",
+            api_key=api_key,
+            base_url=os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
+            model=os.getenv("QUERY_REWRITE_MODEL", os.getenv("DEEPSEEK_MODEL", "deepseek-chat")),
+            timeout_seconds=float(os.getenv("QUERY_REWRITE_TIMEOUT_SECONDS", "20")),
+            transport=transport,
+        )
+    return DeterministicMultiQueryRewriter()
+
+
+def _fallback_multi_query_result(
+    *,
+    query: str,
+    task_type: str | None,
+    fallback: QueryRewriter,
+    error: str | None,
+) -> MultiQueryRewriteResult:
+    rewritten = fallback.rewrite(query, task_type=task_type)
+    return MultiQueryRewriteResult(
+        original_query=query,
+        queries=[rewritten.rewritten_query],
+        strategy=rewritten.strategy,
+        fallback_used=True,
+        error=error,
+    )
+
+
+def _parse_multi_query_payload(content: str) -> list[str]:
+    parsed = json.loads(_strip_json_fence(content))
+    if not isinstance(parsed, list):
+        raise ValueError("multi-query rewrite payload must be a JSON array")
+    if not parsed or len(parsed) > 5:
+        raise ValueError("multi-query rewrite payload must contain 1 to 5 queries")
+    if not all(isinstance(item, str) for item in parsed):
+        raise ValueError("multi-query rewrite payload items must be strings")
+
+    queries = _dedupe([item.strip() for item in parsed if item.strip()])
+    if not queries:
+        raise ValueError("multi-query rewrite payload must not be empty")
+    if len(queries) > 5:
+        raise ValueError("multi-query rewrite payload must contain at most 5 unique queries")
+    return queries
+
+
+def _strip_json_fence(content: str) -> str:
+    stripped = content.strip()
+    if stripped.startswith("```"):
+        stripped = re.sub(r"^```(?:json)?", "", stripped).strip()
+        stripped = re.sub(r"```$", "", stripped).strip()
+    return stripped
+
+
+def _multi_query_system_prompt() -> str:
+    return (
+        "You rewrite DataCenter-HVAC Copilot retrieval queries. "
+        "Return only a JSON array of 1 to 5 strings. "
+        "Each string should be a semantic variant of the user query for document retrieval. "
+        "Keep domain terms such as BEAR, HVAC, zone_temperature, query_metric, policy_result, "
+        "control_action, anomaly, setpoint, fan_power, and cooling_power when relevant. "
+        "Do not answer the question, do not call tools, and do not return any object wrapper."
+    )
+
+
+def _default_transport(url: str, headers: dict[str, str], body: bytes, timeout: float) -> dict[str, Any]:
+    from urllib import request
+
+    req = request.Request(url=url, data=body, headers=headers, method="POST")
+    with request.urlopen(req, timeout=timeout) as response:
+        return json.loads(response.read().decode("utf-8"))
 
 
 def _terms_for_task(task_type: str | None) -> list[str]:

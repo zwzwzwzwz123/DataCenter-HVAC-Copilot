@@ -1,4 +1,5 @@
 from pathlib import Path
+import tomllib
 
 
 def test_readme_documents_chinese_project_overview_and_boundaries() -> None:
@@ -87,7 +88,8 @@ def test_readme_mentions_human_evaluation_calibration() -> None:
     content = Path("README.md").read_text(encoding="utf-8")
 
     assert "评测口径" in content
-    assert "人工评测是可选增强项" in content
+    assert "预留人审接口和模板" in content
+    assert "human review pending" in content
     assert "Human Calibration" in content
     assert "docs/human_evaluation_guide.md" in content
     assert "human_review_annotations.jsonl" in content
@@ -149,3 +151,76 @@ def test_docker_compose_files_are_present() -> None:
     compose_content = compose.read_text(encoding="utf-8")
     assert "api:" in compose_content
     assert "streamlit:" in compose_content
+
+
+def test_pyproject_declares_runtime_and_policy_dependencies() -> None:
+    metadata = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+
+    dependencies = metadata["project"]["dependencies"]
+    extras = metadata["project"]["optional-dependencies"]
+
+    assert any(dependency.startswith("httpx") for dependency in dependencies)
+    assert "policy" in extras
+    assert any(dependency.startswith("torch") for dependency in extras["policy"])
+
+
+def test_dev_dependencies_include_pytest_cov() -> None:
+    metadata = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+
+    dev_dependencies = metadata["project"]["optional-dependencies"]["dev"]
+
+    assert any(dependency.startswith("pytest-cov") for dependency in dev_dependencies)
+
+
+def test_ci_runs_pytest_with_coverage_report() -> None:
+    workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
+
+    assert "--cov=src" in workflow
+    assert "--cov-report=term-missing" in workflow
+
+
+def test_readme_documents_coverage_command_and_current_number() -> None:
+    content = Path("README.md").read_text(encoding="utf-8")
+
+    assert "python -m pytest --cov=src --cov-report=term-missing -q" in content
+    assert "本地当前一次运行的核心模块覆盖率" in content
+    assert "policy` extra / `torch`" in content
+    assert "可能因未安装 `torch` 被跳过" in content
+    assert "%" in content.split("本地当前一次运行的核心模块覆盖率", maxsplit=1)[1].splitlines()[0]
+
+
+def test_readme_documents_policy_extra_for_dropt_backend() -> None:
+    content = Path("README.md").read_text(encoding="utf-8")
+
+    assert 'pip install -e ".[policy]"' in content
+    assert 'pip install -e ".[dev,policy]"' in content
+    assert "DROPT / Guided-DiffFNO" in content
+
+
+def test_readme_uses_current_eval_count_and_task_distribution() -> None:
+    content = Path("README.md").read_text(encoding="utf-8")
+
+    assert "108 条 JSONL 评测集" in content
+    assert "当前评测集包含 108 条样例" in content
+    assert "document_qa:          40" in content
+    assert "timeseries_query:     20" in content
+    assert "anomaly_diagnosis:    20" in content
+    assert "policy_recommendation:28" in content
+    assert "100 条评测集" not in content
+    assert "当前评测集包含 100 条样例" not in content
+    assert "policy_recommendation:20" not in content
+
+
+def test_readme_copy_sets_safety_memory_and_human_review_boundaries() -> None:
+    content = Path("README.md").read_text(encoding="utf-8")
+
+    assert "确定性边界审计" in content
+    assert "small adversarial audit" in content
+    assert "hit rate 0.586" in content
+    assert "英文/翻译/paraphrase" in content
+    assert "session-scoped SQLite conversation memory" in content
+    assert "retrieved context loading" in content
+    assert "预留人审接口和模板" in content
+    assert "deterministic proxy" in content
+    assert "human review pending" in content
+    assert "Conversation Memory 长期知识记忆" not in content

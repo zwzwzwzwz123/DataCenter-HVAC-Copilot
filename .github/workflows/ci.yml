@@ -24,4 +24,4 @@ jobs:
         run: python -m ruff check .
 
       - name: Test
-        run: python -m pytest -q
+        run: python -m pytest --cov=src --cov-report=term-missing -q

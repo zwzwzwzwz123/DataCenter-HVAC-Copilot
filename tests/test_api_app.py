@@ -96,6 +96,7 @@ def test_ask_endpoint_can_run_langgraph_workflow_trace():
 
 
 def test_ask_endpoint_defaults_policy_route_to_dropt_checkpoint():
+    pytest.importorskip("torch")
     client = TestClient(
         create_app(
             use_env_answer_generator=False,
@@ -673,6 +674,7 @@ def test_demo_orchestrator_uses_offline_replay_policy_when_file_exists(tmp_path)
 
 
 def test_demo_orchestrator_uses_dropt_checkpoint_when_present(tmp_path):
+    pytest.importorskip("torch")
     documents_dir = tmp_path / "data" / "documents"
     documents_dir.mkdir(parents=True)
     (documents_dir / "sample_hvac_guidance.md").write_text(

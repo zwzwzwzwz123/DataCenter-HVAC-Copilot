@@ -17,7 +17,7 @@
 7. `src/evaluation/` 提供 eval JSONL 读取、最小指标计算、轻量回答质量代理指标和 baseline runner。
 8. `src/api/` 提供 FastAPI 服务雏形，暴露 `/health`、`/ask` 和 `/eval/run`。
 9. `app/` 提供 Streamlit demo，采用专业深色控制台布局，调用 API 并展示 route、tools、answer、citations、tool results、时序趋势、状态卡片和评测摘要。
-10. `data/eval/hvac_eval.jsonl` 保存 100 条评测样例，按文档问答 40、时序查询 20、异常诊断 20、策略建议 20 覆盖四类任务，全部包含人工维护的 `expected_keywords`，代表性样例包含 `must_include` / `must_not_include` 质量代理标注。
+10. `data/eval/hvac_eval.jsonl` 保存 108 条评测样例，按文档问答 40、时序查询 20、异常诊断 20、策略建议 28 覆盖四类任务，全部包含人工维护的 `expected_keywords`，代表性样例包含 `must_include` / `must_not_include` 质量代理标注。
 
 第二阶段起步补充了两个可复现能力：
 
@@ -28,12 +28,12 @@
 5. `src/agent/answer_generator.py` 提供确定性证据约束回答生成器，`src/agent/deepseek_generator.py` 在配置 `DEEPSEEK_API_KEY` 后可调用 DeepSeek 生成最终解释；DeepSeek 只读取检索上下文、引用、工具结果、policy result 和数据源，不直接生成控制动作。
 6. `src/agent/answer_audit.py` 对最终回答做确定性安全审计，检查是否把 BEAR 表述为真实生产遥测、是否声称 LLM 直接生成/写回控制动作、以及策略回答中是否出现 policy 工具未返回的动作。
 
-当前 100 条评测集上的 baseline summary 显示：
+当前 108 条评测集上的 baseline summary 显示：
 
 - `llm_only` 没有引用、检索上下文和工具证据，各项指标均为 0。
 - `rag_keyword` 的 citation/context 指标为 0.554，`rag_hybrid` 为 0.585，长噪声/短目标和领域近义压力样例继续体现 BM25-style hybrid 检索优势。
 - `rag_dense` 已作为 dense retrieval baseline 纳入 comparison；默认使用 deterministic hash embedding，保证不安装 FAISS 或 sentence-transformers 时仍可复现。真实 FAISS dense retrieval 通过 `pip install -e ".[dev,dense]"` 启用，FAISS 本身不需要 API。
-- `rag_hybrid_rerank` 的 citation/context 指标为 0.600，metadata-aware 轻量重排仍能在 100 条样例中拉开与 `rag_hybrid` 的差异。
+- `rag_hybrid_rerank` 的 citation/context 指标为 0.600，metadata-aware 轻量重排仍能在 108 条样例中拉开与 `rag_hybrid` 的差异。
 - `rag_rewrite`、`rag_hyde`、`rag_hyde_rerank` 已作为 Query Rewrite / HyDE baseline 纳入 comparison。当前 `rag_rewrite` citation/context 为 0.646，说明 deterministic query expansion 在 HVAC/BEAR 领域样例中有效；template HyDE 指标较低，提示模板假想文档可能引入查询漂移，后续可替换为 DeepSeek/Ollama HyDE generator 再评估。
 - `rag_tool_agent` 在当前确定性路由样例上完成工具选择与执行，tool selection / execution 均为 1.000，并将 evidence coverage 提升到 0.910。
 - 代表性样例已加入 `must_include` / `must_not_include` 标注；最新 `rag_tool_agent` 的 `expected_keyword_coverage` 为 0.618，`lexical_answer_coverage` 为 0.285，`answer_correctness_proxy` 为 0.547，`faithfulness_proxy` 为 0.465。这是本地确定性代理指标，不等价于完整人工评审或 LLM judge。
@@ -113,7 +113,7 @@ LLM judge adapter 仅作为可选评测辅助，默认关闭。`scripts/run_eval
 
 Baseline orchestrator 与 LangGraph orchestrator 共享 `AgentTaskExecutor`，因此工具执行、RAG 检索、policy 调用和 answer audit 不再通过 LangGraph 调用 baseline 私有方法完成。交互式 demo 默认展示 route planner trace 和 DROPT policy backend；离线评测中的 `langgraph_tool_agent` 仍与 deterministic baseline 对齐，这是为了保证可复现。
 
-Intent routing 评测由 `scripts/run_intent_eval.py` 单独输出 `data/eval/intent_routing_comparison.json`。该评测不传入 gold `task_type`，直接让 classifier 从问题文本判断 route，并报告 accuracy、fallback rate、按任务类型分组和 confusion matrix。默认 rule-based classifier 在当前 100 条样例上 accuracy 为 0.640；DeepSeek 或 Ollama/Qwen 可作为同一脚本中的 LLM routing backend 进行横向对比。
+Intent routing 评测由 `scripts/run_intent_eval.py` 单独输出 `data/eval/intent_routing_comparison.json`。该评测不传入 gold `task_type`，直接让 classifier 从问题文本判断 route，并报告 accuracy、fallback rate、按任务类型分组和 confusion matrix。默认 rule-based classifier 在当前 108 条样例上 accuracy 为 0.640；DeepSeek 或 Ollama/Qwen 可作为同一脚本中的 LLM routing backend 进行横向对比。
 
 ## 后续扩展方向
 

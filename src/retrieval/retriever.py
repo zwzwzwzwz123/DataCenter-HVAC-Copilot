@@ -121,6 +121,88 @@ class HybridRetriever:
         return score
 
 
+def reciprocal_rank_fusion(
+    ranked_result_lists: Iterable[list[dict]],
+    *,
+    k: int = 60,
+    top_k: int | None = None,
+) -> list[dict]:
+    if k <= 0:
+        raise ValueError("k must be positive.")
+    if top_k is not None and top_k <= 0:
+        raise ValueError("top_k must be positive.")
+
+    fused_by_chunk_id: dict[str, dict] = {}
+    for results in ranked_result_lists:
+        for rank, result in enumerate(results, start=1):
+            chunk_id = str(result.get("chunk_id") or "")
+            if not chunk_id:
+                continue
+            score_increment = 1 / (k + rank)
+            if chunk_id not in fused_by_chunk_id:
+                fused_by_chunk_id[chunk_id] = {
+                    **result,
+                    "score": 0.0,
+                    "rrf_score": 0.0,
+                    "source_retrieval_modes": [],
+                }
+            fused = fused_by_chunk_id[chunk_id]
+            fused["score"] += score_increment
+            fused["rrf_score"] = fused["score"]
+            retrieval_mode = result.get("retrieval_mode")
+            if (
+                retrieval_mode
+                and retrieval_mode not in fused["source_retrieval_modes"]
+            ):
+                fused["source_retrieval_modes"].append(retrieval_mode)
+
+    fused_results = list(fused_by_chunk_id.values())
+    fused_results.sort(key=lambda item: (-item["rrf_score"], item["chunk_id"]))
+    if top_k is None:
+        return fused_results
+    return fused_results[:top_k]
+
+
+class HybridRRFRetriever:
+    """RRF fusion over existing BM25 and dense retrievers."""
+
+    def __init__(
+        self,
+        bm25_retriever,
+        dense_retriever,
+        *,
+        candidate_k: int = 20,
+        rrf_k: int = 60,
+    ) -> None:
+        if candidate_k <= 0:
+            raise ValueError("candidate_k must be positive.")
+        if rrf_k <= 0:
+            raise ValueError("rrf_k must be positive.")
+        self.bm25_retriever = bm25_retriever
+        self.dense_retriever = dense_retriever
+        self.candidate_k = candidate_k
+        self.rrf_k = rrf_k
+        self.chunks = getattr(bm25_retriever, "chunks", getattr(dense_retriever, "chunks", []))
+
+    def search(self, query: str, top_k: int = 5) -> list[dict]:
+        if top_k <= 0:
+            raise ValueError("top_k must be positive.")
+        bm25_results = self.bm25_retriever.search(query, top_k=self.candidate_k)
+        dense_results = self.dense_retriever.search(query, top_k=self.candidate_k)
+        fused = reciprocal_rank_fusion(
+            [bm25_results, dense_results],
+            k=self.rrf_k,
+            top_k=top_k,
+        )
+        return [
+            {
+                **result,
+                "retrieval_mode": "hybrid_rrf",
+            }
+            for result in fused
+        ]
+
+
 class RerankingRetriever:
     """Second-stage lexical reranker that can wrap an existing retriever."""
 

@@ -175,8 +175,10 @@ def test_run_baseline_comparison_returns_named_modes(tmp_path: Path):
         "rag_dense",
         "rag_dense_grounded",
         "rag_hybrid",
+        "hybrid_rrf",
         "rag_hybrid_rerank",
         "rag_rewrite",
+        "rewrite_llm",
         "rag_rewrite_grounded",
         "rag_hyde",
         "rag_hyde_rerank",
@@ -192,8 +194,10 @@ def test_run_baseline_comparison_returns_named_modes(tmp_path: Path):
         "rag_dense",
         "rag_dense_grounded",
         "rag_hybrid",
+        "hybrid_rrf",
         "rag_hybrid_rerank",
         "rag_rewrite",
+        "rewrite_llm",
         "rag_rewrite_grounded",
         "rag_hyde",
         "rag_hyde_rerank",
@@ -203,6 +207,9 @@ def test_run_baseline_comparison_returns_named_modes(tmp_path: Path):
         "react_agent",
     }
     assert result["summary"]["rag_tool_agent"]["tool_selection_accuracy"] == 1.0
+    assert "citation_hit_rate" in result["summary"]["hybrid_rrf"]
+    assert "citation_hit_rate" in result["summary"]["rewrite_llm"]
+    assert "average_latency_seconds" in result["summary"]["rewrite_llm"]
     assert result["summary"]["langgraph_tool_agent"]["tool_selection_accuracy"] == 1.0
     assert "react_agent" in result["summary"]
     assert result["summary"]["llm_only"]["tool_selection_accuracy"] == 0.0

@@ -338,7 +338,7 @@ def _process_lock(lock_dir: Path, *, timeout_seconds: float = 30.0, stale_second
         try:
             lock_dir.mkdir()
             acquired = True
-        except FileExistsError:
+        except FileExistsError as exc:
             if _is_stale_lock(lock_dir, stale_seconds=stale_seconds):
                 try:
                     lock_dir.rmdir()
@@ -346,7 +346,9 @@ def _process_lock(lock_dir: Path, *, timeout_seconds: float = 30.0, stale_second
                     pass
                 continue
             if time.monotonic() >= deadline:
-                raise TimeoutError(f"Timed out waiting for knowledge mutation lock: {lock_dir}")
+                raise TimeoutError(
+                    f"Timed out waiting for knowledge mutation lock: {lock_dir}"
+                ) from exc
             time.sleep(0.05)
     try:
         yield

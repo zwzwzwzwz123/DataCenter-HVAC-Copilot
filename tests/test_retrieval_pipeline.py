@@ -2,7 +2,13 @@ from pathlib import Path
 
 from src.retrieval.chunking import chunk_document
 from src.retrieval.loader import load_markdown_document, load_text_documents
-from src.retrieval.retriever import HybridRetriever, KeywordRetriever, RerankingRetriever
+from src.retrieval.retriever import (
+    HybridRetriever,
+    HybridRRFRetriever,
+    KeywordRetriever,
+    RerankingRetriever,
+    reciprocal_rank_fusion,
+)
 from src.retrieval.schemas import DocumentMetadata, SourceDocument
 
 
@@ -63,6 +69,23 @@ def test_chunk_document_splits_long_chinese_text_without_spaces():
     assert all(chunk.text for chunk in chunks)
     assert all(chunk.end_word - chunk.start_word <= 18 for chunk in chunks)
     assert chunks[0].citation["section"] == "冷却策略"
+
+
+def test_chunk_document_keeps_ascii_tool_tokens_separate_from_chinese_text():
+    document = SourceDocument(
+        text="当问题询问最大值时优先调用 query_metric，并保留 zone_id 和 summary。",
+        metadata=DocumentMetadata(
+            source_id="mixed_manual",
+            title="Mixed Manual",
+            source_path="mixed.md",
+        ),
+    )
+
+    chunks = chunk_document(document, chunk_size=30, overlap=3)
+
+    assert " query_metric " in chunks[0].text
+    assert " zone_id " in chunks[0].text
+    assert " summary" in chunks[0].text
 
 
 def test_keyword_retriever_returns_ranked_chunks_with_citations():
@@ -136,6 +159,89 @@ def test_hybrid_retriever_uses_bm25_length_normalization_and_labels_mode():
     ]
     assert results[0]["retrieval_mode"] == "hybrid_bm25"
     assert results[0]["score"] > results[1]["score"]
+
+
+def test_reciprocal_rank_fusion_accumulates_rank_scores_and_deduplicates():
+    keyword_results = [
+        {"chunk_id": "doc_a::chunk_0000", "score": 100.0, "text": "A", "citation": {}},
+        {"chunk_id": "doc_b::chunk_0000", "score": 90.0, "text": "B", "citation": {}},
+    ]
+    dense_results = [
+        {"chunk_id": "doc_b::chunk_0000", "score": 0.1, "text": "B dense", "citation": {}},
+        {"chunk_id": "doc_c::chunk_0000", "score": 0.9, "text": "C", "citation": {}},
+    ]
+
+    fused = reciprocal_rank_fusion([keyword_results, dense_results], k=60, top_k=3)
+
+    assert [result["chunk_id"] for result in fused] == [
+        "doc_b::chunk_0000",
+        "doc_a::chunk_0000",
+        "doc_c::chunk_0000",
+    ]
+    assert fused[0]["score"] == (1 / 62) + (1 / 61)
+    assert fused[0]["rrf_score"] == fused[0]["score"]
+    assert fused[0]["source_retrieval_modes"] == []
+
+
+class FixedRetriever:
+    def __init__(self, results: list[dict]) -> None:
+        self.results = results
+        self.calls: list[tuple[str, int]] = []
+
+    def search(self, query: str, top_k: int = 5) -> list[dict]:
+        self.calls.append((query, top_k))
+        return self.results[:top_k]
+
+
+def test_hybrid_rrf_retriever_uses_top_n_from_bm25_and_dense_then_returns_top_k():
+    bm25 = FixedRetriever(
+        [
+            {
+                "chunk_id": "doc_a::chunk_0000",
+                "score": 3.0,
+                "text": "bm25 a",
+                "citation": {},
+                "retrieval_mode": "hybrid_bm25",
+            },
+            {
+                "chunk_id": "doc_b::chunk_0000",
+                "score": 2.0,
+                "text": "bm25 b",
+                "citation": {},
+                "retrieval_mode": "hybrid_bm25",
+            },
+        ]
+    )
+    dense = FixedRetriever(
+        [
+            {
+                "chunk_id": "doc_b::chunk_0000",
+                "score": 0.2,
+                "text": "dense b",
+                "citation": {},
+                "retrieval_mode": "dense_hash",
+            },
+            {
+                "chunk_id": "doc_c::chunk_0000",
+                "score": 0.9,
+                "text": "dense c",
+                "citation": {},
+                "retrieval_mode": "dense_hash",
+            },
+        ]
+    )
+
+    retriever = HybridRRFRetriever(bm25, dense, candidate_k=2, rrf_k=60)
+    results = retriever.search("cooling airflow", top_k=2)
+
+    assert bm25.calls == [("cooling airflow", 2)]
+    assert dense.calls == [("cooling airflow", 2)]
+    assert [result["chunk_id"] for result in results] == [
+        "doc_b::chunk_0000",
+        "doc_a::chunk_0000",
+    ]
+    assert results[0]["retrieval_mode"] == "hybrid_rrf"
+    assert results[0]["source_retrieval_modes"] == ["hybrid_bm25", "dense_hash"]
 
 
 def test_reranking_retriever_promotes_exact_phrase_and_labels_mode():

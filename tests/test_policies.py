@@ -3,11 +3,17 @@ from pathlib import Path
 
 import pytest
 
-from src.policies.dropt_adapter import DROPTCheckpointPolicy
 from src.policies.diffusion_adapter import DiffusionPolicyAdapter
 from src.policies.mpc_like import run_mpc_like_policy
 from src.policies.offline_replay import OfflineReplayPolicy
 from src.policies.rule_based import run_rule_based_policy
+
+
+def _dropt_policy_cls():
+    pytest.importorskip("torch")
+    from src.policies.dropt_adapter import DROPTCheckpointPolicy
+
+    return DROPTCheckpointPolicy
 
 
 def test_rule_based_policy_recommends_cooling_when_temperature_is_high():
@@ -53,6 +59,7 @@ def test_diffusion_policy_adapter_fails_explicitly_without_backend():
 
 
 def test_dropt_checkpoint_policy_falls_back_without_checkpoint():
+    DROPTCheckpointPolicy = _dropt_policy_cls()
     policy = DROPTCheckpointPolicy(model_path=None)
 
     result = policy.run(
@@ -71,6 +78,7 @@ def test_dropt_checkpoint_policy_falls_back_without_checkpoint():
 
 
 def test_dropt_checkpoint_policy_falls_back_without_full_bear_state():
+    DROPTCheckpointPolicy = _dropt_policy_cls()
     checkpoint_path = Path("models/dropt/policy_best_fno_guided.pth")
     assert checkpoint_path.exists()
 
@@ -89,6 +97,7 @@ def test_dropt_checkpoint_policy_falls_back_without_full_bear_state():
 
 
 def test_dropt_checkpoint_policy_rejects_corrupt_checkpoint(tmp_path: Path):
+    DROPTCheckpointPolicy = _dropt_policy_cls()
     checkpoint_path = tmp_path / "bad.pth"
     checkpoint_path.write_text("not a pytorch checkpoint", encoding="utf-8")
 
@@ -97,6 +106,7 @@ def test_dropt_checkpoint_policy_rejects_corrupt_checkpoint(tmp_path: Path):
 
 
 def test_dropt_checkpoint_policy_loads_real_checkpoint():
+    DROPTCheckpointPolicy = _dropt_policy_cls()
     checkpoint_path = Path("models/dropt/policy_best_fno_guided.pth")
     assert checkpoint_path.exists()
 

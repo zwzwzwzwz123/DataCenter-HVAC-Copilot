@@ -17,12 +17,12 @@
 
 - **不是普通 ChatPDF**：系统同时支持文档问答、BEAR-like 时序查询、异常诊断和策略建议。
 - **RAG + Tool Agent 闭环**：问题先路由，再检索文档、调用时序工具或 policy 工具，最后基于证据生成回答。
-- **Persistent Knowledge Base 长期知识记忆**：支持 PDF / DOCX / TXT / MD 上传，SQLite 保存 document/chunk/index 元数据，FAISS + sidecar + manifest 持久化，并让 `/ask` 默认检索上传后的知识库。
-- **Conversation Memory 多轮上下文**：`/ask` 支持 session 级持久记忆，SQLite 记录每轮问题、证据、工具结果、trace 和回答，并按 `session_id` 隔离检索历史。
+- **Persistent Knowledge Base 持久化知识库**：支持 PDF / DOCX / TXT / MD 上传，SQLite 保存 document/chunk/index 元数据，FAISS + sidecar + manifest 持久化，并让 `/ask` 默认检索上传后的知识库。
+- **Conversation Memory 多轮上下文**：`/ask` 支持 session-scoped SQLite conversation memory 和 retrieved context loading，记录每轮问题、证据、工具结果、trace 和回答，并按 `session_id` 隔离检索历史。
 - **多 LLM 后端可选接入**：`/ask` 支持 deterministic fallback、DeepSeek 和本地 Ollama evidence-grounded answer generation；未配置或调用失败时自动回退 deterministic generator。
 - **控制边界清晰**：控制建议只来自 rule-based、MPC-like、DiffFNO / Guided-DiffFNO adapter 或 offline replay 等工具，LLM 不直接控制环境。
-- **Safety Audit**：每个回答都会进行确定性安全审计，检查生产遥测误述、LLM 直接控制声明和未验证策略动作。
-- **可复现评测**：内置 100 条 JSONL 评测集，覆盖文档问答、时序查询、异常诊断和策略建议，并生成 baseline comparison 和实验报告。
+- **Safety Audit**：确定性边界审计 + small adversarial audit demo guardrail，检查生产遥测误述、LLM 直接控制声明和未验证策略动作；当前对抗集 hit rate 0.586，英文/翻译/paraphrase 表达泛化是已暴露弱点。
+- **可复现评测**：内置 108 条 JSONL 评测集，覆盖文档问答、时序查询、异常诊断和策略建议，并生成 baseline comparison 和实验报告。
 - **可展示 Demo**：FastAPI + Streamlit，包含典型案例 walkthrough、execution timeline、评测摘要和 prediction preview。
 
 ## 当前成熟度
@@ -38,9 +38,9 @@
 - SQLite conversation memory、session context retrieval、turn indexing
 - FastAPI 服务
 - Streamlit demo
-- 100 条评测集和 baseline comparison
+- 108 条评测集和 baseline comparison
 
-当前更适合继续补的是展示材料、截图、Docker 启动体验、更完整的 memory UI 和长期检索增强，而不是重写核心架构。人工评测是可选增强项，不阻塞当前简历展示版本。
+当前更适合继续补的是展示材料、截图、Docker 启动体验、更完整的 memory UI 和长期检索增强，而不是重写核心架构。项目已预留人审接口和模板，当前评测主要依赖 deterministic proxy / quality proxy，human review pending 不阻塞当前简历展示版本。
 持久化知识库已完成第一版生产化实现；后续长期检索增强主要指更大规模索引、增量索引和向量数据库服务化。
 
 ## 系统架构
@@ -158,6 +158,15 @@ pip install -e ".[dev,dense]"
 
 FAISS 是本地向量索引库，本身不需要 API 或按次付费；`sentence-transformers` 会在本地生成 embedding，首次使用可能下载模型。当前 Stage 2 已用 `BAAI/bge-small-zh-v1.5` + FAISS 跑通真实 dense baseline。Qdrant 更偏生产化向量数据库和服务部署，当前保留在 Roadmap。
 
+可选 DROPT / Guided-DiffFNO policy backend：
+
+```bash
+pip install -e ".[policy]"
+pip install -e ".[dev,policy]"
+```
+
+`torch` 只放在 `policy` extra 中，基础安装可运行 FastAPI、Streamlit 和默认评测；实际加载 DROPT checkpoint 推理时再安装该 extra。
+
 ## Persistent Knowledge Base / 持久化知识库
 
 Copilot 支持把运维 SOP、设备手册和操作说明上传到持久化 FAISS-backed RAG 知识库。上传后后端会解析文本、切分 chunk、保存 SQLite 元数据，并全量重建 FAISS 索引；下一次 `/ask` 会优先检索上传知识库，无需重启 API。
@@ -265,7 +274,7 @@ conversation_context
 - 边界：该后端只作为 HVAC 仿真 / 可控代理场景中的离线策略工具，不是生产控制器；LLM 仍只解释 `policy_result`，不生成或写回控制动作。
 - 失败语义：checkpoint 缺失、文件损坏、或 BEAR state 维度不完整时，适配器会明确回退到 rule-based policy，并在 `notes` 中写明原因。
 
-如果 checkpoint 缺失或 state 不完整，会自动回退到 rule-based policy 并在 `notes` 中说明原因。代码中也可以通过 `create_app(use_dropt_policy=False)` 或 `build_demo_orchestrator(use_dropt_policy=False)` 显式关闭该后端，便于复现 baseline。
+如果 checkpoint 缺失、state 不完整或未安装 `policy` extra，会自动回退到 offline replay / rule-based policy 并在 `notes` 中说明原因。实际运行 DROPT checkpoint 需要先安装 `pip install -e ".[policy]"`；代码中也可以通过 `create_app(use_dropt_policy=False)` 或 `build_demo_orchestrator(use_dropt_policy=False)` 显式关闭该后端，便于复现 baseline。
 
 ## LLM 后端配置
 
@@ -386,7 +395,7 @@ Streamlit 包含：
 4. 选择 `温度时序查询`，展示 router 调用 `query_metric` 和 metric summary。
 5. 选择 `策略建议边界`，展示 policy tool 输出和 LLM 不直接控制。
 6. 展示 Execution Timeline 和 Safety Audit。
-7. 打开评测摘要 tab，说明 100 条 eval 和 baseline comparison。
+7. 打开评测摘要 tab，说明 108 条 eval 和 baseline comparison。
 
 详细讲解脚本见：[docs/demo_walkthrough.md](docs/demo_walkthrough.md)
 
@@ -397,6 +406,14 @@ Streamlit 包含：
 ```bash
 python -m pytest -q
 ```
+
+覆盖率测试：
+
+```bash
+python -m pytest --cov=src --cov-report=term-missing -q
+```
+
+本地当前一次运行的核心模块覆盖率为 91%（`src` total，本机已安装 `policy` extra / `torch`，使用 `term-missing` 输出未覆盖行）。CI 使用同一条 coverage 命令，但默认只安装 `.[dev]`，DROPT checkpoint 相关测试可能因未安装 `torch` 被跳过；覆盖率数字用于说明测试信号强度，不设置硬性阈值。
 
 当前测试覆盖包括：
 
@@ -414,11 +431,11 @@ python -m pytest -q
 - evaluation metrics / report
 - optional LLM judge adapter
 
-日常 pytest 使用小型 eval fixture，避免每次开发都运行完整 100 条评测。
+日常 pytest 使用小型 eval fixture，避免每次开发都运行完整 108 条评测。
 
 ## 评测
 
-完整 100 条评测：
+完整 108 条评测：
 
 ```bash
 python scripts/run_eval.py
@@ -456,13 +473,13 @@ Query Rewrite / HyDE baseline：
 - `data/eval/baseline_comparison.json`
 - `docs/experiment_report.md`
 
-当前评测集包含 100 条样例：
+当前评测集包含 108 条样例：
 
 ```text
 document_qa:          40
 timeseries_query:     20
 anomaly_diagnosis:    20
-policy_recommendation:20
+policy_recommendation:28
 ```
 
 baseline 包含：
@@ -511,7 +528,7 @@ answer_correctness_proxy       = 0.654
 faithfulness_proxy             = 0.566
 ```
 
-在当前 100 条评测集上，真实 dense 检索的 citation/context 高于 `rag_keyword` 的 0.554、`rag_hybrid` 的 0.585 和 `rag_hybrid_rerank` 的 0.600；`rag_tool_agent` 的优势主要体现在工具选择、工具执行和结构化证据覆盖。
+在当前 108 条评测集上，真实 dense 检索的 citation/context 高于 `rag_keyword` 的 0.554、`rag_hybrid` 的 0.585 和 `rag_hybrid_rerank` 的 0.600；`rag_tool_agent` 的优势主要体现在工具选择、工具执行和结构化证据覆盖。
 
 Stage 2 LangGraph workflow 已纳入 baseline comparison：
 
@@ -523,7 +540,7 @@ langgraph_tool_agent answer_correctness_proxy     = 0.547
 langgraph_tool_agent faithfulness_proxy           = 0.465
 ```
 
-`langgraph_tool_agent` 与 deterministic `rag_tool_agent` 指标一致，说明默认 LangGraph 版本没有改变底层工具行为；它用于展示 workflow 编排、trace 和可选 LLM route planner。独立 intent routing 评测显示，默认 keyword/rule-based classifier 在 100 条样例上 accuracy 为 0.640；如果要横向比较 DeepSeek 或本地 Qwen/Ollama 的单步意图分类效果，可以使用 `scripts/run_intent_eval.py`，但该脚本不代表 `/ask` 的默认 LangGraph planner 配置。
+`langgraph_tool_agent` 与 deterministic `rag_tool_agent` 指标一致，说明默认 LangGraph 版本没有改变底层工具行为；它用于展示 workflow 编排、trace 和可选 LLM route planner。独立 intent routing 评测显示，默认 keyword/rule-based classifier 在 108 条样例上 accuracy 为 0.640；如果要横向比较 DeepSeek 或本地 Qwen/Ollama 的单步意图分类效果，可以使用 `scripts/run_intent_eval.py`，但该脚本不代表 `/ask` 的默认 LangGraph planner 配置。
 
 Planner 也支持单独评测多步规划能力。`EvalRecord` 可选 `expected_steps` 字段用于标注 compound_task，例如 `timeseries_query -> anomaly_diagnosis -> policy_recommendation`。`scripts/generate_compound_eval.py` 可以调用 DeepSeek 生成 compound_task 候选样本，再用本地 schema、route 集合、最多 3 步和 `policy_recommendation` 必须最后一步等规则过滤后写入 JSONL：
 
@@ -569,7 +586,7 @@ python scripts/run_eval.py --enable-llm-judge --llm-judge-provider deterministic
 
 ## 人工评测校准
 
-人工评测是可选增强项，不阻塞当前简历展示版本。`scripts/run_eval.py` 会生成 `data/eval/human_review_sample.jsonl` 和 `data/eval/human_review_annotations.jsonl`。前者是待审样例，后者由人工填写 correctness / faithfulness / safety boundary。标注指南见 `docs/human_evaluation_guide.md`。
+当前只预留人审接口和模板，不把它表述为已完成人工评测。`scripts/run_eval.py` 会生成 `data/eval/human_review_sample.jsonl` 和 `data/eval/human_review_annotations.jsonl`。前者是待审样例，后者由人工填写 correctness / faithfulness / safety boundary。标注指南见 `docs/human_evaluation_guide.md`；未标注前状态保持 human review pending。
 
 在人工填写前，实验报告的 Human Calibration 小节显示 `pending_human_review` 是正常状态；README 和简历只强调 deterministic metrics / quality proxy / optional LLM-as-Judge。填写完成后重新运行 `python scripts/run_eval.py`，报告会读取已有 `human_review_annotations.jsonl` 并更新 Human Calibration 小节。
 
@@ -625,7 +642,7 @@ python scripts/export_bear_data.py --bear-root C:\Users\zouwei\Desktop\PROJECT\_
 - answer safety audit
 - FastAPI `/health`、`/ask`、`/eval/run`
 - Streamlit Copilot / session memory 兼容 / 评测摘要双 tab
-- 100 条 eval JSONL、baseline comparison 和 intent routing comparison
+- 108 条 eval JSONL、baseline comparison 和 intent routing comparison
 - optional LLM judge adapter smoke provider
 - demo walkthrough 文档
 
@@ -648,4 +665,4 @@ python scripts/export_bear_data.py --bear-root C:\Users\zouwei\Desktop\PROJECT\_
 
 ## 一句话简历表达
 
-构建 DataCenter-HVAC Copilot：基于 BEAR HVAC 仿真轨迹，设计 Persistent Knowledge Base + RAG + Tool Agent + Conversation Memory + Evaluation 系统，支持文档上传检索、文档问答、时序查询、异常诊断、策略建议和多轮上下文管理；实现 FAISS/SQLite 持久化知识库、DeepSeek evidence-grounded answer generation、answer safety audit、时序工具、policy adapter 边界、FastAPI/Streamlit demo 和 100 条评测集，并通过多 baseline comparison 验证检索、工具调用、证据覆盖和回答质量代理指标。
+构建 DataCenter-HVAC Copilot：基于 BEAR HVAC 仿真轨迹，设计 Persistent Knowledge Base + RAG + Tool Agent + session-scoped Conversation Memory + Evaluation 系统，支持文档上传检索、文档问答、时序查询、异常诊断、策略建议和多轮上下文管理；实现 FAISS/SQLite 持久化知识库、DeepSeek evidence-grounded answer generation、answer safety audit、时序工具、policy adapter 边界、FastAPI/Streamlit demo 和 108 条评测集，并通过多 baseline comparison 验证检索、工具调用、证据覆盖和回答质量代理指标。

@@ -8,7 +8,6 @@ import pandas as pd
 from src.agent.deepseek_generator import build_answer_generator_from_env
 from src.agent.answer_generator import DeterministicAnswerGenerator
 from src.agent.orchestrator import BaselineOrchestrator
-from src.policies.dropt_adapter import DROPTCheckpointPolicy
 from src.policies.offline_replay import OfflineReplayPolicy
 from src.policies.rule_based import run_rule_based_policy
 from src.knowledge.service import KnowledgeBaseService
@@ -140,12 +139,24 @@ def _load_demo_trajectory(project_root: Path | None = None) -> pd.DataFrame:
 def _build_policy_runner(project_root: Path, *, use_dropt_policy: bool = False):
     dropt_path = project_root / "models" / "dropt" / "policy_best_fno_guided.pth"
     if use_dropt_policy and dropt_path.exists():
-        dropt_policy = DROPTCheckpointPolicy(dropt_path)
+        try:
+            from src.policies.dropt_adapter import DROPTCheckpointPolicy
+        except ImportError:
+            return _build_fallback_policy_runner(project_root)
+
+        try:
+            dropt_policy = DROPTCheckpointPolicy(dropt_path)
+        except RuntimeError:
+            return _build_fallback_policy_runner(project_root)
 
         def run_dropt_policy(state: dict):
             return dropt_policy.run(state)
 
         return run_dropt_policy
+    return _build_fallback_policy_runner(project_root)
+
+
+def _build_fallback_policy_runner(project_root: Path):
     replay_path = project_root / "data" / "eval" / "offline_policy_replay.json"
     if replay_path.exists():
         replay_policy = OfflineReplayPolicy(replay_path)

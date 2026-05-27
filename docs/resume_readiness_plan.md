@@ -4,7 +4,7 @@
 
 ## 当前结论
 
-当前项目已经具备核心闭环：RAG、Tool Agent、时序工具、policy adapter、Safety Audit、FastAPI、Streamlit、100 条评测集和 baseline comparison。
+当前项目已经具备核心闭环：RAG、Tool Agent、时序工具、policy adapter、Safety Audit、FastAPI、Streamlit、108 条评测集和 baseline comparison。
 
 当前不把人工评测作为阻塞项。默认展示口径是 deterministic metrics + quality proxy；LLM judge 可作为 LLM-as-Judge 增强，不能写成人工评审。Human Calibration 保持可选增强。
 
@@ -38,7 +38,7 @@
 
 当前可以写：
 
-> 构建 DataCenter-HVAC Copilot：基于 BEAR HVAC 仿真轨迹，设计 RAG + Tool Agent + Evaluation 系统，支持文档问答、时序查询、异常诊断和策略建议；实现 evidence-grounded answer generation、Safety Audit、时序工具、policy adapter 边界、FastAPI/Streamlit demo 和 100 条评测集，并通过多 baseline comparison 验证检索、工具调用、证据覆盖和回答质量代理指标。
+> 构建 DataCenter-HVAC Copilot：基于 BEAR HVAC 仿真轨迹，设计 RAG + Tool Agent + Evaluation 系统，支持文档问答、时序查询、异常诊断和策略建议；实现 evidence-grounded answer generation、Safety Audit、时序工具、policy adapter 边界、FastAPI/Streamlit demo 和 108 条评测集，并通过多 baseline comparison 验证检索、工具调用、证据覆盖和回答质量代理指标。
 
 当前不要写：
 
