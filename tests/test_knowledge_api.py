@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
 
 from fastapi.testclient import TestClient
 
@@ -271,6 +272,44 @@ def test_status_reports_refresh_dirty_after_refresh_failure(tmp_path: Path, monk
     assert status.json()["refresh_error"] == "refresh still failed"
 
 
+def test_refresh_failure_state_survives_app_recreation(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("KNOWLEDGE_BASE_DIR", str(tmp_path / "knowledge"))
+    monkeypatch.setenv("KNOWLEDGE_EMBEDDING_PROVIDER", "deterministic")
+    app = create_app(
+        use_env_answer_generator=False,
+        use_env_intent_classifier=False,
+        use_dropt_policy=False,
+    )
+    client = TestClient(app)
+
+    def fail_refresh(*args, **kwargs):
+        raise RuntimeError("refresh persisted failure")
+
+    real_build = __import__(
+        "src.api.app",
+        fromlist=["build_demo_orchestrator"],
+    ).build_demo_orchestrator
+    monkeypatch.setattr("src.api.app.build_demo_orchestrator", fail_refresh)
+    response = client.post(
+        "/knowledge/documents/upload",
+        files={"file": ("cooling.md", b"# Cooling SOP\n\nCooling alarm response.", "text/markdown")},
+    )
+    assert response.json()["refresh_dirty"] is True
+
+    monkeypatch.setattr("src.api.app.build_demo_orchestrator", real_build)
+    recreated = create_app(
+        use_env_answer_generator=False,
+        use_env_intent_classifier=False,
+        use_dropt_policy=False,
+    )
+    monkeypatch.setattr("src.api.app.build_demo_orchestrator", fail_refresh)
+    status = TestClient(recreated).get("/knowledge/status")
+
+    assert status.status_code == 200
+    assert status.json()["refresh_dirty"] is True
+    assert status.json()["refresh_error"] == "refresh persisted failure"
+
+
 def test_delete_returns_refresh_error_when_orchestrator_refresh_fails(tmp_path: Path, monkeypatch):
     monkeypatch.setenv("KNOWLEDGE_BASE_DIR", str(tmp_path / "knowledge"))
     monkeypatch.setenv("KNOWLEDGE_EMBEDDING_PROVIDER", "deterministic")
@@ -348,6 +387,41 @@ def test_reindex_response_includes_index_metadata_error(tmp_path: Path, monkeypa
     assert response.status_code == 200
     assert response.json()["index"]["available"] is True
     assert response.json()["index"]["metadata_error"] == "index metadata failed"
+
+
+def test_concurrent_knowledge_mutations_serialize_faiss_rebuilds(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("KNOWLEDGE_BASE_DIR", str(tmp_path / "knowledge"))
+    monkeypatch.setenv("KNOWLEDGE_EMBEDDING_PROVIDER", "deterministic")
+    app = create_app(
+        use_env_answer_generator=False,
+        use_env_intent_classifier=False,
+        use_dropt_policy=False,
+    )
+    client = TestClient(app)
+
+    def upload(index: int) -> int:
+        response = client.post(
+            "/knowledge/documents/upload",
+            files={
+                "file": (
+                    f"ops_{index}.md",
+                    f"# Ops {index}\n\nCooling procedure {index}.".encode("utf-8"),
+                    "text/markdown",
+                )
+            },
+        )
+        return response.status_code
+
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        statuses = list(executor.map(upload, range(4)))
+
+    status = client.get("/knowledge/status").json()
+    listing = client.get("/knowledge/documents").json()
+
+    assert statuses == [200, 200, 200, 200]
+    assert status["index"]["available"] is True
+    assert status["chunk_count"] == 4
+    assert len(listing["documents"]) == 4
 
 
 def test_get_document_returns_uploaded_metadata(tmp_path: Path, monkeypatch):

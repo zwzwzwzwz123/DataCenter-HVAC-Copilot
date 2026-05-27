@@ -109,9 +109,9 @@ LLM judge adapter 仅作为可选评测辅助，默认关闭。`scripts/run_eval
 
 ## LangGraph Agent Workflow
 
-当前 LangGraph 路径已经从单纯 wrapper 升级为可插拔 workflow。交互式 `/ask` 和 Streamlit 默认使用 `workflow_engine=langgraph`；`intent_classifier` 节点默认优先使用 OpenAI-compatible `LLMIntentClassifier` / DeepSeek。未配置 key、LLM 分类输出非法或网络失败时自动回退 `RuleBasedIntentClassifier`，并在 `workflow_trace` 中记录 `classifier`、`confidence` 和 `fallback_used`。当设置 `LANGGRAPH_INTENT_PROVIDER=ollama` 时，会通过 Ollama `/api/chat` 调用本地 Qwen 等模型。`/eval/run` 和 `scripts/run_eval.py` 仍保持 deterministic generator、rule-based policy 与可复现评测口径。
+当前 LangGraph 路径已经从单纯 wrapper 升级为可插拔 workflow。交互式 `/ask` 和 Streamlit 默认使用 `workflow_engine=langgraph`；`planner` 节点使用 `src/agent/planner.py` 中的 route planner 生成 1 到 3 个受控步骤。`LANGGRAPH_PLANNER_PROVIDER=auto` 时，如果配置了 `DEEPSEEK_API_KEY` 会优先使用 DeepSeek LLM route planner，否则使用 deterministic planner；LLM plan 输出非法、调用失败或未配置 key 时会回退 deterministic planner，并在 `workflow_trace` 中记录 `planner`、`confidence` 和 `fallback_used`。`/eval/run` 和 `scripts/run_eval.py` 仍保持 deterministic generator、rule-based policy 与可复现评测口径。
 
-Baseline orchestrator 与 LangGraph orchestrator 共享 `AgentTaskExecutor`，因此工具执行、RAG 检索、policy 调用和 answer audit 不再通过 LangGraph 调用 baseline 私有方法完成。交互式 demo 默认展示 LLM intent routing 和 DROPT policy backend；离线评测中的 `langgraph_tool_agent` 仍与 deterministic baseline 对齐，这是为了保证可复现。
+Baseline orchestrator 与 LangGraph orchestrator 共享 `AgentTaskExecutor`，因此工具执行、RAG 检索、policy 调用和 answer audit 不再通过 LangGraph 调用 baseline 私有方法完成。交互式 demo 默认展示 route planner trace 和 DROPT policy backend；离线评测中的 `langgraph_tool_agent` 仍与 deterministic baseline 对齐，这是为了保证可复现。
 
 Intent routing 评测由 `scripts/run_intent_eval.py` 单独输出 `data/eval/intent_routing_comparison.json`。该评测不传入 gold `task_type`，直接让 classifier 从问题文本判断 route，并报告 accuracy、fallback rate、按任务类型分组和 confusion matrix。默认 rule-based classifier 在当前 100 条样例上 accuracy 为 0.640；DeepSeek 或 Ollama/Qwen 可作为同一脚本中的 LLM routing backend 进行横向对比。
 

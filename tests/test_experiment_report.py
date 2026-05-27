@@ -155,8 +155,8 @@ def test_render_experiment_report_creates_markdown_table():
     assert "deterministic query expansion" in markdown
     assert "langgraph_tool_agent" in markdown
     assert "StateGraph 编排" in markdown
-    assert "LLM intent classifier" in markdown
-    assert "DeepSeek/Ollama" in markdown
+    assert "LLM route planner" in markdown
+    assert "DeepSeek" in markdown
     assert "scripts/run_intent_eval.py" in markdown
     assert "## 按任务类型指标" in markdown
     assert "| rag_tool_agent | document_qa | 0.500 | 0.750" in markdown

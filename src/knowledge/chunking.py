@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from src.core.text_chunking import detokenize_chunk, tokenize_for_chunking
 from src.knowledge.schemas import KnowledgeChunk, ParsedDocument
 
 
@@ -18,11 +19,11 @@ def chunk_parsed_document(
 
     chunks: list[KnowledgeChunk] = []
     for page in document.pages:
-        words = page.normalized_text().split()
+        words = tokenize_for_chunking(page.normalized_text())
         start = 0
         while start < len(words):
             end = min(start + chunk_size_words, len(words))
-            text = " ".join(words[start:end])
+            text = detokenize_chunk(words[start:end])
             chunk_index = len(chunks)
             chunks.append(
                 KnowledgeChunk(
@@ -32,7 +33,7 @@ def chunk_parsed_document(
                     text=text,
                     page_number=page.page_number,
                     section_title=page.section_title,
-                    token_count=len(text.split()),
+                    token_count=end - start,
                     metadata={
                         **document.metadata,
                         "filename": document.filename,

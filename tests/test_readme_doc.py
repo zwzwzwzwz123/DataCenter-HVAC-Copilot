@@ -51,6 +51,18 @@ def test_readme_describes_langgraph_planner_without_stale_intent_node_claims() -
     assert "LANGGRAPH_INTENT_PROVIDER` 只影响 `workflow_engine=langgraph`" not in content
     assert "LangGraph StateGraph workflow + DeepSeek/Ollama optional LLM intent classifier" not in content
     assert "可选 LLM intent classification" not in content
+    assert "LANGGRAPH_INTENT_PROVIDER" not in content
+    assert "intent classification 示例" not in content
+
+
+def test_env_example_uses_langgraph_planner_provider_not_stale_intent_provider() -> None:
+    content = Path(".env.example").read_text(encoding="utf-8")
+
+    assert "LANGGRAPH_PLANNER_PROVIDER" in content
+    assert "LANGGRAPH_PLANNER_MODEL" in content
+    assert "LANGGRAPH_PLANNER_TIMEOUT_SECONDS" in content
+    assert "LANGGRAPH_INTENT_PROVIDER" not in content
+    assert "intent classification" not in content.lower()
 
 
 def test_readme_system_architecture_diagram_shows_planner_path() -> None:

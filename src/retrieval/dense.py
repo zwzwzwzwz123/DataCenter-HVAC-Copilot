@@ -32,8 +32,7 @@ class DenseRetriever:
         scored = []
         for chunk, vector in zip(self.chunks, self._chunk_vectors):
             score = _dot(query_vector, vector)
-            if score > 0:
-                scored.append((score, chunk))
+            scored.append((score, chunk))
         scored.sort(key=lambda item: (-item[0], item[1].chunk_id))
         return [
             {

@@ -138,7 +138,7 @@
 - `rag_hybrid_rerank` 在当前评测中进一步提升 citation/context 指标，可作为后续替换为 cross-encoder 或 LLM reranker 的接口基线。
 - Query Rewrite / HyDE 已作为 deterministic query expansion baseline 纳入对比；当前 context_recall 最高的是 `rag_rewrite`，可用于评估 raw query、rewrite 和 template HyDE 在 HVAC/BEAR 领域检索中的收益，再决定是否替换为 DeepSeek/Ollama HyDE generator。
 - `rag_tool_agent` 在当前确定性路由样例上体现工具选择、工具执行和证据覆盖优势。
-- `langgraph_tool_agent` 保留与 deterministic `rag_tool_agent` 一致的工具行为和指标，用于展示 StateGraph 编排、workflow trace 和可选 DeepSeek/Ollama LLM intent classifier，而不是改变当前可复现评测口径。
+- `langgraph_tool_agent` 保留与 deterministic `rag_tool_agent` 一致的工具行为和指标，用于展示 StateGraph 编排、workflow trace 和可选 DeepSeek LLM route planner，而不是改变当前可复现评测口径。
 - `react_agent` baseline 用于对比 single-step workflow vs deterministic multi-step planner；新增 multi-hop policy 样例后，policy 子集 tool_selection_accuracy 从 `0.714` 提升到 `0.893`，answer_correctness_proxy 从 `0.521` 提升到 `0.625`。
 - `DROPT` / Guided-DiffFNO checkpoint 作为可选策略后端已接通：checkpoint 可加载、20 维 BEAR state 可推理，缺失或不完整时会明确回退并记录原因。
 - `scripts/run_intent_eval.py` 单独评测 intent routing accuracy；默认 rule-based classifier 在当前 100 条样例上 accuracy 为 0.640，并输出 `data/eval/intent_routing_comparison.json` 作为 keyword vs LLM routing 对比入口。

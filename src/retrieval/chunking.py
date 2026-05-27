@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from src.core.text_chunking import detokenize_chunk, tokenize_for_chunking
 from src.retrieval.schemas import DocumentChunk, SourceDocument
 
 
@@ -15,7 +16,7 @@ def chunk_document(
     if overlap >= chunk_size:
         raise ValueError("overlap must be smaller than chunk_size.")
 
-    words = document.text.split()
+    words = tokenize_for_chunking(document.text)
     if not words:
         return []
 
@@ -25,7 +26,7 @@ def chunk_document(
     section = _first_heading(document.text)
     while start < len(words):
         end = min(start + chunk_size, len(words))
-        text = " ".join(words[start:end])
+        text = detokenize_chunk(words[start:end])
         chunk_id = f"{document.metadata.source_id}::chunk_{chunk_index:04d}"
         chunks.append(
             document.metadata.to_chunk(

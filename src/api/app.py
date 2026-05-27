@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import sqlite3
@@ -51,8 +52,9 @@ def create_app(
     )
     context_manager: ContextManager | None = None
     knowledge_service: KnowledgeBaseService | None = None
-    knowledge_refresh_dirty = False
-    last_refresh_error: str | None = None
+    persisted_refresh_state = _load_refresh_state(_refresh_state_path())
+    knowledge_refresh_dirty = bool(persisted_refresh_state.get("refresh_dirty", False))
+    last_refresh_error = persisted_refresh_state.get("refresh_error")
 
     @app.get("/health")
     def health() -> dict[str, Any]:
@@ -349,7 +351,7 @@ def create_app(
         nonlocal knowledge_service
         if knowledge_service is None:
             knowledge_service = KnowledgeBaseService(
-                knowledge_dir=os.getenv("KNOWLEDGE_BASE_DIR", "data/knowledge"),
+                knowledge_dir=_knowledge_dir(),
                 embedding_provider_name=os.getenv(
                     "KNOWLEDGE_EMBEDDING_PROVIDER",
                     "sentence-transformers",
@@ -379,8 +381,13 @@ def create_app(
         langgraph_orchestrator = new_langgraph_orchestrator
 
     def _mark_knowledge_refresh_dirty() -> None:
-        nonlocal knowledge_refresh_dirty
+        nonlocal knowledge_refresh_dirty, last_refresh_error
         knowledge_refresh_dirty = True
+        _persist_refresh_state(
+            _refresh_state_path(),
+            refresh_dirty=knowledge_refresh_dirty,
+            refresh_error=last_refresh_error,
+        )
 
     def _attach_refresh_status(result: dict) -> None:
         nonlocal knowledge_refresh_dirty, last_refresh_error
@@ -391,6 +398,11 @@ def create_app(
         except Exception as exc:
             knowledge_refresh_dirty = True
             last_refresh_error = str(exc)
+        _persist_refresh_state(
+            _refresh_state_path(),
+            refresh_dirty=knowledge_refresh_dirty,
+            refresh_error=last_refresh_error,
+        )
         _attach_refresh_state(result)
 
     def _try_refresh_dirty_knowledge() -> None:
@@ -412,9 +424,6 @@ def create_app(
             index_status["metadata_error"] = reindex_result["metadata_error"]
 
     return app
-
-
-app = create_app()
 
 
 def _session_title(question: str) -> str:
@@ -450,3 +459,39 @@ def _memory_context_failure_trace(
 def _safe_upload_filename(filename: str) -> str:
     basename = filename.replace("\\", "/").split("/")[-1]
     return "".join(char if char.isalnum() or char in "._-" else "_" for char in basename)
+
+
+def _knowledge_dir() -> Path:
+    return Path(os.getenv("KNOWLEDGE_BASE_DIR", "data/knowledge"))
+
+
+def _refresh_state_path() -> Path:
+    return _knowledge_dir() / "refresh_state.json"
+
+
+def _load_refresh_state(path: Path) -> dict[str, Any]:
+    if not path.exists():
+        return {}
+    try:
+        loaded = json.loads(path.read_text(encoding="utf-8") or "{}")
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return loaded if isinstance(loaded, dict) else {}
+
+
+def _persist_refresh_state(
+    path: Path,
+    *,
+    refresh_dirty: bool,
+    refresh_error: str | None,
+) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload: dict[str, Any] = {"refresh_dirty": refresh_dirty}
+    if refresh_error is not None:
+        payload["refresh_error"] = refresh_error
+    tmp_path = path.with_name(f"{path.name}.{uuid.uuid4().hex}.tmp")
+    tmp_path.write_text(json.dumps(payload, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+    tmp_path.replace(path)
+
+
+app = create_app()

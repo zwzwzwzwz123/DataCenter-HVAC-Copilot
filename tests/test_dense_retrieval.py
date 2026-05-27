@@ -65,6 +65,32 @@ def test_dense_retriever_returns_ranked_chunks_with_citations() -> None:
     assert results[0]["score"] > 0
 
 
+def test_dense_retriever_returns_nearest_chunks_even_when_scores_are_non_positive() -> None:
+    metadata = DocumentMetadata(
+        source_id="tiny_dense_doc",
+        title="Tiny Dense Doc",
+        source_path="memory",
+    )
+    chunks = [
+        metadata.to_chunk(
+            chunk_id="tiny_dense_doc::chunk_0000",
+            text="cooling procedure",
+            section="Ops",
+            start_word=0,
+            end_word=2,
+        )
+    ]
+
+    retriever = DenseRetriever(
+        chunks,
+        embedding_provider=DeterministicHashEmbeddingProvider(dimension=1),
+    )
+    results = retriever.search("unrelated query", top_k=1)
+
+    assert len(results) == 1
+    assert results[0]["chunk_id"] == "tiny_dense_doc::chunk_0000"
+
+
 def test_faiss_dense_retriever_reports_missing_optional_dependency() -> None:
     metadata = DocumentMetadata(
         source_id="faiss_doc",

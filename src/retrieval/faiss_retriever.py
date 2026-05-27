@@ -42,7 +42,7 @@ class FaissDenseRetriever:
         scores, indices = self._index.search(query_vector, min(top_k, len(self.chunks)))
         results = []
         for score, index in zip(scores[0], indices[0]):
-            if index < 0 or float(score) <= 0:
+            if index < 0:
                 continue
             chunk = self.chunks[int(index)]
             results.append(

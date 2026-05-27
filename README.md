@@ -304,15 +304,6 @@ LANGGRAPH_PLANNER_MODEL=deepseek-chat
 LANGGRAPH_PLANNER_TIMEOUT_SECONDS=20
 ```
 
-本地 Qwen / Ollama intent classification 示例：
-
-```bash
-LANGGRAPH_INTENT_PROVIDER=ollama
-LANGGRAPH_INTENT_MODEL=qwen2.5:7b
-OLLAMA_BASE_URL=http://localhost:11434
-LANGGRAPH_INTENT_TIMEOUT_SECONDS=20
-```
-
 显式使用 deterministic fallback：
 
 ```bash
@@ -324,7 +315,7 @@ LANGGRAPH_PLANNER_PROVIDER=deterministic
 
 - `.env` 会自动加载，但不会覆盖 shell 中已有环境变量。
 - `/ask` 可使用 DeepSeek 或 Ollama 生成最终解释。
-- `LANGGRAPH_PLANNER_PROVIDER` 只影响 `workflow_engine=langgraph` 的 planner 节点；可选值为 `auto`、`deterministic`、`deepseek`。`LANGGRAPH_INTENT_PROVIDER` 仍保留给独立 intent routing 对比脚本，不再是 LangGraph 默认入口。
+- `LANGGRAPH_PLANNER_PROVIDER` 只影响 `workflow_engine=langgraph` 的 planner 节点；可选值为 `auto`、`deterministic`、`deepseek`。独立 intent routing 对比仍由 `scripts/run_intent_eval.py` 的命令行参数选择后端，不再作为 LangGraph 默认入口配置。
 - `scripts/run_eval.py` 和 `/eval/run` 默认使用 deterministic generator 和 rule-based policy，避免批量 API 调用或策略后端切换影响速度、成本和可复现性。
 - LLM 后端只基于 `retrieved_contexts`、`citations`、`tool_results`、`policy_result` 和 `data_source` 写回答，不负责控制决策。
 
@@ -532,7 +523,7 @@ langgraph_tool_agent answer_correctness_proxy     = 0.547
 langgraph_tool_agent faithfulness_proxy           = 0.465
 ```
 
-`langgraph_tool_agent` 与 deterministic `rag_tool_agent` 指标一致，说明默认 LangGraph 版本没有改变底层工具行为；它用于展示 workflow 编排、trace 和可选 LLM route planner。独立 intent routing 评测显示，默认 keyword/rule-based classifier 在 100 条样例上 accuracy 为 0.640；这也是需要接入 DeepSeek 或本地 Qwen/Ollama intent classifier 做对比的原因。
+`langgraph_tool_agent` 与 deterministic `rag_tool_agent` 指标一致，说明默认 LangGraph 版本没有改变底层工具行为；它用于展示 workflow 编排、trace 和可选 LLM route planner。独立 intent routing 评测显示，默认 keyword/rule-based classifier 在 100 条样例上 accuracy 为 0.640；如果要横向比较 DeepSeek 或本地 Qwen/Ollama 的单步意图分类效果，可以使用 `scripts/run_intent_eval.py`，但该脚本不代表 `/ask` 的默认 LangGraph planner 配置。
 
 Planner 也支持单独评测多步规划能力。`EvalRecord` 可选 `expected_steps` 字段用于标注 compound_task，例如 `timeseries_query -> anomaly_diagnosis -> policy_recommendation`。`scripts/generate_compound_eval.py` 可以调用 DeepSeek 生成 compound_task 候选样本，再用本地 schema、route 集合、最多 3 步和 `policy_recommendation` 必须最后一步等规则过滤后写入 JSONL：
 

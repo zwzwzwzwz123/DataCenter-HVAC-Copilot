@@ -47,3 +47,28 @@ def test_chunk_parsed_document_rejects_invalid_overlap():
         assert "overlap_words" in str(exc)
     else:
         raise AssertionError("Expected ValueError for invalid overlap")
+
+
+def test_chunk_parsed_document_splits_long_chinese_text_without_spaces():
+    parsed = ParsedDocument(
+        document_id="doc_cn",
+        filename="manual.md",
+        file_type=".md",
+        file_hash="hash_cn",
+        source_path="manual.md",
+        pages=[
+            ParsedPage(
+                page_number=1,
+                section_title="冷却策略",
+                text="冷却策略需要结合回风温度机柜温差告警状态进行判断" * 6,
+            )
+        ],
+        metadata={"filename": "manual.md", "source_path": "manual.md"},
+    )
+
+    chunks = chunk_parsed_document(parsed, chunk_size_words=20, overlap_words=4)
+
+    assert len(chunks) > 1
+    assert all(chunk.text for chunk in chunks)
+    assert all(chunk.token_count <= 20 for chunk in chunks)
+    assert "冷却策略" in chunks[0].text

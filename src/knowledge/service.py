@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import json
 import shutil
+import threading
+import time
 import uuid
+from contextlib import contextmanager
 from dataclasses import replace
 from pathlib import Path
 from typing import Any
@@ -37,14 +40,21 @@ class KnowledgeBaseService:
         self.uploads_dir = self.knowledge_dir / "uploads"
         self.parsed_dir = self.knowledge_dir / "parsed"
         self.index_dir = self.knowledge_dir / "faiss"
+        self.lock_dir = self.knowledge_dir / ".mutation.lock"
         self.uploads_dir.mkdir(parents=True, exist_ok=True)
         self.parsed_dir.mkdir(parents=True, exist_ok=True)
         self.store = KnowledgeBaseStore(self.knowledge_dir / "knowledge.db")
         self.embedding_provider_name = embedding_provider_name
         self.embedding_model = embedding_model
         self._embedding_provider = embedding_provider
+        self._mutation_lock = threading.RLock()
 
     def ingest_existing_file(self, source_path: str | Path) -> dict[str, Any]:
+        with self._mutation_lock:
+            with _process_lock(self.lock_dir):
+                return self._ingest_existing_file(source_path)
+
+    def _ingest_existing_file(self, source_path: str | Path) -> dict[str, Any]:
         source = Path(source_path)
         file_hash = file_sha256(source)
         existing = self.store.find_document_by_hash(file_hash)
@@ -107,7 +117,7 @@ class KnowledgeBaseService:
                 metadata={"filename": source.name},
             )
             self.store.replace_chunks(document_id, chunks)
-            index_status = self.reindex()
+            index_status = self._reindex_unlocked()
             return {
                 "document": document.to_dict(),
                 "deduplicated": False,
@@ -141,13 +151,18 @@ class KnowledgeBaseService:
         return document.to_dict() if document is not None else None
 
     def delete_document(self, document_id: str) -> dict[str, Any]:
+        with self._mutation_lock:
+            with _process_lock(self.lock_dir):
+                return self._delete_document(document_id)
+
+    def _delete_document(self, document_id: str) -> dict[str, Any]:
         document = self.store.get_document(document_id)
         if document is None:
-            return {"deleted": document_id, "index_status": self.reindex()}
+            return {"deleted": document_id, "index_status": self._reindex_unlocked()}
         chunks = self.store.load_document_chunks(document_id)
         self.store.delete_document(document_id)
         try:
-            index_status = self.reindex()
+            index_status = self._reindex_unlocked()
         except Exception:
             self.store.upsert_document(
                 document_id=document.document_id,
@@ -170,6 +185,11 @@ class KnowledgeBaseService:
         return result
 
     def reindex(self) -> dict[str, Any]:
+        with self._mutation_lock:
+            with _process_lock(self.lock_dir):
+                return self._reindex_unlocked()
+
+    def _reindex_unlocked(self) -> dict[str, Any]:
         chunks = self.store.load_chunks()
         status = KnowledgeFaissIndexer(
             index_dir=self.index_dir,
@@ -307,3 +327,39 @@ def _cleanup_document_files(document) -> list[str]:
         except OSError as exc:
             errors.append(f"{path}: {exc}")
     return errors
+
+
+@contextmanager
+def _process_lock(lock_dir: Path, *, timeout_seconds: float = 30.0, stale_seconds: float = 300.0):
+    lock_dir.parent.mkdir(parents=True, exist_ok=True)
+    deadline = time.monotonic() + timeout_seconds
+    acquired = False
+    while not acquired:
+        try:
+            lock_dir.mkdir()
+            acquired = True
+        except FileExistsError:
+            if _is_stale_lock(lock_dir, stale_seconds=stale_seconds):
+                try:
+                    lock_dir.rmdir()
+                except OSError:
+                    pass
+                continue
+            if time.monotonic() >= deadline:
+                raise TimeoutError(f"Timed out waiting for knowledge mutation lock: {lock_dir}")
+            time.sleep(0.05)
+    try:
+        yield
+    finally:
+        try:
+            lock_dir.rmdir()
+        except FileNotFoundError:
+            pass
+
+
+def _is_stale_lock(lock_dir: Path, *, stale_seconds: float) -> bool:
+    try:
+        age = time.time() - lock_dir.stat().st_mtime
+    except FileNotFoundError:
+        return False
+    return age > stale_seconds

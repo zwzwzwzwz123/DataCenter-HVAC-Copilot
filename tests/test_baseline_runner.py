@@ -271,7 +271,8 @@ def test_demo_orchestrator_exposes_latest_policy_state_with_bear_vector():
         assert len(state["bear_state_vector"]) == 20
 
 
-def test_demo_baseline_comparison_shows_hybrid_retrieval_context_gain(tmp_path: Path):
+def test_demo_baseline_comparison_shows_rerank_retrieval_context_gain(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("KNOWLEDGE_BASE_DIR", str(tmp_path / "isolated_knowledge"))
     eval_path = write_small_eval_dataset(tmp_path / "small_eval.jsonl")
     result = run_baseline_comparison(
         eval_path=eval_path,
@@ -279,8 +280,8 @@ def test_demo_baseline_comparison_shows_hybrid_retrieval_context_gain(tmp_path: 
     )
 
     assert (
-        result["summary"]["rag_hybrid"]["context_recall"]
-        > result["summary"]["rag_keyword"]["context_recall"]
+        result["summary"]["rag_hybrid_rerank"]["context_recall"]
+        > result["summary"]["rag_hybrid"]["context_recall"]
     )
 
 

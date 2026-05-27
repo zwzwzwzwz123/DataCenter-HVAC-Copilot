@@ -3,7 +3,7 @@ from pathlib import Path
 from src.retrieval.chunking import chunk_document
 from src.retrieval.loader import load_markdown_document, load_text_documents
 from src.retrieval.retriever import HybridRetriever, KeywordRetriever, RerankingRetriever
-from src.retrieval.schemas import DocumentMetadata
+from src.retrieval.schemas import DocumentMetadata, SourceDocument
 
 
 def test_load_markdown_document_preserves_metadata(tmp_path: Path):
@@ -45,6 +45,24 @@ def test_chunk_document_keeps_citation_metadata():
     assert chunks[0].metadata.title == "Sample HVAC Guidance"
     assert chunks[0].citation["source_id"] == "sample_hvac_guidance"
     assert chunks[0].citation["chunk_id"] == chunks[0].chunk_id
+
+
+def test_chunk_document_splits_long_chinese_text_without_spaces():
+    document = SourceDocument(
+        text="# 冷却策略\n\n" + "回风温度机柜温差告警状态需要联合分析" * 8,
+        metadata=DocumentMetadata(
+            source_id="cn_manual",
+            title="中文冷却手册",
+            source_path="cn.md",
+        ),
+    )
+
+    chunks = chunk_document(document, chunk_size=18, overlap=3)
+
+    assert len(chunks) > 1
+    assert all(chunk.text for chunk in chunks)
+    assert all(chunk.end_word - chunk.start_word <= 18 for chunk in chunks)
+    assert chunks[0].citation["section"] == "冷却策略"
 
 
 def test_keyword_retriever_returns_ranked_chunks_with_citations():

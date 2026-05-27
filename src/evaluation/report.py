@@ -215,7 +215,7 @@ def _langgraph_comparison_conclusion(
     if baseline and langgraph == baseline:
         return (
             "- `langgraph_tool_agent` 保留与 deterministic `rag_tool_agent` 一致的工具行为和指标，"
-            "用于展示 StateGraph 编排、workflow trace 和可选 DeepSeek/Ollama LLM intent classifier，而不是改变当前可复现评测口径。"
+            "用于展示 StateGraph 编排、workflow trace 和可选 DeepSeek LLM route planner，而不是改变当前可复现评测口径。"
         )
     return (
         "- `langgraph_tool_agent` 已纳入对比；其指标与 deterministic baseline 的差异需要结合 workflow trace "

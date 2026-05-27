@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import shutil
+import uuid
 from hashlib import sha256
 from datetime import datetime, timezone
 from pathlib import Path
@@ -39,9 +40,10 @@ class KnowledgeFaissIndexer:
             ) from exc
 
         self.index_dir.mkdir(parents=True, exist_ok=True)
-        tmp_index = self.index_dir / "index.faiss.tmp"
-        tmp_chunks = self.index_dir / "chunks.jsonl.tmp"
-        tmp_manifest = self.index_dir / "manifest.json.tmp"
+        token = uuid.uuid4().hex
+        tmp_index = self.index_dir / f"index.faiss.{token}.tmp"
+        tmp_chunks = self.index_dir / f"chunks.jsonl.{token}.tmp"
+        tmp_manifest = self.index_dir / f"manifest.json.{token}.tmp"
 
         texts = [chunk.text for chunk in chunks]
         vectors = self.embedding_provider.embed_texts(texts) if texts else []
@@ -168,7 +170,7 @@ def _atomic_replace(src: Path, dst: Path) -> None:
 def _backup_existing(path: Path) -> Path | None:
     if not path.exists():
         return None
-    backup = path.with_name(f"{path.name}.bak")
+    backup = path.with_name(f"{path.name}.{uuid.uuid4().hex}.bak")
     shutil.copy2(path, backup)
     return backup
 
