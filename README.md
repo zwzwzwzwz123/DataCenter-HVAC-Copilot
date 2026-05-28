@@ -4,7 +4,6 @@
 
 [![CI](https://github.com/zwzwzwzwz123/DataCenter-HVAC-Copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/zwzwzwzwz123/DataCenter-HVAC-Copilot/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-%3E%3D3.10-blue)
-![License](https://img.shields.io/badge/license-TBD-lightgrey)
 
 ```mermaid
 flowchart TD
@@ -20,9 +19,6 @@ flowchart TD
     H --> I["Safety Audit<br/>boundary rule checks"]
     I --> J["Memory<br/>session context + status"]
 ```
-
-<!-- 截图待补：Streamlit Copilot 主界面 -->
-![screenshot](docs/img/streamlit-demo.png)
 
 **核心亮点入口**：受控 LLM route planner、共享 executor 的可对照 workflow、`hybrid_rrf` 融合检索、FAISS 知识库原子索引、memory 失败降级与状态暴露。
 
@@ -91,14 +87,16 @@ LangGraph 现在使用受控 route planner + shared executor，而不是自由�
 
 **检索 baseline**
 
-| Dataset | Mode | Citation / Context | Expected Keyword | Evidence | Correctness Proxy | Faithfulness Proxy |
-| --- | --- | ---: | ---: | ---: | ---: | ---: |
-| 108 synthetic, demo docs | `rag_dense` | 0.708 | 0.430 | 1.000 | 0.432 | 0.410 |
-| 108 synthetic, demo docs | `rag_hybrid` BM25 lexical | 0.523 | 0.295 | 0.620 | 0.344 | 0.328 |
-| 108 synthetic, demo docs | `hybrid_rrf` BM25 + dense RRF | 0.708 | 0.402 | 1.000 | 0.454 | 0.432 |
-| 50 real, uploaded PDFs | `rag_dense` | 0.562 | 0.309 | 1.000 | 0.148 | 0.148 |
-| 50 real, uploaded PDFs | `rag_hybrid` BM25 lexical | 0.781 | 0.400 | 0.760 | 0.191 | 0.191 |
-| 50 real, uploaded PDFs | `hybrid_rrf` BM25 + dense RRF | 0.812 | 0.424 | 1.000 | 0.205 | 0.205 |
+| Dataset | Mode | Citation / Context | Expected Keyword | Evidence |
+| --- | --- | ---: | ---: | ---: |
+| 108 synthetic, demo docs | `rag_dense` | 0.708 | 0.430 | 1.000 |
+| 108 synthetic, demo docs | `rag_hybrid` BM25 lexical | 0.523 | 0.295 | 0.620 |
+| 108 synthetic, demo docs | `hybrid_rrf` BM25 + dense RRF | 0.708 | 0.402 | 1.000 |
+| 50 real, uploaded PDFs | `rag_dense` | 0.562 | 0.309 | 1.000 |
+| 50 real, uploaded PDFs | `rag_hybrid` BM25 lexical | 0.781 | 0.400 | 0.760 |
+| 50 real, uploaded PDFs | `hybrid_rrf` BM25 + dense RRF | 0.812 | 0.424 | 1.000 |
+
+纯检索 baseline 不调用时序、异常或策略工具，因此 correctness/faithfulness proxy 会被工具题自然拉低；检索表只报告检索质量相关指标。端到端回答质量放在 Agent workflow 表中比较。
 
 **Agent workflow**
 
@@ -147,7 +145,7 @@ pip install -e ".[dev,dense]"
 
 这会启用本地 FAISS dense retrieval、`rag_dense` 和 `hybrid_rrf`，不需要 API；Qdrant 仍可作为后续可替换向量库。
 
-可选：如果要运行 DROPT / Guided-DiffFNO policy backend：
+可选：如果要运行 DROPT / Guided-DiffFNO policy backend（研究型 policy adapter，不是 RAG demo 的必需依赖）：
 
 ```bash
 pip install -e ".[policy]"
@@ -169,8 +167,8 @@ streamlit run app/streamlit_app.py
 发送一个示例问题：
 
 ```bash
-curl -X POST http://localhost:8000/ask ^
-  -H "Content-Type: application/json" ^
+curl -X POST http://localhost:8000/ask \
+  -H "Content-Type: application/json" \
   -d "{\"question\":\"最近 zone_temperature 有没有异常？\",\"workflow_engine\":\"langgraph\"}"
 ```
 
@@ -366,4 +364,4 @@ python scripts/export_bear_data.py --bear-root ../BEAR --num-steps 336 --scenari
 
 ## Resume One-Liner
 
-构建 DataCenter-HVAC Copilot：基于 BEAR HVAC 仿真轨迹和 7 篇真实公开数据中心文档实现 RAG + Tool Agent + LangGraph workflow，包含 BGE-small-zh + FAISS 知识库、`hybrid_rrf` BM25+dense RRF 融合检索、受控 LLM route planner、共享 `AgentTaskExecutor` 的 baseline/LangGraph 可对照评测与 session memory 降级机制；评测覆盖 108 条合成/样例集和 50 条真实手写子集，真实子集通过相似文档干扰、跨文档整合和边界题制造区分度，`hybrid_rrf` citation/context 为 0.812，高于 BM25 的 0.781 和纯 dense 的 0.562，`langgraph_tool_agent` tool selection / success / evidence coverage 达到 1.000 / 1.000 / 1.000。
+基于 BEAR HVAC 仿真和真实公开文档的 RAG + Tool Agent 系统；核心是 `hybrid_rrf`(BM25+dense RRF) 融合检索、受控 LLM route planner、共享 executor 的 baseline/LangGraph 可对照评测。真实文档子集含干扰/边界题，`hybrid_rrf` citation/context 为 0.812，优于 BM25(0.781) 和 dense(0.562)。
