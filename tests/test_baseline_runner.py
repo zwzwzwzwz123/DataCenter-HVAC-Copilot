@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 import subprocess
 import sys
 
@@ -120,6 +121,12 @@ def test_run_baseline_eval_returns_predictions_and_metrics(tmp_path: Path):
     assert result["predictions"][0]["answer_audit"]["passed"] is True
     assert "citation_hit_rate" in result["metrics"]
     assert "context_recall" in result["metrics"]
+    assert "retrieval_recall@1" in result["metrics"]
+    assert "retrieval_recall@3" in result["metrics"]
+    assert "retrieval_recall@5" in result["metrics"]
+    assert "retrieval_recall@10" in result["metrics"]
+    assert "retrieval_mrr@10" in result["metrics"]
+    assert "retrieval_ndcg@10" in result["metrics"]
     assert "expected_keyword_coverage" in result["metrics"]
     assert "lexical_answer_coverage" in result["metrics"]
     assert "tool_selection_accuracy" in result["metrics"]
@@ -208,6 +215,8 @@ def test_run_baseline_comparison_returns_named_modes(tmp_path: Path):
     }
     assert result["summary"]["rag_tool_agent"]["tool_selection_accuracy"] == 1.0
     assert "citation_hit_rate" in result["summary"]["hybrid_rrf"]
+    assert "retrieval_mrr@10" in result["summary"]["hybrid_rrf"]
+    assert "hallucination_proxy_rate" in result["summary"]["hybrid_rrf"]
     assert "citation_hit_rate" in result["summary"]["rewrite_llm"]
     assert "retrieval_average_latency_seconds" in result["summary"]["rewrite_llm"]
     assert "average_latency_seconds" not in result["summary"]["rewrite_llm"]
@@ -279,7 +288,10 @@ def test_demo_orchestrator_exposes_latest_policy_state_with_bear_vector():
         assert len(state["bear_state_vector"]) == 20
 
 
-def test_demo_baseline_comparison_shows_rerank_retrieval_context_gain(tmp_path: Path, monkeypatch):
+def test_demo_baseline_comparison_shows_rerank_improves_ranked_retrieval_metrics(
+    tmp_path: Path,
+    monkeypatch,
+):
     monkeypatch.setenv("KNOWLEDGE_BASE_DIR", str(tmp_path / "isolated_knowledge"))
     eval_path = write_small_eval_dataset(tmp_path / "small_eval.jsonl")
     result = run_baseline_comparison(
@@ -288,8 +300,12 @@ def test_demo_baseline_comparison_shows_rerank_retrieval_context_gain(tmp_path: 
     )
 
     assert (
-        result["summary"]["rag_hybrid_rerank"]["context_recall"]
-        > result["summary"]["rag_hybrid"]["context_recall"]
+        result["summary"]["rag_hybrid_rerank"]["retrieval_mrr@10"]
+        > result["summary"]["rag_hybrid"]["retrieval_mrr@10"]
+    )
+    assert (
+        result["summary"]["rag_hybrid_rerank"]["retrieval_ndcg@10"]
+        > result["summary"]["rag_hybrid"]["retrieval_ndcg@10"]
     )
 
 
@@ -326,6 +342,10 @@ def test_run_eval_script_can_be_executed_directly(tmp_path: Path):
         capture_output=True,
         text=True,
         encoding="utf-8",
+        env={
+            **os.environ,
+            "KNOWLEDGE_BASE_DIR": str(tmp_path / "isolated_knowledge"),
+        },
     )
 
     assert completed.returncode == 0
@@ -358,6 +378,10 @@ def test_run_eval_script_outputs_portable_data_source_paths(tmp_path: Path):
         capture_output=True,
         text=True,
         encoding="utf-8",
+        env={
+            **os.environ,
+            "KNOWLEDGE_BASE_DIR": str(tmp_path / "isolated_knowledge"),
+        },
     )
 
     assert completed.returncode == 0

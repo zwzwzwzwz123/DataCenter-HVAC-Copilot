@@ -262,19 +262,19 @@ python scripts/run_eval.py `
 
 真实公开文档 + 50 条真实手写子集，BGE-small-zh + FAISS：
 
-| Mode | Citation / Context | Expected Keyword | Tool Select | Tool Success | Evidence | Correctness | Faithfulness | Grounding |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `rag_dense` | 0.562 | 0.309 | 0.000 | 0.000 | 1.000 | 0.148 | 0.148 | 0.000 |
-| `rag_hybrid` BM25 | 0.781 | 0.400 | 0.000 | 0.000 | 0.760 | 0.191 | 0.191 | 0.000 |
-| `hybrid_rrf` | 0.812 | 0.424 | 0.000 | 0.000 | 1.000 | 0.205 | 0.205 | 0.000 |
-| `rag_tool_agent` | 0.562 | 0.643 | 0.850 | 1.000 | 1.000 | 0.703 | 0.690 | 0.938 |
-| `langgraph_tool_agent` | 0.562 | 0.665 | 1.000 | 1.000 | 1.000 | 0.727 | 0.713 | 0.938 |
-| `react_agent` | 0.562 | 0.648 | 0.900 | 1.000 | 1.000 | 0.713 | 0.700 | 0.938 |
+| Mode | Citation / Context | Recall@10 | MRR@10 | nDCG@10 | Expected Keyword | Tool Select | Tool Success | Evidence | Correctness | Faithfulness | Hallucination Proxy | Grounding |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `rag_dense` | 0.875 | 0.932 | 0.719 | 0.753 | 0.451 | 0.000 | 0.000 | 1.000 | 0.210 | 0.210 | 0.000 | 0.000 |
+| `rag_hybrid` BM25 | 0.812 | 0.885 | 0.922 | 0.885 | 0.484 | 0.000 | 0.000 | 0.760 | 0.222 | 0.222 | 0.000 | 0.000 |
+| `hybrid_rrf` | 0.969 | 0.990 | 0.896 | 0.912 | 0.513 | 0.000 | 0.000 | 1.000 | 0.232 | 0.232 | 0.000 | 0.000 |
+| `rag_tool_agent` | 0.562 | 0.667 | 0.651 | 0.622 | 0.643 | 0.850 | 1.000 | 1.000 | 0.703 | 0.690 | 0.042 | 0.938 |
+| `langgraph_tool_agent` | 0.562 | 0.667 | 0.651 | 0.622 | 0.665 | 1.000 | 1.000 | 1.000 | 0.727 | 0.713 | 0.042 | 0.938 |
+| `react_agent` | 0.562 | 0.667 | 0.651 | 0.622 | 0.648 | 0.900 | 1.000 | 1.000 | 0.713 | 0.700 | 0.042 | 0.938 |
 
 关键观察：
 
-- `hybrid_rrf` 在重构后真实文档子集上 citation/context 为 0.812，没有满分，说明干扰题和多文档题已经产生区分度；
-- `hybrid_rrf` 仍高于纯 dense 的 0.562 和 BM25 的 0.781，符合“高但不满分、且明显优于单路”的目标；
+- `hybrid_rrf` 在重构后真实文档子集上 Citation / Context 为 0.969、Recall@10 为 0.990，说明融合检索能覆盖绝大多数 required documents；
+- `hybrid_rrf` 的 MRR@10 / nDCG@10 为 0.896 / 0.912，排序质量也高于纯 dense 的 0.719 / 0.753；
 - BM25 在真实文档问答上仍较强，说明不少题目保留了术语线索；dense 单路在相似文档干扰和多文档命中上明显不足；
 - 真实子集里的时序、异常和策略题需要结构化工具证据，纯 RAG correctness proxy 明显偏低；
 - `langgraph_tool_agent` 的 tool selection、tool success、evidence coverage 均为 1.000，整体 correctness proxy 为 0.727。
@@ -283,9 +283,9 @@ python scripts/run_eval.py `
 
 | Mode | 合成 citation/context | 真实 citation/context | 合成 tool select | 真实 tool select | 合成 correctness | 真实 correctness |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| `rag_dense` | 0.708 | 0.562 | 0.000 | 0.000 | 0.432 | 0.148 |
-| `rag_hybrid` BM25 | 0.523 | 0.781 | 0.000 | 0.000 | 0.344 | 0.191 |
-| `hybrid_rrf` | 0.708 | 0.812 | 0.000 | 0.000 | 0.454 | 0.205 |
+| `rag_dense` | 0.800 | 0.875 | 0.000 | 0.000 | 0.582 | 0.210 |
+| `rag_hybrid` BM25 | 0.646 | 0.812 | 0.000 | 0.000 | 0.413 | 0.222 |
+| `hybrid_rrf` | 0.815 | 0.969 | 0.000 | 0.000 | 0.601 | 0.232 |
 | `rag_tool_agent` | 0.338 | 0.562 | 0.882 | 0.850 | 0.541 | 0.703 |
 | `langgraph_tool_agent` | 0.338 | 0.562 | 0.882 | 1.000 | 0.541 | 0.727 |
 | `react_agent` | 0.338 | 0.562 | 0.956 | 0.900 | 0.582 | 0.713 |

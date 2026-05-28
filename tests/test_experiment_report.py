@@ -143,7 +143,7 @@ def test_render_experiment_report_creates_markdown_table():
     assert "12 条样例包含人工维护的 expected_keywords" in markdown
     assert "answer_correctness_proxy" in markdown
     assert "faithfulness_proxy" in markdown
-    assert "| rag_tool_agent | 0.500 | 0.750 | 0.800 | 0.450 | 1.000 | 1.000 | 0.867 | 0.600 | 0.700 |" in markdown
+    assert "| rag_tool_agent | 0.500 | 0.750 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.800 | 0.450 | 1.000 | 1.000 | 0.867 | 0.600 | 0.700 | 0.000 | 0.000 |" in markdown
     assert "当前结论" in markdown
     assert "rag_hybrid` 在 citation/context 指标上优于 `rag_keyword" in markdown
     assert "rag_dense" in markdown
@@ -212,7 +212,7 @@ def test_render_experiment_report_includes_optional_llm_judge_columns() -> None:
     )
 
     assert "llm_judge_correctness" in markdown
-    assert "| rag_tool_agent | 0.500 | 0.500 | 0.500 | 0.500 | 1.000 | 1.000 | 1.000 | 0.500 | 0.500 | 0.000 | 0.700 | 0.800 |" in markdown
+    assert "| rag_tool_agent | 0.500 | 0.500 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.500 | 0.500 | 1.000 | 1.000 | 1.000 | 0.500 | 0.500 | 0.000 | 0.000 | 0.700 | 0.800 |" in markdown
 
 
 def test_render_experiment_report_documents_real_dense_configuration() -> None:

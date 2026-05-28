@@ -8,10 +8,15 @@ from src.evaluation.metrics import (
     evidence_coverage,
     expected_keyword_coverage,
     faithfulness_proxy,
+    grounding_rate,
+    hallucination_proxy_rate,
     lexical_answer_coverage,
     planned_step_accuracy,
     planned_step_order_accuracy,
     policy_final_step_rate,
+    retrieval_mrr_at_k,
+    retrieval_ndcg_at_k,
+    retrieval_recall_at_k,
     required_step_recall,
     tool_execution_success_rate,
     tool_selection_accuracy,
@@ -71,9 +76,12 @@ def test_eval_dataset_has_curated_keywords_for_representative_records():
 
     assert len(records) == 108
     assert len(keyword_records) == 108
-    assert {"document_qa", "timeseries_query", "anomaly_diagnosis", "policy_recommendation"}.issubset(
-        {record.task_type for record in keyword_records}
-    )
+    assert {
+        "document_qa",
+        "timeseries_query",
+        "anomaly_diagnosis",
+        "policy_recommendation",
+    }.issubset({record.task_type for record in keyword_records})
 
 
 def test_eval_dataset_loads_quality_proxy_annotations():
@@ -101,8 +109,6 @@ def test_eval_dataset_task_type_distribution_matches_stage_target():
         "document_qa": 40,
         "timeseries_query": 20,
         "anomaly_diagnosis": 20,
-        # 20 original policy records plus 8 multi-hop policy records used to
-        # distinguish single-step workflow from deterministic ReAct planning.
         "policy_recommendation": 28,
     }
 
@@ -139,6 +145,50 @@ def test_context_recall_counts_required_documents_in_retrieved_contexts():
     }
 
     assert context_recall(records, predictions) == 0.5
+
+
+def test_retrieval_ranking_metrics_use_required_documents_as_binary_relevance(tmp_path: Path):
+    dataset_path = tmp_path / "ranking_eval.jsonl"
+    dataset_path.write_text(
+        "\n".join(
+            [
+                (
+                    '{"id":"rank_001","question":"q1","task_type":"document_qa",'
+                    '"gold_answer":"a1","required_tools":[],"required_documents":["doc_a","doc_b"],'
+                    '"expected_keywords":[],"expected_output_format":"answer"}'
+                ),
+                (
+                    '{"id":"rank_002","question":"q2","task_type":"document_qa",'
+                    '"gold_answer":"a2","required_tools":[],"required_documents":["doc_c"],'
+                    '"expected_keywords":[],"expected_output_format":"answer"}'
+                ),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    records = load_eval_dataset(dataset_path)
+    predictions = {
+        "rank_001": {
+            "retrieved_contexts": [
+                {"citation": {"source_id": "noise"}},
+                {"citation": {"source_id": "doc_a"}},
+                {"citation": {"source_id": "doc_b"}},
+            ]
+        },
+        "rank_002": {
+            "retrieved_contexts": [
+                {"citation": {"source_id": "doc_x"}},
+                {"citation": {"source_id": "doc_y"}},
+                {"citation": {"source_id": "doc_c"}},
+            ]
+        },
+    }
+
+    assert retrieval_recall_at_k(records, predictions, k=1) == 0.0
+    assert retrieval_recall_at_k(records, predictions, k=3) == 1.0
+    assert round(retrieval_mrr_at_k(records, predictions, k=3), 3) == 0.417
+    assert round(retrieval_ndcg_at_k(records, predictions, k=3), 3) == 0.597
 
 
 def test_tool_selection_accuracy_counts_required_tools():
@@ -211,12 +261,31 @@ def test_faithfulness_proxy_penalizes_missing_evidence_and_forbidden_terms():
     assert faithfulness_proxy(records, predictions) == 0.25
 
 
+def test_hallucination_proxy_rate_counts_forbidden_boundary_violations():
+    records = _records_by_id(["doc_qa_006", "policy_002"])
+    predictions = {
+        "doc_qa_006": {
+            "answer": "BEAR 是真实数据中心生产遥测。",
+            "citations": [{"source_id": "bear_data_boundary_note"}],
+        },
+        "policy_002": {
+            "answer": "LLM 只解释 policy 工具结果。",
+            "tool_results": [{"policy_name": "rule_based"}],
+        },
+    }
+
+    assert hallucination_proxy_rate(records, predictions) == 0.5
+
+
 def test_tool_execution_success_rate_counts_non_empty_tool_results():
     records = _records_by_id(["ts_query_001", "anomaly_001", "policy_001"])
     predictions = {
         "ts_query_001": {"tools": ["query_metric"], "tool_results": [{"summary": {"max": 30.0}}]},
         "anomaly_001": {"tools": ["detect_anomaly"], "tool_results": []},
-        "policy_001": {"tools": ["rule_based_policy"], "tool_results": [{"policy_name": "rule_based"}]},
+        "policy_001": {
+            "tools": ["rule_based_policy"],
+            "tool_results": [{"policy_name": "rule_based"}],
+        },
     }
 
     assert round(tool_execution_success_rate(records, predictions), 2) == 0.67
@@ -232,6 +301,41 @@ def test_evidence_coverage_counts_required_evidence_from_citations_or_tools():
     }
 
     assert evidence_coverage(records, predictions) == 0.75
+
+
+def test_grounding_rate_counts_answer_citations_present_in_retrieved_contexts(tmp_path: Path):
+    dataset_path = tmp_path / "grounding_eval.jsonl"
+    dataset_path.write_text(
+        "\n".join(
+            [
+                (
+                    '{"id":"doc_001","question":"q1","task_type":"document_qa",'
+                    '"gold_answer":"a","required_tools":[],"required_documents":["doc_a"],'
+                    '"expected_keywords":[],"expected_output_format":"answer"}'
+                ),
+                (
+                    '{"id":"doc_002","question":"q2","task_type":"document_qa",'
+                    '"gold_answer":"a","required_tools":[],"required_documents":["doc_b"],'
+                    '"expected_keywords":[],"expected_output_format":"answer"}'
+                ),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    records = load_eval_dataset(dataset_path)
+    predictions = {
+        "doc_001": {
+            "answer": "answer\n\nCitations:\n- doc_a: source",
+            "retrieved_contexts": [{"citation": {"source_id": "doc_a"}}],
+        },
+        "doc_002": {
+            "answer": "answer\n\nCitations:\n- doc_x: source",
+            "retrieved_contexts": [{"citation": {"source_id": "doc_b"}}],
+        },
+    }
+
+    assert grounding_rate(records, predictions) == 0.5
 
 
 def test_planner_metrics_return_none_without_expected_steps():
@@ -254,7 +358,7 @@ def test_planner_metrics_score_expected_step_sets_and_order(tmp_path: Path):
             [
                 (
                     '{"id":"compound_001","question":"最近温度异常升高，并给出控制建议",'
-                    '"task_type":"policy_recommendation","gold_answer":"先查时序，再诊断异常，最后策略。",'
+                    '"task_type":"policy_recommendation","gold_answer":"先查时序，再诊断异常，最后给策略。",'
                     '"required_tools":[],"required_documents":[],"expected_keywords":[],'
                     '"expected_steps":["timeseries_query","anomaly_diagnosis","policy_recommendation"],'
                     '"expected_output_format":"multi_step_policy_with_tool_evidence"}'

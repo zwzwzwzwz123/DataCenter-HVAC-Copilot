@@ -87,29 +87,38 @@ LangGraph 现在使用受控 route planner + shared executor，而不是自由�
 
 **检索 baseline**
 
-| Dataset | Mode | Citation / Context | Expected Keyword | Evidence |
-| --- | --- | ---: | ---: | ---: |
-| 108 synthetic, demo docs | `rag_dense` | 0.708 | 0.430 | 1.000 |
-| 108 synthetic, demo docs | `rag_hybrid` BM25 lexical | 0.523 | 0.295 | 0.620 |
-| 108 synthetic, demo docs | `hybrid_rrf` BM25 + dense RRF | 0.708 | 0.402 | 1.000 |
-| 50 real, uploaded PDFs | `rag_dense` | 0.562 | 0.309 | 1.000 |
-| 50 real, uploaded PDFs | `rag_hybrid` BM25 lexical | 0.781 | 0.400 | 0.760 |
-| 50 real, uploaded PDFs | `hybrid_rrf` BM25 + dense RRF | 0.812 | 0.424 | 1.000 |
+| Dataset | Mode | Citation / Context | Recall@1 | Recall@3 | Recall@5 | Recall@10 | MRR@10 | nDCG@10 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 108 synthetic, demo docs | `rag_dense` | 0.800 | 0.546 | 0.762 | 0.800 | 0.800 | 0.654 | 0.689 |
+| 108 synthetic, demo docs | `rag_hybrid` BM25 lexical | 0.646 | 0.438 | 0.585 | 0.615 | 0.646 | 0.522 | 0.552 |
+| 108 synthetic, demo docs | `hybrid_rrf` BM25 + dense RRF | 0.815 | 0.608 | 0.754 | 0.800 | 0.815 | 0.687 | 0.719 |
+| 50 real, uploaded PDFs | `rag_dense` | 0.875 | 0.474 | 0.760 | 0.932 | 0.932 | 0.719 | 0.753 |
+| 50 real, uploaded PDFs | `rag_hybrid` BM25 lexical | 0.812 | 0.771 | 0.885 | 0.885 | 0.885 | 0.922 | 0.885 |
+| 50 real, uploaded PDFs | `hybrid_rrf` BM25 + dense RRF | 0.969 | 0.677 | 0.979 | 0.990 | 0.990 | 0.896 | 0.912 |
 
-纯检索 baseline 不调用时序、异常或策略工具，因此 correctness/faithfulness proxy 会被工具题自然拉低；检索表只报告检索质量相关指标。端到端回答质量放在 Agent workflow 表中比较。
+| Dataset | Mode | Expected Keyword | Evidence | Hallucination Proxy |
+| --- | --- | ---: | ---: | ---: |
+| 108 synthetic, demo docs | `rag_dense` | 0.593 | 1.000 | 0.083 |
+| 108 synthetic, demo docs | `rag_hybrid` BM25 lexical | 0.362 | 0.620 | 0.056 |
+| 108 synthetic, demo docs | `hybrid_rrf` BM25 + dense RRF | 0.596 | 1.000 | 0.111 |
+| 50 real, uploaded PDFs | `rag_dense` | 0.451 | 1.000 | 0.000 |
+| 50 real, uploaded PDFs | `rag_hybrid` BM25 lexical | 0.484 | 0.760 | 0.000 |
+| 50 real, uploaded PDFs | `hybrid_rrf` BM25 + dense RRF | 0.513 | 1.000 | 0.000 |
+
+纯检索 baseline 不调用时序、异常或策略工具，因此 correctness/faithfulness proxy 会被工具题自然拉低；检索表只报告检索质量相关指标。`Hallucination Proxy` 是基于 `must_not_include` 的边界违规率，不等同于 LLM judge 式全量幻觉率。端到端回答质量放在 Agent workflow 表中比较。
 
 **Agent workflow**
 
-| Dataset | Mode | Citation / Context | Expected Keyword | Tool Select | Tool Success | Evidence | Correctness Proxy | Faithfulness Proxy | Grounding |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 108 synthetic, demo docs | `rag_tool_agent` | 0.338 | 0.628 | 0.882 | 1.000 | 0.917 | 0.541 | 0.486 | 0.477 |
-| 108 synthetic, demo docs | `langgraph_tool_agent` | 0.338 | 0.628 | 0.882 | 1.000 | 0.917 | 0.541 | 0.486 | 0.477 |
-| 108 synthetic, demo docs | `react_agent` | 0.338 | 0.644 | 0.956 | 1.000 | 0.917 | 0.582 | 0.527 | 0.477 |
-| 50 real, uploaded PDFs | `rag_tool_agent` | 0.562 | 0.643 | 0.850 | 1.000 | 1.000 | 0.703 | 0.690 | 0.938 |
-| 50 real, uploaded PDFs | `langgraph_tool_agent` | 0.562 | 0.665 | 1.000 | 1.000 | 1.000 | 0.727 | 0.713 | 0.938 |
-| 50 real, uploaded PDFs | `react_agent` | 0.562 | 0.648 | 0.900 | 1.000 | 1.000 | 0.713 | 0.700 | 0.938 |
+| Dataset | Mode | Citation / Context | Recall@10 | MRR@10 | nDCG@10 | Expected Keyword | Tool Select | Tool Success | Evidence | Correctness Proxy | Faithfulness Proxy | Hallucination Proxy | Grounding |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 108 synthetic, demo docs | `rag_tool_agent` | 0.338 | 0.346 | 0.323 | 0.325 | 0.628 | 0.882 | 1.000 | 0.917 | 0.541 | 0.486 | 0.167 | 0.477 |
+| 108 synthetic, demo docs | `langgraph_tool_agent` | 0.338 | 0.346 | 0.323 | 0.325 | 0.628 | 0.882 | 1.000 | 0.917 | 0.541 | 0.486 | 0.167 | 0.477 |
+| 108 synthetic, demo docs | `react_agent` | 0.338 | 0.346 | 0.323 | 0.325 | 0.644 | 0.956 | 1.000 | 0.917 | 0.582 | 0.527 | 0.167 | 0.477 |
+| 50 real, uploaded PDFs | `rag_tool_agent` | 0.562 | 0.667 | 0.651 | 0.622 | 0.643 | 0.850 | 1.000 | 1.000 | 0.703 | 0.690 | 0.042 | 0.938 |
+| 50 real, uploaded PDFs | `langgraph_tool_agent` | 0.562 | 0.667 | 0.651 | 0.622 | 0.665 | 1.000 | 1.000 | 1.000 | 0.727 | 0.713 | 0.042 | 0.938 |
+| 50 real, uploaded PDFs | `react_agent` | 0.562 | 0.667 | 0.651 | 0.622 | 0.648 | 0.900 | 1.000 | 1.000 | 0.713 | 0.700 | 0.042 | 0.938 |
 
-这组结果说明三件事。第一，重构后的 50 条真实子集不再是“系统能答对”的简单集：`hybrid_rrf` citation/context 为 0.812，没有满分，但仍高于纯 dense 的 0.562 和 BM25 lexical 的 0.781，能体现 RRF 融合的增益。第二，在 108 条合成/样例集上，BGE dense 把 `rag_dense` citation/context 从旧 deterministic dense 的 0.508 提升到 0.708，`hybrid_rrf` 从 0.569 提升到 0.708；BM25 不依赖 embedding，因此保持 0.523。第三，真实子集里的时序、异常和策略题需要工具证据，`langgraph_tool_agent` 在真实子集上达到 1.000 tool selection、1.000 tool success、1.000 evidence coverage，整体 correctness proxy 为 0.727。
+这组结果说明三件事。第一，重构后的 50 条真实子集不再是“系统能答对”的简单集：`hybrid_rrf` citation/context 为 0.969、Recall@10 为 0.990，没有把 answer proxy 拉成满分，但显著高于纯 dense 和 BM25 lexical，能体现 RRF 融合的召回增益。第二，在 108 条合成/样例集上，BGE dense 与 `hybrid_rrf` 的 Citation/Context 分别为 0.800 和 0.815，均高于 BM25 lexical 的 0.646；同时 `hybrid_rrf` 的 MRR@10 / nDCG@10 为 0.687 / 0.719，排序质量也优于单路。第三，真实子集里的时序、异常和策略题需要工具证据，`langgraph_tool_agent` 在真实子集上达到 1.000 tool selection、1.000 tool success、1.000 evidence coverage，整体 correctness proxy 为 0.727，边界违规率为 0.042。
 
 主要 artifact：
 
@@ -298,7 +307,7 @@ Query Rewrite / HyDE baselines 也包含在 comparison artifact 中：`rag_rewri
 108 条合成/样例集的 BGE + FAISS 对照：
 
 ```bash
-python scripts/run_eval.py \
+KNOWLEDGE_BASE_DIR=data/eval/isolated_demo_knowledge python scripts/run_eval.py \
   --output data/eval/real_bge_demo_docs/baseline_predictions.jsonl \
   --comparison-output data/eval/real_bge_demo_docs/baseline_comparison.json \
   --report-output data/eval/real_bge_demo_docs/experiment_report.md \
@@ -308,6 +317,8 @@ python scripts/run_eval.py \
   --dense-backend faiss \
   --dense-model BAAI/bge-small-zh-v1.5
 ```
+
+这组命令刻意把 `KNOWLEDGE_BASE_DIR` 指到空的隔离目录，确保 108 条合成/样例集只跑 demo docs，不会误用当前 `data/knowledge/` 里的真实 PDF。Windows PowerShell 可先执行 `$env:KNOWLEDGE_BASE_DIR="data/eval/isolated_demo_knowledge"`，再运行同一条 `python scripts/run_eval.py ...` 命令。
 
 50 条真实手写子集的 BGE + FAISS 对照：
 
@@ -364,4 +375,4 @@ python scripts/export_bear_data.py --bear-root ../BEAR --num-steps 336 --scenari
 
 ## Resume One-Liner
 
-基于 BEAR HVAC 仿真和真实公开文档的 RAG + Tool Agent 系统；核心是 `hybrid_rrf`(BM25+dense RRF) 融合检索、受控 LLM route planner、共享 executor 的 baseline/LangGraph 可对照评测。真实文档子集含干扰/边界题，`hybrid_rrf` citation/context 为 0.812，优于 BM25(0.781) 和 dense(0.562)。
+基于 BEAR HVAC 仿真和真实公开文档的 RAG + Tool Agent 系统；核心是 `hybrid_rrf`(BM25+dense RRF) 融合检索、受控 LLM route planner、共享 executor 的 baseline/LangGraph 可对照评测。真实文档子集含干扰/边界题，`hybrid_rrf` Citation/Context 0.969、Recall@10 0.990、MRR@10 0.896，优于单路 dense/BM25；`langgraph_tool_agent` 在真实子集上 tool selection 1.000、correctness proxy 0.727、hallucination proxy 0.042。

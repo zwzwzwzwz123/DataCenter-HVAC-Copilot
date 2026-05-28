@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from math import log2
 import re
 
 from src.evaluation.dataset import EvalRecord
@@ -41,6 +42,82 @@ def context_recall(records: list[EvalRecord], predictions: dict[str, dict]) -> f
         if set(record.required_documents).issubset(context_source_ids):
             hits += 1
     return hits / len(required_records)
+
+
+def retrieval_recall_at_k(
+    records: list[EvalRecord],
+    predictions: dict[str, dict],
+    *,
+    k: int,
+) -> float:
+    if k <= 0:
+        raise ValueError("k must be positive.")
+    required_records = [record for record in records if record.required_documents]
+    if not required_records:
+        return 0.0
+
+    scores = []
+    for record in required_records:
+        required = set(record.required_documents)
+        retrieved = set(_ranked_context_source_ids(predictions.get(record.id, {}), k=k))
+        scores.append(len(required & retrieved) / len(required))
+    return sum(scores) / len(scores)
+
+
+def retrieval_mrr_at_k(
+    records: list[EvalRecord],
+    predictions: dict[str, dict],
+    *,
+    k: int,
+) -> float:
+    if k <= 0:
+        raise ValueError("k must be positive.")
+    required_records = [record for record in records if record.required_documents]
+    if not required_records:
+        return 0.0
+
+    scores = []
+    for record in required_records:
+        required = set(record.required_documents)
+        reciprocal_rank = 0.0
+        for rank, source_id in enumerate(
+            _ranked_context_source_ids(predictions.get(record.id, {}), k=k),
+            start=1,
+        ):
+            if source_id in required:
+                reciprocal_rank = 1 / rank
+                break
+        scores.append(reciprocal_rank)
+    return sum(scores) / len(scores)
+
+
+def retrieval_ndcg_at_k(
+    records: list[EvalRecord],
+    predictions: dict[str, dict],
+    *,
+    k: int,
+) -> float:
+    if k <= 0:
+        raise ValueError("k must be positive.")
+    required_records = [record for record in records if record.required_documents]
+    if not required_records:
+        return 0.0
+
+    scores = []
+    for record in required_records:
+        required = set(record.required_documents)
+        gains = [
+            1.0 if source_id in required else 0.0
+            for source_id in _ranked_context_source_ids(
+                predictions.get(record.id, {}),
+                k=k,
+            )
+        ]
+        dcg = _discounted_cumulative_gain(gains)
+        ideal_hits = min(len(required), k)
+        idcg = _discounted_cumulative_gain([1.0] * ideal_hits)
+        scores.append(dcg / idcg if idcg else 0.0)
+    return sum(scores) / len(scores)
 
 
 def tool_selection_accuracy(records: list[EvalRecord], predictions: dict[str, dict]) -> float:
@@ -185,8 +262,44 @@ def faithfulness_proxy(records: list[EvalRecord], predictions: dict[str, dict]) 
     return sum(scores) / len(scores)
 
 
+def hallucination_proxy_rate(records: list[EvalRecord], predictions: dict[str, dict]) -> float:
+    boundary_records = [record for record in records if record.must_not_include]
+    if not boundary_records:
+        return 0.0
+
+    violations = 0
+    for record in boundary_records:
+        answer = str(predictions.get(record.id, {}).get("answer", "")).lower()
+        forbidden = [item.lower() for item in record.must_not_include]
+        if any(item in answer for item in forbidden):
+            violations += 1
+    return violations / len(boundary_records)
+
+
 def _tokenize(text: str) -> list[str]:
     return [match.group(0).lower() for match in TOKEN_PATTERN.finditer(text)]
+
+
+def _ranked_context_source_ids(prediction: dict, *, k: int) -> list[str]:
+    source_ids = []
+    seen = set()
+    for context in prediction.get("retrieved_contexts", []):
+        if not isinstance(context, dict):
+            continue
+        citation = context.get("citation", {})
+        source_id = citation.get("source_id") if isinstance(citation, dict) else None
+        if not source_id:
+            source_id = context.get("source_id")
+        if source_id and source_id not in seen:
+            source_ids.append(str(source_id))
+            seen.add(source_id)
+        if len(source_ids) >= k:
+            break
+    return source_ids
+
+
+def _discounted_cumulative_gain(gains: list[float]) -> float:
+    return sum(gain / log2(rank + 1) for rank, gain in enumerate(gains, start=1))
 
 
 def _planned_routes(prediction: dict) -> list[str]:

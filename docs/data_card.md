@@ -75,27 +75,27 @@ data/bear_processed/bear_rollout.csv
 
 真实公开文档 + 50 条真实手写子集，BGE-small-zh + FAISS：
 
-| Mode | Citation / Context | Tool Select | Evidence | Correctness Proxy |
-| --- | ---: | ---: | ---: | ---: |
-| `rag_dense` | 0.562 | 0.000 | 1.000 | 0.148 |
-| `rag_hybrid` BM25 | 0.781 | 0.000 | 0.760 | 0.191 |
-| `hybrid_rrf` | 0.812 | 0.000 | 1.000 | 0.205 |
-| `rag_tool_agent` | 0.562 | 0.850 | 1.000 | 0.703 |
-| `langgraph_tool_agent` | 0.562 | 1.000 | 1.000 | 0.727 |
-| `react_agent` | 0.562 | 0.900 | 1.000 | 0.713 |
+| Mode | Citation / Context | Recall@10 | MRR@10 | nDCG@10 | Tool Select | Evidence | Correctness Proxy | Hallucination Proxy |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `rag_dense` | 0.875 | 0.932 | 0.719 | 0.753 | 0.000 | 1.000 | 0.210 | 0.000 |
+| `rag_hybrid` BM25 | 0.812 | 0.885 | 0.922 | 0.885 | 0.000 | 0.760 | 0.222 | 0.000 |
+| `hybrid_rrf` | 0.969 | 0.990 | 0.896 | 0.912 | 0.000 | 1.000 | 0.232 | 0.000 |
+| `rag_tool_agent` | 0.562 | 0.667 | 0.651 | 0.622 | 0.850 | 1.000 | 0.703 | 0.042 |
+| `langgraph_tool_agent` | 0.562 | 0.667 | 0.651 | 0.622 | 1.000 | 1.000 | 0.727 | 0.042 |
+| `react_agent` | 0.562 | 0.667 | 0.651 | 0.622 | 0.900 | 1.000 | 0.713 | 0.042 |
 
-重构后的真实子集不是为了让系统拿满分，而是为了暴露边界：`hybrid_rrf` 保持最高检索召回，但 citation/context 为 0.812，说明相似文档干扰和多文档题已经拉开区分度。
+重构后的真实子集不是为了让系统拿满分，而是为了暴露边界：`hybrid_rrf` 保持最高检索召回，Citation / Context 为 0.969、Recall@10 为 0.990；但端到端 correctness proxy 没有满分，说明工具题、边界题和回答生成仍能拉开区分度。
 
 合成/样例 108 条，BGE-small-zh + FAISS，隔离真实知识库后在 demo 文档上运行：
 
-| Mode | Citation / Context | Tool Select | Evidence | Correctness Proxy |
-| --- | ---: | ---: | ---: | ---: |
-| `rag_dense` | 0.708 | 0.000 | 1.000 | 0.432 |
-| `rag_hybrid` BM25 | 0.523 | 0.000 | 0.620 | 0.344 |
-| `hybrid_rrf` | 0.708 | 0.000 | 1.000 | 0.454 |
-| `rag_tool_agent` | 0.338 | 0.882 | 0.917 | 0.541 |
-| `langgraph_tool_agent` | 0.338 | 0.882 | 0.917 | 0.541 |
-| `react_agent` | 0.338 | 0.956 | 0.917 | 0.582 |
+| Mode | Citation / Context | Recall@10 | MRR@10 | nDCG@10 | Tool Select | Evidence | Correctness Proxy | Hallucination Proxy |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `rag_dense` | 0.800 | 0.800 | 0.654 | 0.689 | 0.000 | 1.000 | 0.582 | 0.083 |
+| `rag_hybrid` BM25 | 0.646 | 0.646 | 0.522 | 0.552 | 0.000 | 0.620 | 0.413 | 0.056 |
+| `hybrid_rrf` | 0.815 | 0.815 | 0.687 | 0.719 | 0.000 | 1.000 | 0.601 | 0.111 |
+| `rag_tool_agent` | 0.338 | 0.346 | 0.323 | 0.325 | 0.882 | 0.917 | 0.541 | 0.167 |
+| `langgraph_tool_agent` | 0.338 | 0.346 | 0.323 | 0.325 | 0.882 | 0.917 | 0.541 | 0.167 |
+| `react_agent` | 0.338 | 0.346 | 0.323 | 0.325 | 0.956 | 0.917 | 0.582 | 0.167 |
 
 ## 解析质量观察
 

@@ -6,6 +6,12 @@ from pathlib import Path
 METRIC_COLUMNS = [
     "citation_hit_rate",
     "context_recall",
+    "retrieval_recall@1",
+    "retrieval_recall@3",
+    "retrieval_recall@5",
+    "retrieval_recall@10",
+    "retrieval_mrr@10",
+    "retrieval_ndcg@10",
     "expected_keyword_coverage",
     "lexical_answer_coverage",
     "tool_selection_accuracy",
@@ -13,6 +19,7 @@ METRIC_COLUMNS = [
     "evidence_coverage",
     "answer_correctness_proxy",
     "faithfulness_proxy",
+    "hallucination_proxy_rate",
     "grounding_rate",
 ]
 

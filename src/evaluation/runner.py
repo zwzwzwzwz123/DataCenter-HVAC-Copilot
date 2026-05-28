@@ -19,10 +19,14 @@ from src.evaluation.metrics import (
     expected_keyword_coverage,
     grounding_rate,
     faithfulness_proxy,
+    hallucination_proxy_rate,
     lexical_answer_coverage,
     planned_step_accuracy,
     planned_step_order_accuracy,
     policy_final_step_rate,
+    retrieval_mrr_at_k,
+    retrieval_ndcg_at_k,
+    retrieval_recall_at_k,
     required_step_recall,
     tool_execution_success_rate,
     tool_selection_accuracy,
@@ -373,7 +377,7 @@ def _run_rag_only(
     predictions = []
     for record in records:
         started_at = perf_counter()
-        answer = rag_pipeline.answer(record.question, top_k=3)
+        answer = rag_pipeline.answer(record.question, top_k=10)
         prediction = {
             "id": record.id,
             "question": record.question,
@@ -409,6 +413,12 @@ def _compute_metrics(records: list[EvalRecord], prediction_map: dict[str, dict])
     metrics = {
         "citation_hit_rate": citation_hit_rate(records, prediction_map),
         "context_recall": context_recall(records, prediction_map),
+        "retrieval_recall@1": retrieval_recall_at_k(records, prediction_map, k=1),
+        "retrieval_recall@3": retrieval_recall_at_k(records, prediction_map, k=3),
+        "retrieval_recall@5": retrieval_recall_at_k(records, prediction_map, k=5),
+        "retrieval_recall@10": retrieval_recall_at_k(records, prediction_map, k=10),
+        "retrieval_mrr@10": retrieval_mrr_at_k(records, prediction_map, k=10),
+        "retrieval_ndcg@10": retrieval_ndcg_at_k(records, prediction_map, k=10),
         "expected_keyword_coverage": expected_keyword_coverage(records, prediction_map),
         "lexical_answer_coverage": lexical_answer_coverage(records, prediction_map),
         "tool_selection_accuracy": tool_selection_accuracy(records, prediction_map),
@@ -416,6 +426,7 @@ def _compute_metrics(records: list[EvalRecord], prediction_map: dict[str, dict])
         "evidence_coverage": evidence_coverage(records, prediction_map),
         "answer_correctness_proxy": answer_correctness_proxy(records, prediction_map),
         "faithfulness_proxy": faithfulness_proxy(records, prediction_map),
+        "hallucination_proxy_rate": hallucination_proxy_rate(records, prediction_map),
         "grounding_rate": grounding_rate(records, prediction_map),
         "planned_step_accuracy": planned_step_accuracy(records, prediction_map),
         "planned_step_order_accuracy": planned_step_order_accuracy(records, prediction_map),
