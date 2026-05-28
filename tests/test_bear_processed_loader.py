@@ -62,5 +62,5 @@ def test_build_demo_orchestrator_prefers_processed_bear_csv(tmp_path: Path, monk
 
     assert orchestrator.trajectory.attrs["source"] == "processed_bear_csv"
     assert orchestrator.data_source["kind"] == "processed_csv"
-    assert orchestrator.data_source["path"] == str(csv_path)
+    assert orchestrator.data_source["path"] == "data/bear_processed/bear_rollout.csv"
     assert orchestrator.trajectory.iloc[0]["scenario_id"] == "episode_processed"

@@ -70,5 +70,5 @@ def test_build_demo_orchestrator_uses_bear_sample_csv_when_processed_missing(tmp
 
     assert orchestrator.trajectory.attrs["source"] == "BEAR sample timeseries csv"
     assert orchestrator.data_source["kind"] == "bear_sample_csv"
-    assert orchestrator.data_source["path"] == str(bear_data_dir / "Exercise2A-mytest.csv")
+    assert orchestrator.data_source["path"] == "BEAR/BEAR/Data/Exercise2A-mytest.csv"
     assert len(orchestrator.trajectory) == 12

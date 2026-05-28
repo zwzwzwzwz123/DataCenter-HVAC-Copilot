@@ -372,7 +372,7 @@ docker compose up --build
 - FastAPI: `http://localhost:8000/health`
 - Streamlit: `http://localhost:8501`
 
-`docker-compose.yml` 会为 Streamlit 设置 `HVAC_COPILOT_API_BASE_URL=http://api:8000`，因此容器内不会错误连接自己的 `localhost`。如果本地 `.env` 存在，compose 会把 DeepSeek 等可选配置传入容器；`.env` 不应提交到仓库。
+`docker-compose.yml` 会为 Streamlit 设置 `HVAC_COPILOT_API_BASE_URL=http://api:8000`，因此容器内不会错误连接自己的 `localhost`。fresh clone 后不要求预先创建 `.env`；未配置 DeepSeek / Ollama 时会使用 deterministic fallback。`.env` 仍可供本地 Python/Streamlit 直接运行时自动加载，但不应提交到仓库。
 
 Streamlit 包含：
 
@@ -510,12 +510,12 @@ baseline 包含：
 最新默认评测中，`rag_tool_agent` 结果为：
 
 ```text
-tool_selection_accuracy        = 1.000
+tool_selection_accuracy        = 0.882
 tool_execution_success_rate    = 1.000
-evidence_coverage              = 0.910
-expected_keyword_coverage      = 0.618
-answer_correctness_proxy       = 0.547
-faithfulness_proxy             = 0.465
+evidence_coverage              = 0.917
+expected_keyword_coverage      = 0.628
+answer_correctness_proxy       = 0.541
+faithfulness_proxy             = 0.486
 ```
 
 最新 Stage 2 真实 dense 检索运行中，`rag_dense` 使用 `BAAI/bge-small-zh-v1.5` + FAISS，整体结果为：
@@ -533,11 +533,11 @@ faithfulness_proxy             = 0.566
 Stage 2 LangGraph workflow 已纳入 baseline comparison：
 
 ```text
-langgraph_tool_agent tool_selection_accuracy      = 1.000
+langgraph_tool_agent tool_selection_accuracy      = 0.882
 langgraph_tool_agent tool_execution_success_rate  = 1.000
-langgraph_tool_agent evidence_coverage            = 0.910
-langgraph_tool_agent answer_correctness_proxy     = 0.547
-langgraph_tool_agent faithfulness_proxy           = 0.465
+langgraph_tool_agent evidence_coverage            = 0.917
+langgraph_tool_agent answer_correctness_proxy     = 0.541
+langgraph_tool_agent faithfulness_proxy           = 0.486
 ```
 
 `langgraph_tool_agent` 与 deterministic `rag_tool_agent` 指标一致，说明默认 LangGraph 版本没有改变底层工具行为；它用于展示 workflow 编排、trace 和可选 LLM route planner。独立 intent routing 评测显示，默认 keyword/rule-based classifier 在 108 条样例上 accuracy 为 0.640；如果要横向比较 DeepSeek 或本地 Qwen/Ollama 的单步意图分类效果，可以使用 `scripts/run_intent_eval.py`，但该脚本不代表 `/ask` 的默认 LangGraph planner 配置。

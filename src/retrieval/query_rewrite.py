@@ -164,10 +164,12 @@ class DeterministicMultiQueryRewriter:
         self.fallback = fallback or RuleBasedHVACQueryRewriter()
 
     def rewrite_queries(self, query: str, task_type: str | None = None) -> MultiQueryRewriteResult:
-        return _fallback_multi_query_result(
-            query=query,
-            task_type=task_type,
-            fallback=self.fallback,
+        rewritten = self.fallback.rewrite(query, task_type=task_type)
+        return MultiQueryRewriteResult(
+            original_query=query,
+            queries=[rewritten.rewritten_query],
+            strategy=rewritten.strategy,
+            fallback_used=False,
             error=None,
         )
 

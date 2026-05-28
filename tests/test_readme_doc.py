@@ -139,6 +139,8 @@ def test_readme_documents_docker_compose_demo_startup() -> None:
     assert "Docker 一键启动" in content
     assert "docker compose up --build" in content
     assert "HVAC_COPILOT_API_BASE_URL" in content
+    assert "fresh clone" in content
+    assert "不要求预先创建 `.env`" in content
 
 
 def test_docker_compose_files_are_present() -> None:
@@ -151,6 +153,13 @@ def test_docker_compose_files_are_present() -> None:
     compose_content = compose.read_text(encoding="utf-8")
     assert "api:" in compose_content
     assert "streamlit:" in compose_content
+
+
+def test_docker_compose_does_not_require_untracked_env_file() -> None:
+    compose_content = Path("docker-compose.yml").read_text(encoding="utf-8")
+
+    assert "env_file:" not in compose_content
+    assert "- .env" not in compose_content
 
 
 def test_pyproject_declares_runtime_and_policy_dependencies() -> None:
@@ -209,6 +218,20 @@ def test_readme_uses_current_eval_count_and_task_distribution() -> None:
     assert "100 条评测集" not in content
     assert "当前评测集包含 100 条样例" not in content
     assert "policy_recommendation:20" not in content
+
+
+def test_readme_eval_numbers_match_current_default_artifact() -> None:
+    content = Path("README.md").read_text(encoding="utf-8")
+
+    assert "tool_selection_accuracy        = 0.882" in content
+    assert "evidence_coverage              = 0.917" in content
+    assert "expected_keyword_coverage      = 0.628" in content
+    assert "answer_correctness_proxy       = 0.541" in content
+    assert "faithfulness_proxy             = 0.486" in content
+    assert "langgraph_tool_agent tool_selection_accuracy      = 0.882" in content
+    assert "langgraph_tool_agent evidence_coverage            = 0.917" in content
+    assert "tool_selection_accuracy        = 1.000" not in content
+    assert "evidence_coverage              = 0.910" not in content
 
 
 def test_readme_copy_sets_safety_memory_and_human_review_boundaries() -> None:

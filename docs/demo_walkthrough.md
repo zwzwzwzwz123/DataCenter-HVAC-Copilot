@@ -87,7 +87,7 @@ Copilot tab 默认使用 LangGraph workflow，并展示 `LangGraph Workflow Trac
 观察点：
 
 - Metrics 按 Retrieval、Answer、Tool、Quality Proxy 分组。
-- `rag_tool_agent` 的工具选择和工具执行在当前确定性样例上为 1.000。
+- `rag_tool_agent` 的工具执行为 1.000，工具选择在当前 108 条默认评测上为 0.882。
 - `evidence_coverage` 高于不使用工具的 baseline。
 - Quality Proxy 是本地弱标注代理指标，不等价于人工评审或 LLM judge。
 

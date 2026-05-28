@@ -80,8 +80,9 @@ def _load_demo_documents(project_root: Path) -> list:
     documents = []
     if sample_path.exists():
         documents.append(
-            load_markdown_document(
+            _load_demo_markdown_document(
                 sample_path,
+                project_root=project_root,
                 source_id="hvac_energy_reference",
                 title="HVAC Energy Reference",
                 published_at="2026",
@@ -91,8 +92,29 @@ def _load_demo_documents(project_root: Path) -> list:
     for document in load_text_documents(documents_dir):
         if document.metadata.source_path == str(sample_path):
             continue
+        document.metadata.source_path = _display_path(Path(document.metadata.source_path), project_root)
         documents.append(document)
     return documents
+
+
+def _load_demo_markdown_document(
+    path: Path,
+    *,
+    project_root: Path,
+    source_id: str | None = None,
+    title: str | None = None,
+    published_at: str | None = None,
+    category: str | None = None,
+):
+    document = load_markdown_document(
+        path,
+        source_id=source_id,
+        title=title,
+        published_at=published_at,
+        category=category,
+    )
+    document.metadata.source_path = _display_path(path, project_root)
+    return document
 
 
 def _load_demo_trajectory(project_root: Path | None = None) -> pd.DataFrame:
@@ -102,7 +124,7 @@ def _load_demo_trajectory(project_root: Path | None = None) -> pd.DataFrame:
         frame = load_processed_bear_trajectory(processed_path)
         frame.attrs["data_source"] = {
             "kind": "processed_csv",
-            "path": str(processed_path),
+            "path": _display_path(processed_path, project_root),
         }
         return frame
     bear_sample_path = project_root / "BEAR" / "BEAR" / "Data" / "Exercise2A-mytest.csv"
@@ -110,7 +132,7 @@ def _load_demo_trajectory(project_root: Path | None = None) -> pd.DataFrame:
         frame = load_bear_sample_timeseries(bear_sample_path)
         frame.attrs["data_source"] = {
             "kind": "bear_sample_csv",
-            "path": str(bear_sample_path),
+            "path": _display_path(bear_sample_path, project_root),
         }
         return frame
     frame = pd.DataFrame(
@@ -134,6 +156,14 @@ def _load_demo_trajectory(project_root: Path | None = None) -> pd.DataFrame:
         "path": "built-in demo trajectory",
     }
     return frame
+
+
+def _display_path(path: Path, project_root: Path) -> str:
+    try:
+        relative = path.relative_to(project_root)
+    except ValueError:
+        relative = path
+    return relative.as_posix()
 
 
 def _build_policy_runner(project_root: Path, *, use_dropt_policy: bool = False):

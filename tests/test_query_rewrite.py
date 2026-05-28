@@ -3,6 +3,7 @@ from pathlib import Path
 from src.retrieval.chunking import chunk_document
 from src.retrieval.loader import load_markdown_document
 from src.retrieval.query_rewrite import (
+    DeterministicMultiQueryRewriter,
     LLMMultiQueryRAGPipeline,
     LLMMultiQueryRewriter,
     HyDERAGPipeline,
@@ -164,6 +165,17 @@ def test_llm_multi_query_rewriter_falls_back_to_rule_rewrite_on_invalid_payload(
     assert result.fallback_used is True
     assert result.strategy == "rule_based_hvac_rewrite"
     assert len(result.queries) == 1
+    assert "zone_temperature" in result.queries[0]
+
+
+def test_deterministic_multi_query_rewriter_is_not_marked_as_fallback() -> None:
+    rewriter = DeterministicMultiQueryRewriter()
+
+    result = rewriter.rewrite_queries("最近三小时温度最大值", task_type="timeseries_query")
+
+    assert result.fallback_used is False
+    assert result.error is None
+    assert result.strategy == "rule_based_hvac_rewrite"
     assert "zone_temperature" in result.queries[0]
 
 

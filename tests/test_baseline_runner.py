@@ -209,7 +209,8 @@ def test_run_baseline_comparison_returns_named_modes(tmp_path: Path):
     assert result["summary"]["rag_tool_agent"]["tool_selection_accuracy"] == 1.0
     assert "citation_hit_rate" in result["summary"]["hybrid_rrf"]
     assert "citation_hit_rate" in result["summary"]["rewrite_llm"]
-    assert "average_latency_seconds" in result["summary"]["rewrite_llm"]
+    assert "retrieval_average_latency_seconds" in result["summary"]["rewrite_llm"]
+    assert "average_latency_seconds" not in result["summary"]["rewrite_llm"]
     assert result["summary"]["langgraph_tool_agent"]["tool_selection_accuracy"] == 1.0
     assert "react_agent" in result["summary"]
     assert result["summary"]["llm_only"]["tool_selection_accuracy"] == 0.0
@@ -339,6 +340,44 @@ def test_run_eval_script_can_be_executed_directly(tmp_path: Path):
     assert '"correctness_score": null' in annotation_content
     assert '"faithfulness_score": null' in annotation_content
     assert "Saved predictions to" in completed.stdout
+
+
+def test_run_eval_script_outputs_portable_data_source_paths(tmp_path: Path):
+    eval_path = write_small_eval_dataset(tmp_path / "small_eval.jsonl")
+    output_path = tmp_path / "script_predictions.jsonl"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "scripts/run_eval.py",
+            "--eval-path",
+            str(eval_path),
+            "--output",
+            str(output_path),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+
+    assert completed.returncode == 0
+    generated_paths = [
+        output_path,
+        tmp_path / "human_review_sample.jsonl",
+        tmp_path / "experiment_report.md",
+    ]
+    project_root = str(Path.cwd())
+    escaped_project_root = project_root.replace("\\", "\\\\")
+    portable_path = "data/bear_processed/bear_rollout.csv"
+    for path in generated_paths:
+        content = path.read_text(encoding="utf-8")
+        assert project_root not in content
+        assert escaped_project_root not in content
+        assert "DataCenter-HVAC-Copilot\\\\data\\\\documents" not in content
+    for path in [output_path, tmp_path / "human_review_sample.jsonl"]:
+        content = path.read_text(encoding="utf-8")
+        assert portable_path in content
+        assert "data/documents/" in content
 
 
 def test_run_eval_script_can_write_comparison_summary(tmp_path: Path):

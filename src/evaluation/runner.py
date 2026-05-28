@@ -428,7 +428,7 @@ def _compute_metrics(records: list[EvalRecord], prediction_map: dict[str, dict])
         if prediction.get("latency_seconds") is not None
     ]
     if latencies:
-        metrics["average_latency_seconds"] = sum(latencies) / len(latencies)
+        metrics["retrieval_average_latency_seconds"] = sum(latencies) / len(latencies)
     return {
         name: value
         for name, value in metrics.items()
