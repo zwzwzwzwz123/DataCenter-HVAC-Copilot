@@ -1,0 +1,172 @@
+{
+  "question": "ASHRAE ??????? IT ????????????????????????",
+  "route": "document_qa",
+  "answer": "根据你提供的检索证据，ASHRAE TC 9.9 的《Data Center Power Equipment Thermal Guidelines and Best Practices (2016)》中涉及 IT 设备相关热指南的内容主要包括以下方面：\n\n1. **IT 设备内部电池（BBU）的温度耐受**  \n   文档指出，BBU（电池备份单元）通常位于 IT 设备后部，此处冷却空气已被显著预热，温度达到 **50°C (122°F)** 并不罕见。超过该温度会缩短电池寿命；放电时电池自身温升可达 **30°C (54°F)**，放电后需冷却才能再次充电，否则设备在连续停电时可能无后备能量【doc_1724dac7c67a4e1fae2eba99484501aa::chunk_0052】。\n\n2. **ASHRAE 冷通道/热通道温度等级与功率设备的兼容性**  \n   文档给出了冷通道和热通道在不同 ASHRAE 等级下的温度范围和兼容性要求（表7），例如：\n   - **ASHRAE Class A2**：冷通道 10–35°C；热通道需降额使用。\n   - **ASHRAE Class A3**：冷通道 5–40°C；落地式 PDU 在最大功率下与 Class A3 冷通道兼容，热通道则需功率降额。\n   - **ASHRAE Class A4**：冷通道 5–45°C；同样需考虑降额。\n   - 备注指出：多数功率设备的环境温度上限可灵活调整，若降低最大功率额定值，则可支持更高环境温度。【doc_1724dac7c67a4e1fae2eba99484501aa::chunk_0099】\n\n3. **文档背景**  \n   该指南由 ASHRAE 技术委员会 TC 9.9 制定，专门针对数据中心功率设备的热设计【doc_1724dac7c67a4e1fae2eba99484501aa::chunk_0000】。\n\n**注意**：由于你的问题中部分字符显示为问号，可能缺失具体提问点（如某类 IT 设备、特定温度等级等），以上是依据现有检索碎片可整合的全部信息。若需更精确的回答，请提供完整问题或明确具体关注点（例如电池温度限值、冷通道兼容性等）。",
+  "answer_generator": "deepseek:deepseek-v4-flash",
+  "answer_audit": {
+    "passed": true,
+    "violations": [],
+    "checks": [
+      "production_telemetry_claim",
+      "llm_direct_control_claim",
+      "unverified_policy_action"
+    ]
+  },
+  "tools": [],
+  "citations": [
+    {
+      "source_id": "doc_1724dac7c67a4e1fae2eba99484501aa",
+      "title": "ashrae_tc99_power_equipment_thermal_guidelines_2016.pdf",
+      "source_path": "data\\knowledge\\uploads\\doc_1724dac7c67a4e1fae2eba99484501aa_ashrae_tc99_power_equipment_thermal_guidelines_2016.pdf",
+      "page_number": 24,
+      "section": null
+    },
+    {
+      "source_id": "doc_1724dac7c67a4e1fae2eba99484501aa",
+      "title": "ashrae_tc99_power_equipment_thermal_guidelines_2016.pdf",
+      "source_path": "data\\knowledge\\uploads\\doc_1724dac7c67a4e1fae2eba99484501aa_ashrae_tc99_power_equipment_thermal_guidelines_2016.pdf",
+      "page_number": 1,
+      "section": null
+    },
+    {
+      "source_id": "doc_1724dac7c67a4e1fae2eba99484501aa",
+      "title": "ashrae_tc99_power_equipment_thermal_guidelines_2016.pdf",
+      "source_path": "data\\knowledge\\uploads\\doc_1724dac7c67a4e1fae2eba99484501aa_ashrae_tc99_power_equipment_thermal_guidelines_2016.pdf",
+      "page_number": 43,
+      "section": null
+    }
+  ],
+  "retrieved_contexts": [
+    {
+      "chunk_id": "doc_1724dac7c67a4e1fae2eba99484501aa::chunk_0052",
+      "score": 0.5073361396789551,
+      "text": "is a small battery backup BBU that resides inside the IT equipment usually with the same f orm factor as a power supply unit For BBUs the most common battery technology is lead-acid VRLA though some BBUs use lithium ion LiON batteries 22 One of the reasons for choosing a battery technology like LiON is that it is tolerant of higher temperature The location of the BBU is typically at the rear of the IT equipment where the cooling air has already been significantly pre -heated Air temperatures in the range of 50 oC 122 F are not uncommon in the rear chassis of most IT equipment Temperatures above 50 oC 122 F will adversely affect the service life of the battery Another important aspect of defining battery temperature is during discharge mode the batteries may have as much as a 30 C 54 F rise in temperature depending on the current draw and the discharge time After a discharge the batteries must be allowed to cool before a charge cycle can be initiated After a discharge event there will be a time window where the IT equipment is vulnerable to a back-to-back outage event where for the second outage the BBU would not have energ y stored energy to provide back -up power IT equipment BBUs are inside the",
+      "citation": {
+        "source_id": "doc_1724dac7c67a4e1fae2eba99484501aa",
+        "title": "ashrae_tc99_power_equipment_thermal_guidelines_2016.pdf",
+        "source_path": "data\\knowledge\\uploads\\doc_1724dac7c67a4e1fae2eba99484501aa_ashrae_tc99_power_equipment_thermal_guidelines_2016.pdf",
+        "page_number": 24,
+        "section": null
+      },
+      "retrieval_mode": "persistent_faiss",
+      "metadata": {
+        "file_hash": "0518d9e73bfc4f55547ef6b1d291c2f9b55895c5844f0d463a96b2dcac813b3a",
+        "file_type": ".pdf",
+        "filename": "ashrae_tc99_power_equipment_thermal_guidelines_2016.pdf",
+        "source_path": "data\\knowledge\\uploads\\doc_1724dac7c67a4e1fae2eba99484501aa_ashrae_tc99_power_equipment_thermal_guidelines_2016.pdf"
+      }
+    },
+    {
+      "chunk_id": "doc_1724dac7c67a4e1fae2eba99484501aa::chunk_0000",
+      "score": 0.507184624671936,
+      "text": "1 ASHRAE TC9 9 Data Center Power Equipment Thermal Guidelines and Best Practices Whitepaper created by ASHRAE Technical Committee TC 9 9 Mission Critical Facilities Data Centers Technology Spaces and Electronic Equipment ASHRAE 2016",
+      "citation": {
+        "source_id": "doc_1724dac7c67a4e1fae2eba99484501aa",
+        "title": "ashrae_tc99_power_equipment_thermal_guidelines_2016.pdf",
+        "source_path": "data\\knowledge\\uploads\\doc_1724dac7c67a4e1fae2eba99484501aa_ashrae_tc99_power_equipment_thermal_guidelines_2016.pdf",
+        "page_number": 1,
+        "section": null
+      },
+      "retrieval_mode": "persistent_faiss",
+      "metadata": {
+        "file_hash": "0518d9e73bfc4f55547ef6b1d291c2f9b55895c5844f0d463a96b2dcac813b3a",
+        "file_type": ".pdf",
+        "filename": "ashrae_tc99_power_equipment_thermal_guidelines_2016.pdf",
+        "source_path": "data\\knowledge\\uploads\\doc_1724dac7c67a4e1fae2eba99484501aa_ashrae_tc99_power_equipment_thermal_guidelines_2016.pdf"
+      }
+    },
+    {
+      "chunk_id": "doc_1724dac7c67a4e1fae2eba99484501aa::chunk_0099",
+      "score": 0.5065639615058899,
+      "text": "43 at lower temperatures ASHRAE Class A2 10 to 35 C -12 C DP 8 RH to27 C DP and 85 RH Cold aisle and ballroom ASHRAE Class A3 5 to 40 C -12 C DP 8 RH to27 C DP and 85 RH Cold aisle and ballroom ASHRAE Class A4 5 to 45 C -12 C DP 8 RH to27 C DP and 90 RH Cold aisle and ballroom Note the maximum ambient air temperature rating of most power equipment is flexible Higher ambient air temperature ratings are possible if the maximum power rating is reduced In the context of this discussion thermal compatibility is defined as the power equipment specifications meeting or exceeding those of a given ASHRAE class plus appropriate preheating based on location A summary of how power distribution specifications align to the ASHRAE thermal guidelines for IT equipment is given below in Table 7 Table 7 Cold aisle and hot aisle compatibility of power distribution equipment Equipment Type or Standard Cold Aisle Thermal Compatibility at Maximum Power Rating Hot Aisle Thermal Compatibility at Maximum Power Rating Floor Mounted Power Distribution Unit PDU Compatible with ASHRAE Class A3 Compatible only with power de-rating Remote Power Panel RPP Compatible with ASHRAE Class A3 Compatible only with power de-rating Panelboards N A Busways Compatible with ASHRAE Class A3",
+      "citation": {
+        "source_id": "doc_1724dac7c67a4e1fae2eba99484501aa",
+        "title": "ashrae_tc99_power_equipment_thermal_guidelines_2016.pdf",
+        "source_path": "data\\knowledge\\uploads\\doc_1724dac7c67a4e1fae2eba99484501aa_ashrae_tc99_power_equipment_thermal_guidelines_2016.pdf",
+        "page_number": 43,
+        "section": null
+      },
+      "retrieval_mode": "persistent_faiss",
+      "metadata": {
+        "file_hash": "0518d9e73bfc4f55547ef6b1d291c2f9b55895c5844f0d463a96b2dcac813b3a",
+        "file_type": ".pdf",
+        "filename": "ashrae_tc99_power_equipment_thermal_guidelines_2016.pdf",
+        "source_path": "data\\knowledge\\uploads\\doc_1724dac7c67a4e1fae2eba99484501aa_ashrae_tc99_power_equipment_thermal_guidelines_2016.pdf"
+      }
+    }
+  ],
+  "tool_results": [],
+  "policy_result": {},
+  "route_reason": "document_qa: The user's question involves ASHRAE standards and IT equipment, which is a natural fit for document-based question answering to retrieve relevant guidelines or specifications.",
+  "data_source": {
+    "kind": "processed_csv",
+    "path": "data/bear_processed/bear_rollout.csv"
+  },
+  "workflow_engine": "langgraph",
+  "workflow_trace": [
+    {
+      "node": "planner",
+      "planned_steps": [
+        "document_qa"
+      ],
+      "planned_step_specs": [
+        {
+          "route": "document_qa",
+          "reason": "The user's question involves ASHRAE standards and IT equipment, which is a natural fit for document-based question answering to retrieve relevant guidelines or specifications."
+        }
+      ],
+      "planner": "llm:deepseek:deepseek-v4-flash",
+      "confidence": 0.5,
+      "fallback_used": false,
+      "route": "document_qa",
+      "memory_context_available": false,
+      "memory_recent_turn_count": 0
+    },
+    {
+      "node": "execute_plan_step",
+      "step_index": 1,
+      "route": "document_qa",
+      "reason": "The user's question involves ASHRAE standards and IT equipment, which is a natural fit for document-based question answering to retrieve relevant guidelines or specifications.",
+      "tools": [],
+      "citation_count": 3,
+      "context_count": 3,
+      "tool_result_count": 0,
+      "has_policy_result": false
+    },
+    {
+      "node": "evidence_aggregator",
+      "route": "document_qa",
+      "citation_count": 3,
+      "context_count": 3,
+      "tool_result_count": 0,
+      "has_policy_result": false,
+      "evidence_count": 6
+    },
+    {
+      "node": "answer_generator",
+      "route": "document_qa",
+      "answer_generator": "deepseek:deepseek-v4-flash",
+      "citation_count": 3,
+      "context_count": 3,
+      "tool_result_count": 0,
+      "has_policy_result": false
+    },
+    {
+      "node": "answer_audit",
+      "route": "document_qa",
+      "passed": true,
+      "audit_passed": true,
+      "violations": [],
+      "citation_count": 3,
+      "tool_result_count": 0
+    }
+  ],
+  "session_id": null,
+  "turn_id": null,
+  "memory_status": {
+    "enabled": false
+  },
+  "conversation_context": {},
+  "refresh_dirty": false,
+  "refresh_error": null
+}

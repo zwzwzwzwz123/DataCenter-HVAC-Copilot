@@ -11,12 +11,14 @@ from src.agent.orchestrator import BaselineOrchestrator
 from src.policies.offline_replay import OfflineReplayPolicy
 from src.policies.rule_based import run_rule_based_policy
 from src.knowledge.service import KnowledgeBaseService
+from src.knowledge.indexer import load_sidecar_chunks
 from src.ingestion.bear_sample_loader import load_bear_sample_timeseries
 from src.ingestion.processed_loader import load_processed_bear_trajectory
 from src.retrieval.chunking import chunk_document
 from src.retrieval.loader import load_markdown_document, load_text_documents
 from src.retrieval.rag import ExtractiveRAGPipeline
 from src.retrieval.retriever import HybridRetriever
+from src.retrieval.schemas import DocumentChunk, DocumentMetadata
 
 
 def build_demo_orchestrator(
@@ -67,11 +69,40 @@ class _LazyKnowledgeRetriever:
     def __init__(self, service: KnowledgeBaseService) -> None:
         self.service = service
         self._retriever = None
+        self.chunks = _load_knowledge_sidecar_as_document_chunks(service)
 
     def search(self, query: str, top_k: int = 5) -> list[dict]:
         if self._retriever is None:
             self._retriever = self.service.retriever()
         return self._retriever.search(query, top_k=top_k)
+
+
+def _load_knowledge_sidecar_as_document_chunks(
+    service: KnowledgeBaseService,
+) -> list[DocumentChunk]:
+    chunks_path = service.index_dir / "chunks.jsonl"
+    if not chunks_path.exists():
+        return []
+    chunks: list[DocumentChunk] = []
+    for chunk in load_sidecar_chunks(chunks_path):
+        metadata = chunk.get("metadata", {})
+        text = str(chunk.get("text", ""))
+        token_count = int(chunk.get("token_count", len(text.split())))
+        chunks.append(
+            DocumentChunk(
+                chunk_id=str(chunk.get("chunk_id", "")),
+                text=text,
+                metadata=DocumentMetadata(
+                    source_id=str(chunk.get("document_id", "")),
+                    title=str(metadata.get("filename", chunk.get("document_id", ""))),
+                    source_path=str(metadata.get("source_path", "")),
+                ),
+                section=chunk.get("section_title"),
+                start_word=0,
+                end_word=max(token_count, 0),
+            )
+        )
+    return chunks
 
 
 def _load_demo_documents(project_root: Path) -> list:
