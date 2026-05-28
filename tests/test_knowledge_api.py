@@ -551,3 +551,34 @@ def test_ask_uses_uploaded_knowledge_without_restart(tmp_path: Path, monkeypatch
     assert response.status_code == 200
     assert any("Blue coolant valve" in context["text"] for context in body["retrieved_contexts"])
     assert any(citation["title"] == "custom_sop.md" for citation in body["citations"])
+
+
+def test_uploaded_knowledge_retriever_exposes_chunks_for_eval_comparison(
+    tmp_path: Path,
+    monkeypatch,
+):
+    monkeypatch.setenv("KNOWLEDGE_BASE_DIR", str(tmp_path / "knowledge"))
+    monkeypatch.setenv("KNOWLEDGE_EMBEDDING_PROVIDER", "deterministic")
+    service = __import__(
+        "src.knowledge.service",
+        fromlist=["KnowledgeBaseService"],
+    ).KnowledgeBaseService(
+        knowledge_dir=tmp_path / "knowledge",
+        embedding_provider=DeterministicHashEmbeddingProvider(),
+        embedding_provider_name="deterministic",
+        embedding_model="hash",
+    )
+    source = tmp_path / "cooling.md"
+    source.write_text("# Cooling SOP\n\nBlue coolant valve inspection is required.", encoding="utf-8")
+    service.ingest_existing_file(source)
+
+    from src.api.demo_factory import build_demo_orchestrator
+
+    orchestrator = build_demo_orchestrator(
+        use_env_answer_generator=False,
+        use_dropt_policy=False,
+    )
+    retriever = orchestrator.rag_pipeline.retriever
+
+    assert len(retriever.chunks) >= 1
+    assert retriever.chunks[0].metadata.title == "cooling.md"
