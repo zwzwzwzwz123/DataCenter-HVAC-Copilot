@@ -10,19 +10,12 @@ from typing import Any, Protocol
 from src.agent.deepseek_generator import Transport
 from src.agent.router import SUPPORTED_ROUTES, route_task
 from src.core.env import load_env_file
+from src.tools.registry import build_planner_tool_prompt, tools_for_route
 
-MAX_PLAN_STEPS = 3
+MAX_PLAN_STEPS = 5
 ALLOWED_STEP_TOOLS = {
-    "document_qa": {None, "rag_retrieval"},
-    "timeseries_query": {
-        None,
-        "query_metric",
-        "compare_period",
-        "plot_metric_trend",
-        "compute_energy_breakdown",
-    },
-    "anomaly_diagnosis": {None, "detect_anomaly"},
-    "policy_recommendation": {None, "policy_runner"},
+    route: {None, *(spec.name for spec in tools_for_route(route))}
+    for route in SUPPORTED_ROUTES
 }
 TIME_WINDOW_PATTERN = re.compile(
     r"^(full_demo_range|full_range|all|all_data|latest|recent|(?:last|latest|recent)_\d+_(?:hours?|minutes?))$"
@@ -35,6 +28,14 @@ TIMESERIES_KEYWORDS = [
     "episode",
     "temperature",
     "temp",
+    "quality",
+    "missing",
+    "gap",
+    "hotspot",
+    "hottest",
+    "oscillating",
+    "efficiency",
+    "power",
     "温度",
     "功率",
     "能耗",
@@ -48,6 +49,10 @@ ANOMALY_KEYWORDS = [
     "anomaly",
     "alarm",
     "abnormal",
+    "comfort",
+    "risk",
+    "overheat",
+    "overheating",
     "异常",
     "告警",
     "报警",
@@ -241,6 +246,10 @@ def _infer_steps(question: str) -> list[PlanStep]:
     normalized = question.lower()
     steps: list[PlanStep] = []
 
+    focused_step = _focused_tool_step(question, normalized)
+    if focused_step:
+        return _validate_steps([focused_step])
+
     inferred = _infer_steps_from_keywords(question, normalized)
     if inferred:
         return _validate_steps(inferred)
@@ -268,6 +277,47 @@ def _infer_steps(question: str) -> list[PlanStep]:
     return _validate_steps(steps)
 
 
+def _focused_tool_step(question: str, normalized: str) -> PlanStep | None:
+    if _is_data_quality_request(normalized):
+        decision = route_task(question, task_type="timeseries_query")
+        return _step_from_route_decision(question, decision.route, decision.reason)
+    if _is_control_action_audit_request(normalized):
+        decision = route_task(question, task_type="timeseries_query")
+        return _step_from_route_decision(question, decision.route, decision.reason)
+    if _is_cooling_efficiency_request(normalized):
+        decision = route_task(question, task_type="timeseries_query")
+        return _step_from_route_decision(question, decision.route, decision.reason)
+    if _is_comfort_risk_request(normalized):
+        decision = route_task(question, task_type="anomaly_diagnosis")
+        return _step_from_route_decision(question, decision.route, decision.reason)
+    if _is_hotspot_request(normalized):
+        decision = route_task(question, task_type="timeseries_query")
+        return _step_from_route_decision(question, decision.route, decision.reason)
+    return None
+
+
+def _is_data_quality_request(normalized: str) -> bool:
+    return any(token in normalized for token in ["数据质量", "缺失", "quality", "missing", "null", "gap", "schema"])
+
+
+def _is_hotspot_request(normalized: str) -> bool:
+    return any(token in normalized for token in ["热点", "最热", "hotspot", "hottest", "top", "rank"])
+
+
+def _is_control_action_audit_request(normalized: str) -> bool:
+    has_control_action = any(token in normalized for token in ["控制动作", "control_action", "control action"])
+    has_audit_intent = any(token in normalized for token in ["震荡", "抖动", "oscillat", "audit", "changing too fast"])
+    return has_control_action or (has_audit_intent and "action" in normalized)
+
+
+def _is_cooling_efficiency_request(normalized: str) -> bool:
+    return any(token in normalized for token in ["能效", "效率", "efficiency", "efficient", "power per", "cooling efficiency"])
+
+
+def _is_comfort_risk_request(normalized: str) -> bool:
+    return any(token in normalized for token in ["舒适", "风险", "过热", "comfort", "overheat", "overheating", "thermal risk"])
+
+
 def _infer_steps_from_keywords(question: str, normalized: str) -> list[PlanStep]:
     steps: list[PlanStep] = []
     if _contains_any(normalized, TIMESERIES_KEYWORDS):
@@ -289,10 +339,9 @@ def _contains_any(text: str, keywords: list[str]) -> bool:
 def _system_prompt() -> str:
     return (
         "You are the route planner for DataCenter-HVAC Copilot. "
-        "Return only JSON with keys steps and confidence. steps must contain 1 to 3 objects. "
-        "Each step object must have route and reason. "
-        "Allowed routes are exactly: document_qa, timeseries_query, anomaly_diagnosis, policy_recommendation. "
-        "If policy_recommendation is included, it must be the final step. "
+        "Return only JSON with keys steps and confidence. steps must contain 1 to 5 objects. "
+        "Each step object must have route, reason, and may include tool, metric_name, zone_id, time_window. "
+        f"{build_planner_tool_prompt()} "
         "Use conversation_context only for continuity and reference resolution; current fresh evidence remains authoritative. "
         "Do not call tools, write Python, or produce control actions."
     )
@@ -339,6 +388,14 @@ def _optional_string(value: Any) -> str | None:
 def _default_tool_for_route(route: str, question: str = "") -> str | None:
     normalized = question.lower()
     if route == "timeseries_query":
+        if _is_data_quality_request(normalized):
+            return "data_quality_check"
+        if _is_hotspot_request(normalized):
+            return "zone_hotspot_rank"
+        if _is_control_action_audit_request(normalized):
+            return "control_action_audit"
+        if _is_cooling_efficiency_request(normalized):
+            return "cooling_efficiency_summary"
         if any(token in normalized for token in ["构成", "breakdown", "能耗字段", "能耗"]):
             return "compute_energy_breakdown"
         if any(token in normalized for token in ["趋势", "trend", "折线图", "序列", "画"]):
@@ -347,6 +404,12 @@ def _default_tool_for_route(route: str, question: str = "") -> str | None:
             return "compare_period"
         return "query_metric"
     if route == "anomaly_diagnosis":
+        if _is_comfort_risk_request(normalized):
+            return "comfort_risk_assessment"
+        if _is_data_quality_request(normalized):
+            return "data_quality_check"
+        if _is_hotspot_request(normalized):
+            return "zone_hotspot_rank"
         return "detect_anomaly"
     if route == "policy_recommendation":
         return "policy_runner"
@@ -407,7 +470,7 @@ def _validate_steps(steps: list[PlanStep]) -> list[PlanStep]:
     if not steps:
         raise ValueError("plan must contain at least one step")
     if len(steps) > MAX_PLAN_STEPS:
-        raise ValueError("plan must contain at most 3 steps")
+        raise ValueError(f"plan must contain at most {MAX_PLAN_STEPS} steps")
 
     seen: set[str] = set()
     validated: list[PlanStep] = []

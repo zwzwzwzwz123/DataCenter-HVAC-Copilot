@@ -1,0 +1,257 @@
+{
+  "document_id": "doc_427acd0c156d4c80a46cf9571a17ff27",
+  "filename": "lbnl_system_tools_carbon_reduction_2022.pdf",
+  "file_type": ".pdf",
+  "file_hash": "da2b9a317a01ce65c6da75bfacc89398567d866f176be414f7b5d2cbd4abf64b",
+  "source_path": "data\\knowledge\\uploads\\doc_427acd0c156d4c80a46cf9571a17ff27_lbnl_system_tools_carbon_reduction_2022.pdf",
+  "metadata": {
+    "filename": "lbnl_system_tools_carbon_reduction_2022.pdf",
+    "source_path": "data\\knowledge\\uploads\\doc_427acd0c156d4c80a46cf9571a17ff27_lbnl_system_tools_carbon_reduction_2022.pdf",
+    "source_url": "https://datacenters.lbl.gov/sites/default/files/2023-02/Training-%20System%20Tools%20with%20Carbon%20Reduction%203-23-2022_1.pdf",
+    "authority": "LBNL/DOE Data Centers Center of Expertise",
+    "topic": "carbon-reduction-tools",
+    "curated_for": "data-center-hvac-rag-30-doc-corpus"
+  },
+  "pages": [
+    {
+      "page_number": 1,
+      "section_title": null,
+      "text": "1U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nSystem-Level Tools for Identifying and \nQuantifying Carbon Reduction \nOpportunities In Data Centers\nMarch 29,  2022"
+    },
+    {
+      "page_number": 2,
+      "section_title": null,
+      "text": "2U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nWebinar Logistics\n• This webinar is being recorded. The Q&A section \nwill not be made publically available. \n• Your phone will be muted throughout the \nwebinar.\n• Enter any questions in the Question Box \nthroughout the webinar. \n• Instructions to take the quiz will be provided at \nthe end of webinar. \n• Slides will be sent out afterwards to those who \nattend the entire webinar. "
+    },
+    {
+      "page_number": 3,
+      "section_title": null,
+      "text": "3U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nIACET Credit for Webinar\nThe National Institute of Building Sciences’ (NIBS) Whole Building Design Guide (WBDG) \nhosts the FEMP training program’s learning management system (LMS). \nThe WBDG LMS:\n• Allows for taking multiple trainings from multiple organizations through one platform.\n• Houses the assessments and evaluations for all accredited courses.\n• Allows you to: \n– Track all of your trainings in one place.\n– Download your training certificates of completion.\n• Eases the CEU-achievement process.\nVisit the WBDG at www.wbdg.org to view courses and create an account\n"
+    },
+    {
+      "page_number": 4,
+      "section_title": null,
+      "text": "4U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nIACET Credit for Webinar\nTo receive IACET-Certified CEUs, attendees must:\n• Attend the training in full (no exceptions).\n– If you are sharing a web connection during the training, you must send an \ne-mail to Elena Meehan (elena.meehan@ee.doe.gov) and indicate who \nwas on the connection and who showed as connected (will reflect in the \nWebEx roster).\n• Complete an assessment demonstrating knowledge of course learning \nobjectives and an evaluation within six weeks of the training. A minimum of \n80% correct answers are required for the assessment.\nTo access the webinar assessment and evaluation, visit:\nhttps://www.wbdg.org/continuing-education/femp-courses/femplw05132021\nIf you have a WBDG account and enrolled previously, simply log in and click the \nContinuing Education tab on the user account page. Click Proceed to Course next \nto the course title."
+    },
+    {
+      "page_number": 5,
+      "section_title": null,
+      "text": "5U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nToday’s Speakers\nMagnus Herrlin, Ph.D.\nCenter of Expertise for Energy \nEfficiency in Data Centers\nLawrence Berkeley National \nLaboratory\nmkherrlin@lbl.gov\n510-206-9739\nJeff Murrell, P.E.\nEnergy-Intensive Program Lead\nFederal Energy Management \nProgram\nJefferey.Murrell@ee.doe.gov\n202-394-2240\n"
+    },
+    {
+      "page_number": 6,
+      "section_title": null,
+      "text": "6U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nWebinar Agenda\nAgenda\nI. Introduction\nII. Context of Energy Efficiency and Decarbonization\nIII. New Carbon Saving Functionality in the DOE System Tools\nIV. Resources and Q&A\nLearning Objectives\n• Recognize the DOE Data Center Energy Assessment System Tools, what they \ndo and how they can be used to increase energy efficiency and decarbonization\n• Understand newly added functionality for carbon savings associated with \ndifferent energy-efficiency measures\n• Understand newly added functionality for simple payback associated with \ndifferent energy-efficiency measures\n• Gain an understanding of how data can be passed between the tools (high-level \nintegration) to make them work together. "
+    },
+    {
+      "page_number": 7,
+      "section_title": null,
+      "text": "7U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nPurpose of Webinar\nThe objective of this webinar is to make the DOE Data \nCenter Energy Assessment System Tools better known in \ngeneral and the new functionality in particular to be in a \nbetter position to reduce IT and facility energy use and \ncarbon footprint.\nA “System Tool” focuses on a single energy consuming \nsystem (e.g., IT, HVAC, Electrical) in the data center to \nproduce a more accurate estimate of potential energy \nsaving from energy-saving measures."
+    },
+    {
+      "page_number": 8,
+      "section_title": null,
+      "text": "8U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nContext of Energy Efficiency and \nDecarbonization In Data Centers\n"
+    },
+    {
+      "page_number": 9,
+      "section_title": null,
+      "text": "9U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nImportance of Energy Efficiency\nDuring 2014, energy consumed by data centers was \naround 1.8%* of the total electric energy consumed in the \nUS. This is a large amount of energy for a single type of \nfacility.\nEnergy is a cost to the data center and energy efficiency is \nan important business consideration. There are also \ngrowing regulatory, compliance, and market pressures to \nreduce the energy usage to demonstrate leadership in \nenergy efficiency and environmental stewardship. \n* https://datacenters.lbl.gov/sites/default/files/DataCenterEnergyReport2016_0.pdf"
+    },
+    {
+      "page_number": 10,
+      "section_title": null,
+      "text": "10U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nImportance of Decarbonization\nClimate change is a concern to all of us, and CO2 emissions \nare at the center of increased global temperatures. It is \nundeniable that human activity has caused higher CO2\nlevels, and higher levels trap more heat.\nhttp://climate.nasa.gov\nCO2 Concentration Temperature\n1950\nLevel\nCurrent \nLevel\n"
+    },
+    {
+      "page_number": 11,
+      "section_title": null,
+      "text": "11U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nEstimating Carbon Reductions in Data Centers\nEnergy consumption and carbon (CO2) are linked – higher \nenergy consumption will lead to higher release of carbon \nassuming the utility emission rate stays the same.\nHow can we estimate energy and carbon savings with \nspecific implemented energy-saving measures?\n• The DOE Energy Assessment System Tools already \nestimate the energy savings\n• A new feature extends the Tools’ capabilities to include \ncarbon savings\n• We have also included simple payback and high-level \ninteroperability between the tools. "
+    },
+    {
+      "page_number": 12,
+      "section_title": null,
+      "text": "12U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nCoE* Data Center Energy Efficiency Toolkit\n*CoE = Center of Expertise for Energy Efficiency in Data Centers at Berkeley Lab\nhttp://datacenters.lbl.gov\nAM = Air Management"
+    },
+    {
+      "page_number": 13,
+      "section_title": null,
+      "text": "13U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDOE Energy Assessment System Tools\nThere are three DOE Data Center Energy Assessment \nSystem Tools:\n• The IT Equipment Tool\n• The Air Management (AM) Tool\n• The Electrical Power Chain Tool \nNow, let’s take a closer look at each of the these Excel-\nbased tools before discussing the new features.\nhttp://datacenters.lbl.gov/Tools"
+    },
+    {
+      "page_number": 14,
+      "section_title": null,
+      "text": "14U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nFirst, the IT Equipment Tool\nThe DOE IT Equipment Tool was developed to help \nunderstand energy savings associated with improved IT \nequipment design and operation. It contains numerous \nenergy-saving measures, allowing for various what-if \nscenarios. It provides:\n– Hands-on recommendations (actions)\n– Power Utilization (%) \n– IT and Infrastructure Power Savings (W)\n– Energy (kWh/year) and Energy Cost ($/year) savings\n– State average Emission Rates (lb/kWh) NEW\n– Carbon Dioxide (CO2) reductions NEW\n– Simple Payback for energy-saving measures NEW\n– Export of power data to other System Tools NEW"
+    },
+    {
+      "page_number": 15,
+      "section_title": null,
+      "text": "15U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nThis document is the official resource in using the DOE \nIT Equipment Tool\nTool structure as well as \nuser input forms and \noutput data are \ndescribed in the User’s \nManual.\nAppendices provide in-\ndepth information on a \nnumber of useful topics. \nTool Documentation\nhttp://datacenters.lbl.gov/Tools"
+    },
+    {
+      "page_number": 16,
+      "section_title": null,
+      "text": "16U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nSecond, the Air Management Tool\nThe DOE Air Management Tool was developed to help \naccelerate the energy savings related to improved air \nmanagement without negatively affecting the thermal IT \nequipment environment. It includes many energy-saving \nmeasures, allowing for what-if analyses. The Tool provides:\n– Hands-on recommendations (actions)\n– RCI and RTI air management metrics\n– Energy savings (kWh/year) for fans and chillers\n– Energy cost savings ($/year) for fans and chillers\n– State average Emission Rates (lb/kWh) NEW\n– Carbon Dioxide (CO2) reductions NEW\n– Simple Payback for energy-saving measures NEW\n– Import of power data from the IT Equipment Tool NEW"
+    },
+    {
+      "page_number": 17,
+      "section_title": null,
+      "text": "17U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nTool Documentation\nThese documents are the official resources in using the \nDOE Air Management Tool\nhttp://datacenters.lbl.gov/Tools"
+    },
+    {
+      "page_number": 18,
+      "section_title": null,
+      "text": "18U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nThird, the Electrical Power Chain Tool\nThe Electrical Power Chain Tool was developed to help reduce \nelectrical losses. It takes into account transformers, generators, \nUPSs, PDUs, and lighting. It contains numerous energy-saving \nmeasures – allows various what-if scenarios. The Tool provides:\n‒ Hands-on recommends (actions)\n‒ Energy savings (kWh/year)\n‒ Energy cost savings ($/year)\n‒ Peer comparison to LBNL database\n‒ State average Emission Rates (lb/kWh) NEW\n‒ Carbon Dioxide (CO2) reductions NEW\n‒ Simple Payback for energy-saving measures\n‒ Import of power data from the IT Equipment Tool NEW"
+    },
+    {
+      "page_number": 19,
+      "section_title": null,
+      "text": "19U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nTool Documentation\nThe Electrical Power Chain Tool does not have a separate \nUser’s Manual. Brief guidance is provided in the tool itself \n(example below). A manual may be forthcoming.\nFlow Chart:\nData Center Electrical Power Chain"
+    },
+    {
+      "page_number": 20,
+      "section_title": null,
+      "text": "20U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nUnderstanding the Carbon Emission Rate\nThe carbon emission rates vary with the way electricity is \nproduced. Coal fired power plants have high emission \nrates whereas hydro, geothermal, wind, solar, and nuclear \npower plants have low emissions. Nuclear has other \nchallenges, though.\nThe Carbon Emission Rate is measured in pounds of \ncarbon dioxide (CO2) released into the atmosphere per \nkWh electricity produced at the plant.\nKnowing the plant’s Carbon Emission Rate, the \ntransmission and distribution losses, and the data center \nenergy consumption allows the estimation of the data \ncenter’s carbon dioxide emission (footprint)."
+    },
+    {
+      "page_number": 21,
+      "section_title": null,
+      "text": "21U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nThe EPA eGRID* Data Explorer\nThe eGRID Data Explorer helps consumers (e.g., \ndata centers) understand the environmental \nimpact of their electricity usage. It shows the \naverage annual carbon dioxide emission rate.\nThe eGRID Data Explorer can be used from the \nstate level down to the plant level (if the user \nknows where their electric power is generated).\nThe average annual state data in eGRID is \nincorporated in the System Tools.\nwww.epa.gov/egrid/data-explorer\n* eGRID = Emissions and Generation Resource Integrated Database"
+    },
+    {
+      "page_number": 22,
+      "section_title": null,
+      "text": "22U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nState Average Carbon Dioxide Emission Rates\n \nCO2 emission rate (lb/MWh – average annual) by state, 2019 (eGRID, 2021)"
+    },
+    {
+      "page_number": 23,
+      "section_title": null,
+      "text": "23U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nAnother EPA Tool…\nThe Avoided Emissions and Generation Tool \n(AVERT) is only intended for analyzing the power \nsector emission impact of energy efficiency (EE) \nand renewable energy (RE) policies and \nprograms. AVERT can be used as a screening tool \nto understand the emission impact of different \npolicies and programs.\nThe tool not only calculates avoided CO2\nemissions but also PM2.5, NOx, and SO2\nemissions.\nwww.epa.gov/avert"
+    },
+    {
+      "page_number": 24,
+      "section_title": null,
+      "text": "24U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nNew Carbon Saving Functionality in the DOE \nSystem Tools\n"
+    },
+    {
+      "page_number": 25,
+      "section_title": null,
+      "text": "25U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nImplementation of the New Features\nEach System Tool has implemented the new features \nslightly differently but the principle is the same.\nAgain, the new features include the following:\n• Carbon dioxide (CO2) saving estimates\n• Simple payback estimates for energy-saving measures\n• Guidance on interoperability\nWe will now step through these new features and see how \nthey have been implemented in the System Tools."
+    },
+    {
+      "page_number": 26,
+      "section_title": null,
+      "text": "26U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nCarbon Savings\nThe carbon dioxide (CO2) savings (lb/year) are simply \ncalculated as Energy Savings (kWh/year) times the \nEmission Rate (lb/kWh).\nSocial Cost of Carbon (SCC)* is not included in the System \nTools but may be added in future versions. The current \nfocus on the System Tools is at the data center level.\n*In 2021, the Biden administration set an interim value of around $50 a \nton CO2  (One Metric Ton is equal to 1.10231 US Ton)"
+    },
+    {
+      "page_number": 27,
+      "section_title": null,
+      "text": "27U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nNumerical Results\nPower Utilization Current 60.0 % This screen shows the calculated results in the white boxes and \"scalers\" in the yellow input\nTarget 71.4 % boxes. The latter can be changed by the user to quickly evaluate the impact on the results.\nExcept for the Current Power Utilization result box, all result boxes will be impacted by a Yes\nIT Power Savings 8,210 W or No answer (cell I23) on the Class screens (tabs). Please ensure the boxes are set to the  \nintended value.\nInfrastructure Power Savings 4,105 W PUE 1.50\nTotal Energy Savings 107,879kWh/year\nTotal Energy Cost Savings 12,946 $/year Energy Price 0.12 $/kWh\nSelect State/Custom Custom\nTotal Carbon Savings 41,641 lbs/year Emission Rate 0.386 lbs/kWh 1.100 lbs/kWh\nSimple Payback 1.93 years Cost to Implement 25,000 $\nData for export to the Electrical (Power Chain) Tool or the Air Management Tool:\nIT Power Pre-Implementation 30,000 W\nIT Power Post-Implementation 21,790 W\nCarbon Savings In the IT Equipment Tool\nThe carbon (CO2) savings implementation in the IT \nEquipment Tool looks like this for a state-level selection.\n"
+    },
+    {
+      "page_number": 28,
+      "section_title": null,
+      "text": "28U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nNumerical Results\nPower Utilization Current 60.0 % This screen shows the calculated results in the white boxes and \"scalers\" in the yellow input\nTarget 71.4 % boxes. The latter can be changed by the user to quickly evaluate the impact on the results.\nExcept for the Current Power Utilization result box, all result boxes will be impacted by a Yes\nIT Power Savings 8,210 W or No answer (cell I23) on the Class screens (tabs). Please ensure the boxes are set to the  \nintended value.\nInfrastructure Power Savings 4,105 W PUE 1.50\nTotal Energy Savings 107,879kWh/year\nTotal Energy Cost Savings 12,946 $/year Energy Price 0.12 $/kWh\nSelect State/Custom Custom\nTotal Carbon Savings 118,667lbs/year Emission Rate 1.100 lbs/kWh 1.100 lbs/kWh\nSimple Payback 1.93 years Cost to Implement 25,000 $\nData for export to the Electrical (Power Chain) Tool or the Air Management Tool:\nIT Power Pre-Implementation 30,000 W\nIT Power Post-Implementation 21,790 W\nCarbon Savings In the IT Equipment Tool\nThe carbon savings implementation in the IT Equipment \nTool looks like this for a custom selection, e.g., plant level.\n"
+    },
+    {
+      "page_number": 29,
+      "section_title": null,
+      "text": "29U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nSimple Payback\nSimple Payback is a simple but powerful metric to \nunderstand how long time it would take to pay off an \ninvestment, in our case an energy-saving measure.\nThe Simple Payback (in years) is calculated as \nimplementation cost (capital cost plus installation cost) \ndivided by the yearly cost savings.\nOther more comprehensive metrics such as Total Cost of \nOwnership (TCO) may be included in the tools in future \nversions."
+    },
+    {
+      "page_number": 30,
+      "section_title": null,
+      "text": "30U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nStep 6: ENERGY Results (last sheet)\nThis sheet includes fan and chiller energy, energy costs, carbon emissions, and\nsimple payback periods, which can be controlled by twelve yellow input boxes.\n(All other results can be found on the Main Results sheet, Step 5).\nNote 1: \"Measured\" bar is the reference (100%) and values above 100% \nfor other bars will not be displayed. Custom\nNote 2: The \"Commissioned\" and \"Retrofitted\" bars valid for raised-floor cooling only. AL\nAK\n1/RTI 2.07 2.07 1.30 1.00 Electric Cost: 0.2 [$/kWh] AZ\nSAT 65.00 66.00 81.00 83.00 AR\nCA\nMeasuredCommissionedRetrofittedState-of-the-Art CO\nFan 100 100 25 11 Fan Exponent: 3 [-] (Range: 2 - 3) CT\nChiller 100 98.00 68.00 64.00 DE\nFor fully turbulent flow there is a cubical (3) relationship between FL\nfan energy and airflow; for fully laminar flow there is a quadratic (2) GA\nkWh/yr 80,000 80,000 19,839 9,030 relationship. For data centers, an exponent of 2.8 is common. HI\n$/yr 16,000 16,000 3,968 1,806 ID\nCO2/yr 88,000 88,000 21,823 9,933 kWh/yr (yellow cell far left) = Enter measured annual fan energy. IL\nSP Yrs 2.08 4.23 IN\nIA\nEmission Rate: 1.1 [lbs/kWh] (Range: 0.1-5.0) KS\nSelect State/Custom Custom KY\nTo the right, select a State or \"Custom\" from the drop down menu. 1.1 [lbs/kWh] LA\nIf \"Custom\" is slected, enter CO2 emission rate in yellow box. ME\nMD\nMA\nChiller Factor: 2 [%/F] or [%/C] (Range: 1-3 %/F or 2-5 %/C) MI\nMN\nThe chiller energy reduction depends on the supply air temperature MS\nas a percentage saving per degree increase. For data center MO\napplications, a factor between 1 and 3 (I-P) or 2 and 5 (SI) is common. MT\nNE\nCom Retro State Com: Commissioned NV\n2,000 25,000 60,000 $ - Fan Retro: Retrofitted NH\n3,000 95,000 160,000 $ - Chiller State: State-of-the-Art NJ\nNM\nkWh/yr 350,000 343,000 238,000 224,000 Implementation Costs attributable to fan and chiller savings, respectively. NY\n$/yr 70,000 68,600 47,600 44,800 Simple Payback (SP) will be calculated based on this input. NC\nCO2/yr 385,000 377,300 261,800 246,400 ND\nSP Yrs 2.14 4.24 6.35 kWh/yr (yellow cell far left) = Enter measured annual chiller energy. OH\nOK\nOR\n0\n10\n20\n30\n40\n50\n60\n70\n80\n90\n100\nMeasured Commissioned Retrofitted State-of-the-Art\nFan Energy [%]\n0\n10\n20\n30\n40\n50\n60\n70\n80\n90\n100\nMeasured Commissioned Retrofitted State-of-the-Art\nChiller Energy [%]\nSimple Payback In the Air Management Tool\nImplementation\nCost"
+    },
+    {
+      "page_number": 31,
+      "section_title": null,
+      "text": "31U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nStep 6: ENERGY Results (last sheet)\nThis sheet includes fan and chiller energy, energy costs, carbon emissions, and\nsimple payback periods, which can be controlled by twelve yellow input boxes.\n(All other results can be found on the Main Results sheet, Step 5).\nNote 1: \"Measured\" bar is the reference (100%) and values above 100% \nfor other bars will not be displayed. Custom\nNote 2: The \"Commissioned\" and \"Retrofitted\" bars valid for raised-floor cooling only. AL\nAK\n1/RTI 2.07 2.07 1.30 1.00 Electric Cost: 0.2 [$/kWh] AZ\nSAT 65.00 66.00 81.00 83.00 AR\nCA\nMeasuredCommissionedRetrofittedState-of-the-Art CO\nFan 100 100 25 11 Fan Exponent: 3 [-] (Range: 2 - 3) CT\nChiller 100 98.00 68.00 64.00 DE\nFor fully turbulent flow there is a cubical (3) relationship between FL\nfan energy and airflow; for fully laminar flow there is a quadratic (2) GA\nkWh/yr 80,000 80,000 19,839 9,030 relationship. For data centers, an exponent of 2.8 is common. HI\n$/yr 16,000 16,000 3,968 1,806 ID\nCO2/yr 88,000 88,000 21,823 9,933 kWh/yr (yellow cell far left) = Enter measured annual fan energy. IL\nSP Yrs 2.08 4.23 IN\nIA\nEmission Rate: 1.1 [lbs/kWh] (Range: 0.1-5.0) KS\nSelect State/Custom Custom KY\nTo the right, select a State or \"Custom\" from the drop down menu. 1.1 [lbs/kWh] LA\nIf \"Custom\" is slected, enter CO2 emission rate in yellow box. ME\nMD\nMA\nChiller Factor: 2 [%/F] or [%/C] (Range: 1-3 %/F or 2-5 %/C) MI\nMN\nThe chiller energy reduction depends on the supply air temperature MS\nas a percentage saving per degree increase. For data center MO\napplications, a factor between 1 and 3 (I-P) or 2 and 5 (SI) is common. MT\nNE\nCom Retro State Com: Commissioned NV\n2,000 25,000 60,000 $ - Fan Retro: Retrofitted NH\n3,000 95,000 160,000 $ - Chiller State: State-of-the-Art NJ\nNM\nkWh/yr 350,000 343,000 238,000 224,000 Implementation Costs attributable to fan and chiller savings, respectively. NY\n$/yr 70,000 68,600 47,600 44,800 Simple Payback (SP) will be calculated based on this input. NC\nCO2/yr 385,000 377,300 261,800 246,400 ND\nSP Yrs 2.14 4.24 6.35 kWh/yr (yellow cell far left) = Enter measured annual chiller energy. OH\nOK\nOR\n0\n10\n20\n30\n40\n50\n60\n70\n80\n90\n100\nMeasured Commissioned Retrofitted State-of-the-Art\nFan Energy [%]\n0\n10\n20\n30\n40\n50\n60\n70\n80\n90\n100\nMeasured Commissioned Retrofitted State-of-the-Art\nChiller Energy [%]\nSimple Payback In the Air Management Tool\nImplementation\nCost"
+    },
+    {
+      "page_number": 32,
+      "section_title": null,
+      "text": "32U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nGuidance On Interoperability\nFirst we need to understand the allowed data exchanges \nbetween the tools.\n• Data can only be exported in one direction: \nIT Tool → Air Management Tool \nIT Tool → Electrical Power Chain Tool\n• The IT tool can export data to the Air Management Tool \nas well as directly to the Electrical Power Chain Tool.\n• But, the Air Management tool cannot export data to the \nPower Chain Tool because that tool does not include the \ninfrastructure power chain (we may add this in the future). "
+    },
+    {
+      "page_number": 33,
+      "section_title": null,
+      "text": "33U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nGuidance In IT Equipment Tool\nNumerical Results\nPower Utilization Current 60.0 % This screen shows the calculated results in the white boxes and \"scalers\" in the yellow input\nTarget 71.4 % boxes. The latter can be changed by the user to quickly evaluate the impact on the results.\nExcept for the Current Power Utilization result box, all result boxes will be impacted by a Yes\nIT Power Savings 8,210 W or No answer (cell I23) on the Class screens (tabs). Please ensure the boxes are set to the  \nintended value.\nInfrastructure Power Savings 4,105 W PUE 1.50\nTotal Energy Savings 107,879kWh/year\nTotal Energy Cost Savings 12,946 $/year Energy Price 0.12 $/kWh\nSelect State/Custom Custom\nTotal Carbon Savings 118,667lbs/year Emission Rate 1.100 lbs/kWh 1.100 lbs/kWh\nSimple Payback 1.93 years Cost to Implement 25,000 $\nData for export to the Electrical (Power Chain) Tool or the Air Management Tool:\nIT Power Pre-Implementation 30,000 W\nIT Power Post-Implementation 21,790 W\nExport\nThe export guidance in the IT Equipment Tool looks like \nthis…"
+    },
+    {
+      "page_number": 34,
+      "section_title": null,
+      "text": "34U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nUser’s Guide Language\nThere are two ways of exporting IT power pre- and post-\nimplementation data from the IT Equipment Tool:\nA) From the IT Equipment Tool to the Air Management Tool\nThe Air Management Tool does not take into account improvements in \nthe IT equipment efficiency and operation. However, the IT Power data \ncan be exported from the IT Equipment Tool to the Air Management \nTool for that purpose.\nB) From the IT Equipment Tool to the Electrical Tool\nThe IT power calculated by the IT Tool does not take into account the \npower chain (e.g., UPS, PDU). However, the IT power data can be \nexported to the Electrical Tool for that purpose. "
+    },
+    {
+      "page_number": 35,
+      "section_title": null,
+      "text": "35U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nAccessing the System Tools/Manuals\nThe DOE Energy Assessment System Tools and their \nmanuals can be accessed at the following link to the \nCenter of Expertise’s website:\nhttp://datacenters.lbl.gov/Tools"
+    },
+    {
+      "page_number": 36,
+      "section_title": null,
+      "text": "36U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nSummary\n• The objective of this webinar was to make the DOE Energy \nAssessment System Tools better known in general and the new \ndecarbonization functionality in particular\n• CO2 emissions are at the center of global warming. It is clear \nthat human activity has caused higher CO2 levels, and higher \nlevels trap more heat in the atmosphere\n• The DOE System Tools already included estimates of energy \nsavings due to various energy efficiency measures. A new \nfeature extends the capabilities to include carbon savings\n• Simple payback and interoperability were also added to the \nupdated System Tools. Simple payback is a simple yet powerful \nmetric to understand how long it takes to pay off an investment."
+    },
+    {
+      "page_number": 37,
+      "section_title": null,
+      "text": "37U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nReferences\nDOE Tool Suite\nhttp://datacenters.lbl.gov/tools\neGRID, 2021. Emissions & Generation Resource Integrated Database \n(eGRID)\nwww.epa.gov/egrid/data-explorer"
+    },
+    {
+      "page_number": 38,
+      "section_title": null,
+      "text": "38U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nResources and Q&A\n"
+    },
+    {
+      "page_number": 39,
+      "section_title": null,
+      "text": "39U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nFEMP’s Data Center Program\nFEMP’s Data Center program assists federal agencies and \nother organizations with optimizing the design and operation \nof data centers. design and operation of energy and water \nsystems in data centers to enhance agency’s mission.\nAssistance\n• Project and technical \nassistance from the \nCenter of Expertise \nincluding identifying \nand evaluating ECMs, \nM&V plan review, and \nproject design review.\n• Support agencies in \nmeeting OMB’s Data \nCenter Optimization \nInitiative \nrequirements\nTools \n• Data Center Profiler \n(DC Pro) Tools (x2)\n• Air Management \nTools (x3)\n• IT Equipment Tool\n• Electrical Power \nChain Tool\n• Energy Assessment \nWorksheets\n• The Energy \nAssessment Process \nManual\nKey Resources\n• Better Buildings Data \nCenter Challenge and \nAccelerator\n• Small Data Centers, \nBig Energy Savings: \nAn Introduction for \nOwners and \nOperators\n• Data Center Master \nList of Energy \nEfficiency Actions \nTraining\n• Better Buildings \nwebinar series\n• Nine on-demand \nFEMP data center \ntrainings\n• Center of Expertise \nWebinars\n• Data Center Energy \nPractitioner (DCEP) \nTrainings"
+    },
+    {
+      "page_number": 40,
+      "section_title": null,
+      "text": "40U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nLBNL’s Center of Expertise (CoE)\nVisit us at datacenters.lbl.gov\nExplore the \ndiverse activities \nthat CoE is \nengaged in.  \nUse CoE’s Energy \nEfficiency Toolkit\nFilter CoE’s many \nresources by type \nand topic.\nChoose from upcoming live \nwebinars, pre-recorded trainings, \nand in-person Data Center \nEnergy Practitioner (DCEP) \ntrainings.\nSearch \nresources \nby topics \nof interest.\nFollow us on Twitter \n@DataCenterCoE\n"
+    },
+    {
+      "page_number": 41,
+      "section_title": null,
+      "text": "41U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nCoE* Data Center Energy Efficiency Toolkit\n*CoE = Center of Expertise for Energy Efficiency in Data Centers at Berkeley Lab\nhttp://datacenters.lbl.gov\nAM = Air Management"
+    },
+    {
+      "page_number": 42,
+      "section_title": null,
+      "text": "42U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDOE Tool Suite\n• Data Center Profiler (“DC Pro”), online\n• PUE Estimator, online\n• Air Management Tool, Excel\n• Air Management Estimator, Excel\n• Electrical Power Chain Tool, Excel\n• IT Equipment Tool, Excel.\nhttp://datacenters.lbl.gov/tools"
+    },
+    {
+      "page_number": 43,
+      "section_title": null,
+      "text": "43U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nElectric \nPower \nChain \nTool\nIT \nEquipment \nTool\nA Suite of \nEnergy \nAssessment \nTools\nAir \nManagement\nTools\nWebinar 1 Webinar 2 Webinar 3 Webinar 4\nPrevious Four-Part Webinar Series\nThis training series introduced a broad toolkit for \nidentifying energy-saving opportunities in data \ncenters.\nhttps://www.wbdg.org/c\nontinuing-\neducation/femp-\ncourses/fempodw049\nSlides from Webinars 2, 3, and 4 at \nhttp://datacenters.lbl.gov/resources/energy-efficiency-toolkit-series\nhttp://datacenters.lbl.gov/resources/energy-efficiency-toolkit-series-air\nhttp://datacenters.lbl.gov/resources/energy-efficiency-toolkit-series-it"
+    },
+    {
+      "page_number": 44,
+      "section_title": null,
+      "text": "44U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nEnergy Assessment Process Manual\n• The Process Manual provides administrative step-by-\nstep instructions for conducting an energy assessment \nbefore, during, and after the onsite assessment.\n• Multiple appendices include useful templates for the \nassessments.\nhttps://datacenters.lbl.gov/sites/default/files/Process%20\nManual%20DOE%20v2_080320_0.pdf\n"
+    },
+    {
+      "page_number": 45,
+      "section_title": null,
+      "text": "45U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nMaster List of DC Energy Efficiency Measures\n• Living encyclopedia of all data center EEMs\n– Recognized as an essential desk reference for data center \nenergy efficiency – top download for CoE\n– >250 energy-saving changes in components, operations or \nother actions\n• Several tools recommend common EEMs:\n– DC Pro, Air Management Tool, Electric Power Chain Tool\n• The Master List contains all common EEMs, plus many others that \ndo not appear elsewhere in the toolkit.\n• For each EEM, the list explains the principles involved and how \nenergy cost savings are generated, plus tips on implementation \nand more in-depth references."
+    },
+    {
+      "page_number": 46,
+      "section_title": null,
+      "text": "46U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nFederal Project Executive\nNortheast \nRegionWestern Region\nSoutheast Region\nFederal Project Executives \n(FPEs)\nScott Wolf \nWestern Region\n360-866-9163\nwolfsc@ornl.gov\nDoug Culbreth \nSoutheast Region\n919-870-0051 \nculbrethcd@ornl.gov\nTom Hattery\nNortheast Region\n202-256-5986  \nthomas.hattery@ee.doe.gov"
+    },
+    {
+      "page_number": 47,
+      "section_title": null,
+      "text": "47U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nToday’s Speakers\nMagnus Herrlin, Ph.D.\nCenter of Expertise for Energy \nEfficiency in Data Centers\nLawrence Berkeley National \nLaboratory\nmkherrlin@lbl.gov\n510-206-9739\nJeff Murrell, P.E.\nEnergy-Intensive Program Lead\nFederal Energy Management \nProgram\nJefferey.Murrell@ee.doe.gov\n202-394-2240\n"
+    },
+    {
+      "page_number": 48,
+      "section_title": null,
+      "text": "48U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nQuestions?"
+    }
+  ]
+}

@@ -21,6 +21,7 @@ class AskResponse(BaseModel):
     citations: list[dict] = Field(default_factory=list)
     retrieved_contexts: list[dict] = Field(default_factory=list)
     tool_results: list[dict] = Field(default_factory=list)
+    tool_calls: list[dict] = Field(default_factory=list)
     policy_result: dict = Field(default_factory=dict)
     route_reason: str | None = None
     data_source: dict[str, str] = Field(default_factory=dict)

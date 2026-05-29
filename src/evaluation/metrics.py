@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from math import log2
 import re
 
@@ -16,12 +17,12 @@ def citation_hit_rate(records: list[EvalRecord], predictions: dict[str, dict]) -
     hits = 0
     for record in required_records:
         predicted = predictions.get(record.id, {})
-        citation_ids = {
-            citation.get("source_id")
+        citation_aliases = [
+            _source_aliases_from_citation(citation)
             for citation in predicted.get("citations", [])
             if isinstance(citation, dict)
-        }
-        if set(record.required_documents).issubset(citation_ids):
+        ]
+        if _all_required_sources_found(record.required_documents, citation_aliases):
             hits += 1
     return hits / len(required_records)
 
@@ -34,12 +35,12 @@ def context_recall(records: list[EvalRecord], predictions: dict[str, dict]) -> f
     hits = 0
     for record in required_records:
         predicted = predictions.get(record.id, {})
-        context_source_ids = {
-            context.get("citation", {}).get("source_id")
+        context_aliases = [
+            _source_aliases_from_context(context)
             for context in predicted.get("retrieved_contexts", [])
             if isinstance(context, dict)
-        }
-        if set(record.required_documents).issubset(context_source_ids):
+        ]
+        if _all_required_sources_found(record.required_documents, context_aliases):
             hits += 1
     return hits / len(required_records)
 
@@ -58,9 +59,14 @@ def retrieval_recall_at_k(
 
     scores = []
     for record in required_records:
-        required = set(record.required_documents)
-        retrieved = set(_ranked_context_source_ids(predictions.get(record.id, {}), k=k))
-        scores.append(len(required & retrieved) / len(required))
+        required = [_normalize_source_alias(source) for source in record.required_documents]
+        retrieved = _ranked_context_source_aliases(predictions.get(record.id, {}), k=k)
+        matched = [
+            required_source
+            for required_source in required
+            if any(required_source in aliases for aliases in retrieved)
+        ]
+        scores.append(len(matched) / len(required))
     return sum(scores) / len(scores)
 
 
@@ -78,13 +84,13 @@ def retrieval_mrr_at_k(
 
     scores = []
     for record in required_records:
-        required = set(record.required_documents)
+        required = [_normalize_source_alias(source) for source in record.required_documents]
         reciprocal_rank = 0.0
-        for rank, source_id in enumerate(
-            _ranked_context_source_ids(predictions.get(record.id, {}), k=k),
+        for rank, aliases in enumerate(
+            _ranked_context_source_aliases(predictions.get(record.id, {}), k=k),
             start=1,
         ):
-            if source_id in required:
+            if any(required_source in aliases for required_source in required):
                 reciprocal_rank = 1 / rank
                 break
         scores.append(reciprocal_rank)
@@ -105,10 +111,10 @@ def retrieval_ndcg_at_k(
 
     scores = []
     for record in required_records:
-        required = set(record.required_documents)
+        required = [_normalize_source_alias(source) for source in record.required_documents]
         gains = [
-            1.0 if source_id in required else 0.0
-            for source_id in _ranked_context_source_ids(
+            1.0 if any(required_source in aliases for required_source in required) else 0.0
+            for aliases in _ranked_context_source_aliases(
                 predictions.get(record.id, {}),
                 k=k,
             )
@@ -280,22 +286,100 @@ def _tokenize(text: str) -> list[str]:
     return [match.group(0).lower() for match in TOKEN_PATTERN.finditer(text)]
 
 
-def _ranked_context_source_ids(prediction: dict, *, k: int) -> list[str]:
-    source_ids = []
+def _ranked_context_source_aliases(prediction: dict, *, k: int) -> list[set[str]]:
+    source_aliases = []
     seen = set()
     for context in prediction.get("retrieved_contexts", []):
         if not isinstance(context, dict):
             continue
-        citation = context.get("citation", {})
-        source_id = citation.get("source_id") if isinstance(citation, dict) else None
-        if not source_id:
-            source_id = context.get("source_id")
-        if source_id and source_id not in seen:
-            source_ids.append(str(source_id))
-            seen.add(source_id)
-        if len(source_ids) >= k:
+        aliases = _source_aliases_from_context(context)
+        if not aliases:
+            continue
+        identity_key = next(iter(sorted(aliases)))
+        if identity_key not in seen:
+            source_aliases.append(aliases)
+            seen.add(identity_key)
+        if len(source_aliases) >= k:
             break
-    return source_ids
+    return source_aliases
+
+
+def _all_required_sources_found(
+    required_documents: list[str],
+    candidate_aliases: list[set[str]],
+) -> bool:
+    return all(
+        any(_normalize_source_alias(required) in aliases for aliases in candidate_aliases)
+        for required in required_documents
+    )
+
+
+def _source_aliases_from_context(context: dict) -> set[str]:
+    aliases = set()
+    citation = context.get("citation", {})
+    if isinstance(citation, dict):
+        aliases.update(_source_aliases_from_citation(citation))
+    aliases.update(_source_aliases_from_mapping(context))
+    metadata = context.get("metadata", {})
+    if isinstance(metadata, dict):
+        aliases.update(_source_aliases_from_mapping(metadata))
+    return aliases
+
+
+def _source_aliases_from_citation(citation: dict) -> set[str]:
+    return _source_aliases_from_mapping(citation)
+
+
+def _source_aliases_from_mapping(mapping: dict) -> set[str]:
+    aliases: set[str] = set()
+    for key in (
+        "source_id",
+        "document_id",
+        "chunk_id",
+        "file_hash",
+        "filename",
+        "title",
+        "source_path",
+        "source_url",
+        "url",
+    ):
+        value = mapping.get(key)
+        if value is None:
+            continue
+        aliases.update(_source_alias_variants(str(value)))
+    return {alias for alias in aliases if alias}
+
+
+def _source_alias_variants(value: str) -> set[str]:
+    normalized = _normalize_source_alias(value)
+    if not normalized:
+        return set()
+    aliases = {normalized}
+    path_name = Path(value.replace("\\", "/")).name
+    filename = _normalize_source_alias(path_name)
+    if filename:
+        aliases.add(filename)
+        aliases.add(_strip_document_id_prefix(filename))
+        aliases.add(_strip_suffix(filename))
+    aliases.add(_strip_suffix(normalized))
+    aliases.add(_strip_document_id_prefix(normalized))
+    return {alias for alias in aliases if alias}
+
+
+def _normalize_source_alias(value: str) -> str:
+    return value.strip().replace("\\", "/").lower()
+
+
+def _strip_suffix(value: str) -> str:
+    path = Path(value)
+    suffix = path.suffix.lower()
+    if suffix:
+        return value[: -len(suffix)]
+    return value
+
+
+def _strip_document_id_prefix(value: str) -> str:
+    return re.sub(r"^doc_[0-9a-f]{32}_", "", value)
 
 
 def _discounted_cumulative_gain(gains: list[float]) -> float:

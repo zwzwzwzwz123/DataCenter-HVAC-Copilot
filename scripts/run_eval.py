@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 import sys
 
@@ -28,6 +29,7 @@ from src.evaluation.safety_adversarial import (
     load_safety_adversarial_dataset,
 )
 from src.evaluation.llm_judge import DeterministicKeywordJudge
+from src.retrieval.cross_encoder import SentenceTransformersCrossEncoderScorer
 from src.evaluation.runner import (
     run_baseline_comparison,
     run_baseline_eval,
@@ -117,6 +119,36 @@ def main() -> None:
         ),
     )
     parser.add_argument(
+        "--enable-cross-encoder-rerank",
+        action="store_true",
+        help=(
+            "Deprecated compatibility flag. Cross-encoder reranking is enabled by default; "
+            "use --disable-cross-encoder-rerank for fast smoke tests."
+        ),
+    )
+    parser.add_argument(
+        "--disable-cross-encoder-rerank",
+        action="store_true",
+        help=(
+            "Disable hybrid_rrf_cross_encoder in baseline comparison for fast runs or "
+            "environments without the reranker model."
+        ),
+    )
+    parser.add_argument(
+        "--cross-encoder-model",
+        default="BAAI/bge-reranker-base",
+        help="Sentence-transformers CrossEncoder model used when cross-encoder rerank is enabled.",
+    )
+    parser.add_argument(
+        "--disable-persistent-knowledge",
+        action="store_true",
+        help=(
+            "Force the demo markdown documents under data/documents for this eval run, even when "
+            "a persistent FAISS knowledge base exists. Useful for legacy eval sets whose "
+            "required_documents use demo source IDs."
+        ),
+    )
+    parser.add_argument(
         "--safety-adversarial-path",
         default=str(DEFAULT_SAFETY_ADVERSARIAL_PATH),
         help="Path to the adversarial Safety Audit JSONL dataset.",
@@ -153,7 +185,10 @@ def main() -> None:
         fallback_name="human_review_annotations.jsonl",
     )
 
-    orchestrator = build_demo_orchestrator(use_env_answer_generator=False)
+    orchestrator = build_demo_orchestrator(
+        use_env_answer_generator=False,
+        use_persistent_knowledge=not args.disable_persistent_knowledge,
+    )
     llm_judge = _build_llm_judge(args.llm_judge_provider) if args.enable_llm_judge else None
     result = run_baseline_eval(
         eval_path=eval_path,
@@ -167,6 +202,11 @@ def main() -> None:
         dense_provider=args.dense_provider,
         dense_backend=args.dense_backend,
         dense_model=args.dense_model,
+        cross_encoder_scorer=(
+            _build_cross_encoder_scorer(args.cross_encoder_model)
+            if not args.disable_cross_encoder_rerank
+            else None
+        ),
     )
     safety_summary = _load_optional_safety_adversarial_summary(
         Path(args.safety_adversarial_path)
@@ -204,6 +244,9 @@ def main() -> None:
         dense_provider=args.dense_provider,
         dense_backend=args.dense_backend,
         dense_model=args.dense_model,
+        cross_encoder_model=(
+            args.cross_encoder_model if not args.disable_cross_encoder_rerank else None
+        ),
     )
     print(f"Saved predictions to {output_path}")
     print(f"Saved baseline comparison summary to {comparison_path}")
@@ -232,6 +275,25 @@ def _build_llm_judge(provider: str):
     if provider == "deterministic":
         return DeterministicKeywordJudge()
     raise ValueError(f"Unsupported LLM judge provider: {provider}")
+
+
+class _DeterministicTestCrossEncoderScorer:
+    def __init__(self, model_name: str) -> None:
+        self.model_name = model_name
+
+    def score(self, query: str, texts: list[str]) -> list[float]:
+        query_tokens = set(query.lower().split())
+        scores = []
+        for text in texts:
+            text_tokens = set(text.lower().split())
+            scores.append(float(len(query_tokens & text_tokens)))
+        return scores
+
+
+def _build_cross_encoder_scorer(model_name: str):
+    if os.getenv("HVAC_COPILOT_TEST_FAKE_CROSS_ENCODER", "").strip() == "1":
+        return _DeterministicTestCrossEncoderScorer(model_name)
+    return SentenceTransformersCrossEncoderScorer(model_name)
 
 
 def _load_optional_safety_adversarial_summary(path: Path) -> dict | None:

@@ -1,0 +1,297 @@
+{
+  "document_id": "doc_fddbe1f5906948ba95cdcb73f1304e3a",
+  "filename": "lbnl_getting_started_energy_efficiency_opportunities_2019.pdf",
+  "file_type": ".pdf",
+  "file_hash": "35daba1b3910a26ee23491f6fd41fb048a7ea3ad8c7d6d236b85e30661bb469c",
+  "source_path": "data\\knowledge\\uploads\\doc_fddbe1f5906948ba95cdcb73f1304e3a_lbnl_getting_started_energy_efficiency_opportunities_2019.pdf",
+  "metadata": {
+    "filename": "lbnl_getting_started_energy_efficiency_opportunities_2019.pdf",
+    "source_path": "data\\knowledge\\uploads\\doc_fddbe1f5906948ba95cdcb73f1304e3a_lbnl_getting_started_energy_efficiency_opportunities_2019.pdf",
+    "source_url": "https://datacenters.lbl.gov/sites/default/files/EEx%202019%20-%20Getting%20Started_%20Identifying%20and%20Assessing%20Energy%20Efficiency%20Opportunities%20in%20Your%20Data%20Center_final.pdf",
+    "authority": "LBNL/DOE Data Centers Center of Expertise",
+    "topic": "energy-assessment",
+    "curated_for": "data-center-hvac-rag-30-doc-corpus"
+  },
+  "pages": [
+    {
+      "page_number": 1,
+      "section_title": null,
+      "text": "1U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nGetting Started: Identifying and Assessing Energy Efficiency Opportunities in \nYour Data Center\nFEMP’s Center of Expertise for Energy Efficiency in Data Centers"
+    },
+    {
+      "page_number": 2,
+      "section_title": null,
+      "text": "2U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nWorkshop Agenda\nI. Workshop Logistics and Introduction\nII. The need for energy efficiency in data centers\nIII. Overview of the CoE\nIV. Demonstration of DC Pro\nV. Questions and Answers on DC Pro\nVI. DC Pro Workshop – audience participation (laptop recommended)\nVII. Final Q&A and Workshop Wrap-up"
+    },
+    {
+      "page_number": 3,
+      "section_title": null,
+      "text": "3U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nTo Receive IACET-Certified CEUs, Attendees Must:\n• Sign in and out on the official course roster\n• Attend the training in full. No exceptions\n• Complete an assessment demonstrating knowledge of course learning objectives \nwithin six weeks of the training. A minimum of 80% correct answers is required.\n• Complete an evaluation of the training event within six weeks of the training\nTo Access the Workshop Assessment and Evaluation, Visit:\n• https://www.wbdg.org/continuing-education/femp-courses/fempws08192019q\n• If you do not have a WBDG account created, you will be required to create one.\nFor logistical questions related to the webinar or evaluation, email Elena Meehan at elena.meehan@ee.doe.gov.\nTo Receive IACET-Certified CEUs for a Workshop"
+    },
+    {
+      "page_number": 4,
+      "section_title": null,
+      "text": "4U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nInstructor Introductions and \nWorkshop Logistics"
+    },
+    {
+      "page_number": 5,
+      "section_title": null,
+      "text": "5U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nIntroductions\nSteve Greenberg, P.E. \nBerkeley Lab\nDale Sartor, MBA\nBerkeley Lab\nRachel Shepherd\nDOE-FEMP\nRyan Livingston\nBGS LLC\n"
+    },
+    {
+      "page_number": 6,
+      "section_title": null,
+      "text": "6U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nThe Need for Energy Efficiency in \nData Centers"
+    },
+    {
+      "page_number": 7,
+      "section_title": null,
+      "text": "7U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nWhy the Need for Data Center Energy Efficiency?\n• Data Centers are energy intensive facilities\n• Data Centers are 10 to 100+ times more energy intensive than an office, \nand represent nearly 2% of all U.S. electricity consumption. \n• No significant slowdown in sight \n"
+    },
+    {
+      "page_number": 8,
+      "section_title": null,
+      "text": "8U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nPotential and Benefits of Energy Efficiency\n• 45% Reduction Possible with \nBest Practices and greater \nshift to hyper-scale \n• 20-40% savings & high ROI \ntypical\n• Aggressive strategies can \nyield 50+% savings \n• Extend life and capacity of \ninfrastructures.\n"
+    },
+    {
+      "page_number": 9,
+      "section_title": null,
+      "text": "9U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nAbout the Center of Expertise for \nEnergy Efficiency in Data Centers"
+    },
+    {
+      "page_number": 10,
+      "section_title": null,
+      "text": "10U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nFEMP’s Center of Expertise (CoE)\nVisit us at datacenters.lbl.gov\nExplore the \ndiverse activities \nthat CoE is \nengaged in.  \nUse CoE’s Energy \nEfficiency Toolkit\nFilter CoE’s many \nresources by type \nand topic.\nChoose from upcoming live \nwebinars, pre-recorded trainings, \nand in-person Data Center Energy \nPractitioner (DCEP) trainings.\nSearch \nresources \nby topics of \ninterest.\nFollow us on Twitter \n@DataCenterCoE\nAsk us questions!\nLearn about \ndifferent energy \nsaving \ntechnologies and \nopportunities.\nLearn more about \nthe purpose and \nmission of the \nCoE."
+    },
+    {
+      "page_number": 11,
+      "section_title": null,
+      "text": "11U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nFEMP’s Data Center Program\n• FEMP sponsors the Center of Expertise for Energy Efficiency in Data Centers (CoE) to\nprovide technical assistance, tools, analyses, and resources on best practices and\ninnovative solutions.\n• The CoE serves as an information and resource hub for data center owners,\noperators, and other stakeholders interested in achieving energy reductions and\ncost savings.\n"
+    },
+    {
+      "page_number": 12,
+      "section_title": null,
+      "text": "12U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nEnergy Saving Technologies in Data Centers\nThe CoE provides \ninformation and \nresources on a wide \nrange of energy-\nsaving technologies \nand opportunities; \nfrom IT Load to Air \nManagement. \n"
+    },
+    {
+      "page_number": 13,
+      "section_title": null,
+      "text": "13U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nCoE’s Activities\nCoE engages in a wide \nvariety of activities-\nsuch as assisting \nFederal Agencies in \nachieving their \nefficiency goals in data \ncenters, training \ncertifications, and \ndeveloping \nspecifications for \ngroundbreaking energy \nsaving technologies. \n"
+    },
+    {
+      "page_number": 14,
+      "section_title": null,
+      "text": "14U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nSmall Data Center Page\nProcess-oriented \npage guides users \nthrough various \nCoE (and third \nparty) resources \nbased on the levels \nof financial and \ntechnical \nresources \navailable.  \n"
+    },
+    {
+      "page_number": 15,
+      "section_title": null,
+      "text": "15U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nEnergy Efficiency Toolkit\n• The CoE toolkit provides a \nrecommended order for using \nCoE tools and resources, from \ndiagnosis of current energy \nconsumption and \nopportunities to actionable \nnext steps. \n• Today we’ll be focusing on the \nfirst step- profiling tools, \nspecifically the DC Pro tool. \n"
+    },
+    {
+      "page_number": 16,
+      "section_title": null,
+      "text": "16U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nAll CoE Resources\n• Filter all CoE \nresources by \ntechnology or \nresource type\n• Use the “search” \nbar to find \nresources on a \nparticular topic. \n"
+    },
+    {
+      "page_number": 17,
+      "section_title": null,
+      "text": "17U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nExamples of CoE Resources\nData Center Resources\n• High-level profiling tools \n• Best Practices Guide\n• Data Center Programming Guide\n• Benchmarking Guide\n• Technology Case Study Bulletins\n• Process manuals\n• Report templates\n• High-level profiling tools\n• System-level assessment tools(air \nmanagement, electrical systems)\n• End-use breakout"
+    },
+    {
+      "page_number": 18,
+      "section_title": null,
+      "text": "18U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nWe’re here to answer your questions!\n• Send us your \nquestions related to \ndata center energy \nefficiency questions \nby contacting us at \nCoE@lbl.gov\n• Browse our “Ask the \nExperts” section to \nsee whether your \nquestions have \nalready been \naddressed!\n"
+    },
+    {
+      "page_number": 19,
+      "section_title": null,
+      "text": "19U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDC Pro: Demonstration"
+    },
+    {
+      "page_number": 20,
+      "section_title": null,
+      "text": "20U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nEnergy Management\nEnergy Profiling\nSubsystem Assessment\nDetailed Engineering Audit\nEngineering Design\nSavings Validation (M&V)\nRetrofit/RCx Implementation \nDocumentation\nData center profiling provides an initial assessment \nof how energy is used in your data center and sub-\nsystem assessments provide more detailed insight. \nBoth activities are conducted by agency staff or \nconsultants.\nAudits, design, and the implementation of energy \nefficiency measures are facilitated by engineering \nfirms and contractors.\nMeasurement and Verification (M&V) is conducted \nby site personnel and engineering firms to confirm \nand track performance. M&V is key for continuous \nimprovement."
+    },
+    {
+      "page_number": 21,
+      "section_title": null,
+      "text": "21U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDC Pro Tools - Background\n• DC Pro is an “early stage” \nassessment tool designed for \ndata center owners and \noperators to diagnose how \nenergy use is distributed in their \ndata center and determine ways \nto save energy and money.\n• Sponsored by the U.S. \nDepartment of Energy (DOE)\n• Hosted by Lawrence Berkeley \nNational Lab (LBNL)\n• Core development team\n– LBNL\n– ANCIS Incorporated\n– Integral Group\n– Hewlett Packard \n– Taylor Engineering\n– Kemtah (software)\n• Wide array of reviewers\n– Data center owners\n– Design professionals\n– Product manufacturers"
+    },
+    {
+      "page_number": 22,
+      "section_title": null,
+      "text": "22U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDC Pro Tools – DC Pro & PUE Estimator\n• DC Pro (V4, 2016)\n– Estimates current and potential PUE and \nenergy use distribution\n– Tailored recommended actions to start an \nimprovement process\n– Requires a login, saves data\n• PUE Estimator (V1, 2016)\n– Quick, simplified version of DC Pro\n– Only asks questions that affect PUE\n– Does not provide potential PUE or \nrecommended actions\n– No login, doesn’t save data\n• datacenters.lbl.gov/dcpro\n"
+    },
+    {
+      "page_number": 23,
+      "section_title": null,
+      "text": "23U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDC Pro Tools - PUE Estimator Input / Output\nOUTPUTS\n• Current PUE\n• Current Energy Use \nDistribution\nINPUTS\n• One input \nscreen \n• Only questions \nneeded to \nestimate PUE\n"
+    },
+    {
+      "page_number": 24,
+      "section_title": null,
+      "text": "24U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDC Pro Tools – PUE Estimator Export\nExcel and PDF"
+    },
+    {
+      "page_number": 25,
+      "section_title": null,
+      "text": "25U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDC Pro Tools – DC Pro Input/Output\nOUTPUTS\n• Current PUE\n• Potential PUE\n• Current Energy \nUse Distribution\n• Potential Energy \nUse Distribution\n• Recommended \ntasks for \nimprovement\nINPUTS\n• General \nFacility \nDescription\n• Environmental \nConditions\n• System \ninformation\n- IT\n- Air \nManagement\n- Cooling\n- Power\n- Lighting\n"
+    },
+    {
+      "page_number": 26,
+      "section_title": null,
+      "text": "26U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDC Pro Tools – DC Pro Export\nExcel and PDF"
+    },
+    {
+      "page_number": 27,
+      "section_title": null,
+      "text": "27U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDemonstration: DC Pro Tools Access Overview \n"
+    },
+    {
+      "page_number": 28,
+      "section_title": null,
+      "text": "28U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDemonstration: DC Pro Tools – Access to DC Pro\nDC Pro Tools Homepage: datacenters.lbl.gov/dcpro\nDC Pro has a number of introductory resources \nto help users get started with the tool:\n• Calculation Reference Manual – Details how \nresults are generated.\n• DC Pro Full List of Questions – Full list of \nquestions in DC Pro (can be printed for offsite \ninformation gathering). \n• User’s Manual – This manual is a step-by-\nstep guide for using DC Pro V4 (DC Pro) \nincluding how to get started, provide the \nrequired inputs, and view results. \n"
+    },
+    {
+      "page_number": 29,
+      "section_title": null,
+      "text": "29U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDemonstration: DC Pro Tools – Access to DC Pro\nDC Pro Tools Homepage: datacenters.lbl.gov/dcpro\nLog in or \nRegister for \nDC Pro"
+    },
+    {
+      "page_number": 30,
+      "section_title": null,
+      "text": "30U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDemonstration: DC Pro – Log in/Register \nRegister\nLog in\n"
+    },
+    {
+      "page_number": 31,
+      "section_title": null,
+      "text": "31U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDemonstration: DC Pro – Data Center Records\n… create new \ndata center\nAll data centers \nthat you’ve \nalready added \nwill be \navailable \nhere…"
+    },
+    {
+      "page_number": 32,
+      "section_title": null,
+      "text": "32U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDemonstration: DC Pro – Create (Add) New Data Center\n"
+    },
+    {
+      "page_number": 33,
+      "section_title": null,
+      "text": "33U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDemonstration: DC Pro – Existing Data Center(s)\nData Center \nExplorer"
+    },
+    {
+      "page_number": 34,
+      "section_title": null,
+      "text": "34U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDemonstration: DC Pro – Edit or Create New DC Profile\nCreate new \nprofile\nEdit existing \nprofiles"
+    },
+    {
+      "page_number": 35,
+      "section_title": null,
+      "text": "35U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDemonstration: DC Pro – New DC Profile\nResults\nRecommended \nTasks\nPrint Profile\nInput \nSections \n(1-2)\nCalculated data\nis eventually\ndisplayed here"
+    },
+    {
+      "page_number": 36,
+      "section_title": null,
+      "text": "36U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nInput 1: Data Center General Information\nRed “*” is a\nrequired field\nOnly highlighted \nitems contribute to \nPUE calculation\nClick “Next \nSection” to \nproceed to the \nfollowing screen\nBe sure to save \nyour data as you \nmove through the \nscreens\n"
+    },
+    {
+      "page_number": 37,
+      "section_title": null,
+      "text": "37U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nInput 2: Energy Use Systems\n2.1 Energy Management\n2.2 IT Equipment \n2.3 Environmental Conditions\n2.4 Air Management\n2.5 Cooling Systems\n2.6 IT Equipment Power Chain\n2.7 Lighting\n• Inputs 2.1 through 2.7 allow the DC Pro tool to: \n– Determine whether an action is recommended or \nnot recommended, in the “Suggested Next Steps.”\n– Influence the output values that the Profiler \ncalculates. Not every question influences the \ncalculated values.\n• Answers to Energy Use Systems also estimates \nhow the data center’s energy use is distributed \namong five end-use categories (default energy \nend-use breakouts)."
+    },
+    {
+      "page_number": 38,
+      "section_title": null,
+      "text": "38U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nInput 2.1: Energy Use Systems- Energy Management\n• Energy audit conducted \nin the last 2 years\n• Written energy \nmanagement plan\n• No energy manager\n• Plan accepted by upper \nmanagement\nClick the “?” icon \n(or reference the \nuser guide) if you \nneed additional \ninformation about \na particular \nquestion. \n"
+    },
+    {
+      "page_number": 39,
+      "section_title": null,
+      "text": "39U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nInput 2.2: IT Equipment\n• No IT-equipment \nutilization tracking\n• Servers replaced every 4 \nyears\n• No server virtualization\n• No storage consolidation\n• No storage tiers\n• No storage optimization."
+    },
+    {
+      "page_number": 40,
+      "section_title": null,
+      "text": "40U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nInput 2.3: Environmental Conditions\n• Yellow shaded cells are inputs for DC Pro \ncalculations. \n• Typical supply air temperature of 70F (21 C)\n• Typical return air temperature of 90F (32 C)\n• Active/working humidification controls.\n• Active/working dehumidification controls\n(Continued)"
+    },
+    {
+      "page_number": 41,
+      "section_title": null,
+      "text": "41U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nInput 2.4: Air Management\n• Rear-door supplemental cooling\n• CRAC/CRAH/AHU has a free cooling \ncoil (water side economizer) \n• Free air-side cooling\n• Floor-tightness program in place \n• IT equipment row arrangement is \n“good”\n• Rack tightness (blanking panels) in \nplace\n• Diffuser/tile-location program in place \nto conserve hot and cold aisle\n• Hot and cold aisle enclosures are “fair”\n• Constant speed supply fans in use\n• Air delivery system is balanced to \nensure correct airflow rates. \n• Air balancing program in place\n"
+    },
+    {
+      "page_number": 42,
+      "section_title": null,
+      "text": "42U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nOverview of Available Cooling System Types in DC Pro\nSystem Types\n• Air-Cooled DX\n• Evaporatively-Cooled DX \n• Water-Cooled DX\n– Dry Cooler Condensing System, or\n– Cooling Tower Condensing System\n• Tower Fan Motor Control: Fixed Speed, 2-Speed, or Variable Speed\n– Type of valves: 2-way or 3-way\n• Chilled Water\n– Air-Cooled Chiller\n– Water-Cooled Chiller\n• Water-Side Economizer: None, Integrated, or Non-Integrated\n• Tower Fan Motor Control: Fixed Speed, 2-Speed or Variable Speed\n– Type of valves: 2-way or 3-way\n"
+    },
+    {
+      "page_number": 43,
+      "section_title": null,
+      "text": "43U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nInput 2.5: Cooling System\n• 25 chilled-water CRAH units\n• 4 water-cooled chillers\n• Chilled water supply \ntemperature is 45°F (7°C)\n• No water-side economizers\n• Two-speed cooling tower fans\n• 2-way chilled-water valves\n• Standard efficiency motors\n"
+    },
+    {
+      "page_number": 44,
+      "section_title": null,
+      "text": "44U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nInput 2.6: IT Equipment Power Chain\n• 500 kVA, double conversion \nUPS in place. \n• UPS voltage of 208\n• Average load factor per active \nUPS module approximately 21-\n30%.\n• UPS redundancy configuration \nof N+1\n• Standby generator present\n• Generator block heater (with \nthermostat)\n• PDUS with built-in transformers\n"
+    },
+    {
+      "page_number": 45,
+      "section_title": null,
+      "text": "45U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nInput 2.7: Lighting\n• Fluorescent lighting\n• T-8 lamps \n• Magnetic ballasts\n• Lighting controlled via manual \nwall switch"
+    },
+    {
+      "page_number": 46,
+      "section_title": null,
+      "text": "46U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nStep 3: Results – PUE and Energy Use Distribution\nThe values for “Potential PUE” and “Potential Energy Use” are ideal values \nbased on implementing all recommended energy efficiency tasks outlined \nin Section 4. \n"
+    },
+    {
+      "page_number": 47,
+      "section_title": null,
+      "text": "47U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nStep 4: Recommended Tasks\nExport Results (Excel and PDF)"
+    },
+    {
+      "page_number": 48,
+      "section_title": null,
+      "text": "48U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDC Pro - Export\nPDF\n Excel"
+    },
+    {
+      "page_number": 49,
+      "section_title": null,
+      "text": "49U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nMore About the DC Pro Calculations\nThe Profiler takes some of the \nuser’s inputs from the General \nData Center information and \nEnergy Systems information \nand refers to look-up tables to \ndetermine the default, \nestimated data center energy \nend-use breakouts.\n"
+    },
+    {
+      "page_number": 50,
+      "section_title": null,
+      "text": "50U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDC Pro: Interactive Workshop"
+    },
+    {
+      "page_number": 51,
+      "section_title": null,
+      "text": "51U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nRegistering with DC Pro\n• Get out your laptops\n• Connect to the Wi-Fi\n• Make the information \nrelevant to your data \ncenter (if you brought it) \naccessible \n• To register and get \nstarted, go to: \ndatacenters.lbl.gov/dcpro\n• We’ll be circulating to \nanswer questions!\n"
+    },
+    {
+      "page_number": 52,
+      "section_title": null,
+      "text": "52U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nData Center X Case – DC Pro Results\n"
+    },
+    {
+      "page_number": 53,
+      "section_title": null,
+      "text": "53U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nData Center X Case – Recommended Task Examples\nTask Description\nRemove Abandoned Cable and Other \nObstructions\nUnder-floor and over-head obstructions often interfere with the distribution of cooling air. Such interferences can significantly \nreduce the air handlers’ airflow as well as negatively affect the air distribution. The cooling capacity of a raised floor depends on \nits effective height, which can be increased by removing obstructions that are not in use.\nPlace Supply Air Devices in Cold Aisles Only\nPerforated floor tiles or over-head supply diffusers should only be placed in the cold aisles to match the “consumption” of air by \nthe electronic equipment. Too little or too much supply air results in poor overall thermal and/or energy conditions. Note: the \nhot aisles are supposed to be hot and supplies should not be placed in those areas.\nSeal Raised Floor Leaks\nA large fraction of the air from the air-handler may be lost through leaks in the raised floor. The leaks are often hidden under\nthe equipment racks and not visible during a casual walk-through audit. Such leakage often causes by-pass air that does not \ncontribute to cooling the electronic equipment. There are a number of commercial products that can be used to seal the raised\nfloor.\nMaintain Tight Racks and Rows\nBlanking panels should be used to seal openings under and between equipment racks, between equipment shelves in partially \nfilled racks, or completely empty racks. Managing blanking panels is especially important in hot and cold aisle environments.\nBlanking panels come in various heights and widths to fit almost any application, and they come in snap-on or screw-in types.\nImplement a Rack and Row Tightness \nProgram\nAny opening between the cold aisle and the hot aisle will degrade the separation of hot and cold air. A program should be in \nplace to minimize leakage by maintaining blanking panels and unbroken rows.\nShut off CRAC/CRAH Units\nIf it is determined that a lower airflow volume is desired and the CRAC/CRAH/AHU units do not have variable speed fans, \nadjustment is limited to shutting off individual units. This is not a precise way of controlling the air volume, but it can still yield \nacceptable results. Some experimentation may be required to determine which units can be shut off without compromising \nadequate cooling of the IT equipment.\nControl All Supply Fans in Parallel If all the supply fans serving a given space are identical and equipped with variable speed drives, fan energy is minimized by \nrunning all the fans (including redundant units) at the same reduced speed.\nRetrocommission the Airside Economizers\nWhile airside economizers can offer large energy savings (particularly in milder climates), they need regular service to operate\nproperly. Outside air temperature sensors that control when the economizer opens and closes must be kept calibrated. The \nactuators and linkages that control the economizer louvers must be kept lubricated and in adjustment. The entire economizer \nsystem should be tested at least once a year to ensure it operates as intended.\nEvaluate Chillers for Replacement\nChillers are typically the greatest energy-using components in the cooling system. Recent advances in chiller technology, \nespecially variable-speed compressors, offer more efficient operation. For these reasons, it is often worthwhile to examine the \ncost-effectiveness of replacing existing chillers if they are more than 5 years old or are in poor condition."
+    },
+    {
+      "page_number": 54,
+      "section_title": null,
+      "text": "54U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nData Center X Case – Recommended Task Examples\nTask Description\nDisable or Eliminate Humidification Controls or \nDecrease the Humidification Setpoint\nTightly controlled humidity can be very costly in data centers since humidification and dehumidification are involved. A wider humidity range \nallows significant utilization of free cooling in most climate zones by utilizing effective airside economizers. In addition,open-water systems are \nhigh-maintenance items.\nDisable or Eliminate Dehumidification Controls or \nIncrease the Dehumidification Setpoint\nMost modern IT equipment is designed to operate reliably when the intake air humidity is between 20% and 80% RH. However, 55%RH is a \ntypical upper humidity level in many existing data centers. Maintaining this relatively low upper limit comes at an energy cost. Raising the limit can \nsave energy, particularly if the cooling system has an airside economizer. In some climates it is possible to maintain an acceptable upper limit \nwithout ever needed to actively dehumidify. In this case, consider disabling or removing the dehumidification controls entirely.\nChange the Type of Humidifier\nMost humidifiers are heat based, ie., they supply steam to the air stream by boiling water. Electricity or natural gas are common fuel sources. The \nheat of the steam becomes an added load on the cooling system. An evaporative humidifier uses much less energy. Instead of boiling water, it \nintroduces a very fine mist of water droplets to the air stream. When set up properly the droplets quickly evaporate, leavingno moisture on nearby \nsurfaces. This has an added cooling benefit, as the droplets absorb heat from the air as they evaporate. A wetted media can also be used.\nChange Cooling Unit Air Temperature Setpoints \nBased on IT Equipment Thermal Demand\nIT equipment is designed to operate most reliably within a certain range of intake air temperatures, and a certain temperature rise of the air is \nexpected before it is exhausted. Programming the cooling system to match these temperatures avoids cooling system energy waste due to \novercooling the supply air, and ensures reliable IT equipment operation.\nUse an Enthalpy Sensor to Control the Airside \nEconomizer\nAn economizer can be either a temperature or enthalpy economizer. A temperature economizer is controlled by temperature only.An enthalpy \neconomizer on the other hand is controlled by temperature and humidity (that is, energy content). Using an enthalpy economizer generally saves \nmore energy than using a temperature economizer. However, it is also more complex.\nAnticipate that Servers will Occasionally Operate \nin a Higher, but Allowable, Range (89.6F)\nData centers can often go beyond the Recommended range for additional energy savings by following the process outlined in theASHRAE \nThermal Guidelines for Data Processing Environments.\nReconfigure the UPS Topology for More Efficient \nOperation\nUPS technology continues to evolve. If the existing UPS is scheduled for replacement, be sure to specify a high-efficiency UPS topology. If the \nexisting UPS more than 10 years old, it may be cost-effective to replace it with a new system.\nShut Down UPS Modules and PDUs when \nRedundancy Level is High Enough\nIn some facilities, the array of UPS modules and/or PDUs has more than enough capacity to serve the load. It may be possible to shut down some \nmodules and still retain the required level of redundancy. This will allow the remaining units to operate at a higher load factor, which usually \ntranslates to higher efficiency.\nUse High Efficiency MV and LV Transformers\nMedium Voltage (MV) and Low Voltage (LV) transformers are available in a range of efficiencies. Specify high efficiency transformers when any \nexisting units are scheduled for replacement. If inspection reveals that any existing transformers are operating with particularly poor efficiency, \nanalyze the cost-effectiveness of replacing them with high efficiency, appropriately-sized units immediately."
+    },
+    {
+      "page_number": 55,
+      "section_title": null,
+      "text": "55U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nData Center X Case – Recommended Task Examples\nTask Description\nChange UPS DC Capacitors\nThe DC capacitors in typical UPS systems tend to lose effectiveness over time. This can result in the inverter failing to \noperate under load, and increased ripple current in the batteries. Not only does this result in less efficient operation, it \nbecomes a safety issue as well. The DC capacitors usually have the same design lifetime as the batteries; approximately \n5 years. The capacitors should be checked regularly.\nAssign an Energy Manager If your facility does not already have an Energy Manager, consider assigning one. Efforts to improve energy efficiency \noften falter when there is no clearly identified \"champion\" to lead and coordinate.\nSub-Meter End-Use Loads and Track \nOver Time\nMany data centers have only a few main energy meters (electric, gas, etc.). These typically report the total energy use of \nthe facility accurately, but they cannot indicate how the energy use is distributed among the IT equipment and support \nsystems. Installing sub-meters at key locations provides a powerful tool for measuring the energy performance of \nindividual systems. Providing these sub-meters with recording capability allows you to monitor system performance over \ntime, providing evidence of degradations and improvements.\nReview Full System Operation and \nEfficiency on a Regular Basis\nYou may already be monitoring some of your data center support systems and are satisfied that they are operating \nefficiently, but it is important to monitor the energy efficiency of the data center as a whole. The common \"big picture\" \nmetric is PUE (Power Usage Effectiveness). This measurement indicates how much energy the support systems use in \ncomparison to the IT equipment itself. The less energy the support systems use for a given IT load, the more efficiently the \nfacility operates. Continuously monitoring this ratio is the best way to keep track of the performance of the whole data \ncenter.\nInstall Occupancy Sensors to Control \nLights\nMany data centers are unoccupied for long periods. Controlling the data center lights with occupancy sensors, timers, or \nmanually operated switches directly saves lighting energy. This also reduces the heat load, saving cooling system energy.\nInstall Peak Shaving Devices on Lighting \nSystems\nIf the electric power utility serving the data center offers a power demand response program, installing controls to reduce \nlighting levels is one strategy for reducing electric demand when requested. The main benefit of complying with a demand \nresponse program is electric cost savings (particularly if the facility is on a time-of-use rate schedule), but it saves energy \ntoo, increasing data center efficiency."
+    },
+    {
+      "page_number": 56,
+      "section_title": null,
+      "text": "56U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nContact Information and Q&A\nSteve Greenberg, P.E. \nBerkeley Lab\nsegreenberg@lbl.gov\nDale Sartor, MBA\nBerkeley Lab\ndasartor@lbl.gov\nRachel Shepherd\nDOE-FEMP\nrachel.shepherd@ee.doe.gov\nRyan Livingston\nBGS LLC\nryan.livingston@ee.doe.ogv\n"
+    }
+  ]
+}

@@ -25,6 +25,7 @@ def mock_trajectory():
             "cooling_power": [100.0, 110.0, 180.0, 120.0],
             "fan_power": [20.0, 21.0, 30.0, 24.0],
             "hvac_power": [120.0, 131.0, 210.0, 144.0],
+            "control_action": [0.2, 0.2, 0.9, 0.3],
             "comfort_violation": [False, False, True, False],
         }
     )
@@ -126,6 +127,18 @@ class UnsupportedWindowPlanner:
                 )
             ],
             planner="unsupported-window-test",
+            confidence=0.9,
+        )
+
+
+class ToolStepPlanner:
+    def __init__(self, steps: list[PlanStep]) -> None:
+        self.steps = steps
+
+    def plan(self, question: str, task_type: str | None = None) -> PlanDecision:
+        return PlanDecision(
+            steps=self.steps,
+            planner="tool-step-test",
             confidence=0.9,
         )
 
@@ -457,6 +470,117 @@ def test_langgraph_marks_unsupported_time_window_fallback_in_tool_result():
     assert tool_result["time_window"] == "last_24"
     assert tool_result["time_window_applied"] == "full_demo_range"
     assert "Unsupported time_window 'last_24'; used full_demo_range." in tool_result["notes"]
+
+
+def test_langgraph_can_execute_data_quality_tool_from_plan_step():
+    baseline = BaselineOrchestrator(
+        rag_pipeline=mock_rag(),
+        trajectory=mock_trajectory(),
+        answer_generator=SpyAnswerGenerator(),
+    )
+    orchestrator = LangGraphOrchestrator(
+        baseline,
+        route_planner=ToolStepPlanner(
+            [
+                PlanStep(
+                    route="timeseries_query",
+                    reason="Check telemetry quality before analysis.",
+                    tool="data_quality_check",
+                )
+            ]
+        ),
+    )
+
+    result = orchestrator.run("检查当前数据质量是否可靠")
+
+    assert result["tools"] == ["data_quality_check"]
+    assert result["tool_results"][0]["tool_name"] == "data_quality_check"
+    assert "quality_score" in result["tool_results"][0]
+    assert result["tool_calls"][0]["tool_name"] == "data_quality_check"
+    assert result["tool_calls"][0]["status"] == "success"
+    assert result["tool_calls"][0]["permission_decision"] == "allow"
+    assert result["tool_calls"][0]["duration_ms"] >= 0
+
+
+def test_langgraph_can_execute_comfort_and_control_risk_tools_from_plan_steps():
+    baseline = BaselineOrchestrator(
+        rag_pipeline=mock_rag(),
+        trajectory=mock_trajectory(),
+        answer_generator=SpyAnswerGenerator(),
+    )
+    orchestrator = LangGraphOrchestrator(
+        baseline,
+        route_planner=ToolStepPlanner(
+            [
+                PlanStep(
+                    route="anomaly_diagnosis",
+                    reason="Assess thermal comfort risk.",
+                    tool="comfort_risk_assessment",
+                ),
+                PlanStep(
+                    route="timeseries_query",
+                    reason="Audit control action stability.",
+                    tool="control_action_audit",
+                ),
+            ]
+        ),
+    )
+
+    result = orchestrator.run("评估过热风险并检查控制动作是否震荡")
+
+    assert result["tools"] == ["comfort_risk_assessment", "control_action_audit"]
+    assert result["tool_results"][0]["tool_name"] == "comfort_risk_assessment"
+    assert result["tool_results"][1]["tool_name"] == "control_action_audit"
+    assert [call["risk_level"] for call in result["tool_calls"]] == ["advisory", "advisory"]
+    assert all(call["audit_required"] for call in result["tool_calls"])
+
+
+def test_executor_rejects_invalid_tool_input_before_execution():
+    baseline = BaselineOrchestrator(
+        rag_pipeline=mock_rag(),
+        trajectory=mock_trajectory(),
+        answer_generator=SpyAnswerGenerator(),
+    )
+    orchestrator = LangGraphOrchestrator(
+        baseline,
+        route_planner=ToolStepPlanner(
+            [
+                PlanStep(
+                    route="timeseries_query",
+                    reason="Invalid hotspot top_k should be caught by schema validation.",
+                    tool="zone_hotspot_rank",
+                    metric_name="zone_temperature",
+                    time_window="full_demo_range",
+                )
+            ]
+        ),
+    )
+
+    baseline.task_executor.default_tool_inputs["zone_hotspot_rank"] = {"top_k": 0}
+    result = orchestrator.run("rank hotspots")
+
+    assert result["tools"] == ["zone_hotspot_rank"]
+    assert result["tool_results"][0]["status"] == "error"
+    assert result["tool_calls"][0]["status"] == "error"
+    assert "top_k" in result["tool_calls"][0]["error"]
+
+
+def test_control_boundary_tool_call_requires_policy_boundary_permission():
+    baseline = BaselineOrchestrator(
+        rag_pipeline=mock_rag(),
+        trajectory=mock_trajectory(),
+        answer_generator=SpyAnswerGenerator(),
+    )
+
+    evidence = baseline.task_executor.collect_policy_recommendation_evidence(
+        "recommend a policy",
+        "policy boundary test",
+    )
+
+    assert evidence["tool_calls"][0]["tool_name"] == "policy_runner"
+    assert evidence["tool_calls"][0]["risk_level"] == "control_boundary"
+    assert evidence["tool_calls"][0]["permission_decision"] == "policy_boundary"
+    assert evidence["tool_calls"][0]["status"] == "success"
 
 
 def test_baseline_and_langgraph_can_share_agent_task_executor():

@@ -25,11 +25,15 @@ def build_demo_orchestrator(
     project_root: Path | None = None,
     use_env_answer_generator: bool = True,
     use_dropt_policy: bool = False,
+    use_persistent_knowledge: bool = True,
 ) -> BaselineOrchestrator:
     """Build a demo orchestrator from sample docs and mock trajectory data."""
 
     project_root = project_root or Path(__file__).resolve().parents[2]
-    rag = build_rag_pipeline(project_root)
+    rag = build_rag_pipeline(
+        project_root,
+        use_persistent_knowledge=use_persistent_knowledge,
+    )
     trajectory = _load_demo_trajectory(project_root)
     return BaselineOrchestrator(
         rag_pipeline=rag,
@@ -44,12 +48,16 @@ def build_demo_orchestrator(
     )
 
 
-def build_rag_pipeline(project_root: Path | None = None) -> ExtractiveRAGPipeline:
+def build_rag_pipeline(
+    project_root: Path | None = None,
+    *,
+    use_persistent_knowledge: bool = True,
+) -> ExtractiveRAGPipeline:
     project_root = project_root or Path(__file__).resolve().parents[2]
     knowledge_dir = Path(os.getenv("KNOWLEDGE_BASE_DIR", project_root / "data" / "knowledge"))
     provider = os.getenv("KNOWLEDGE_EMBEDDING_PROVIDER", "sentence-transformers")
     model = os.getenv("KNOWLEDGE_EMBEDDING_MODEL", "BAAI/bge-small-zh-v1.5")
-    if (knowledge_dir / "faiss" / "index.faiss").exists():
+    if use_persistent_knowledge and (knowledge_dir / "faiss" / "index.faiss").exists():
         service = KnowledgeBaseService(
             knowledge_dir=knowledge_dir,
             embedding_provider_name=provider,

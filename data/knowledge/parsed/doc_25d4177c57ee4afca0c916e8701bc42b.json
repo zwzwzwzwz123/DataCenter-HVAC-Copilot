@@ -1,0 +1,432 @@
+{
+  "document_id": "doc_25d4177c57ee4afca0c916e8701bc42b",
+  "filename": "lbnl_data_center_air_management_report_2006.pdf",
+  "file_type": ".pdf",
+  "file_hash": "ff9789bef895cb3dc042c839c8f9aa0aa825dceec1b572cf3989244c33859088",
+  "source_path": "data\\knowledge\\uploads\\doc_25d4177c57ee4afca0c916e8701bc42b_lbnl_data_center_air_management_report_2006.pdf",
+  "metadata": {
+    "filename": "lbnl_data_center_air_management_report_2006.pdf",
+    "source_path": "data\\knowledge\\uploads\\doc_25d4177c57ee4afca0c916e8701bc42b_lbnl_data_center_air_management_report_2006.pdf",
+    "source_url": "https://datacenters.lbl.gov/sites/default/files/DC%20AIr%20Management%20Report_2006.pdf",
+    "authority": "LBNL/DOE Data Centers Center of Expertise",
+    "topic": "air-management",
+    "curated_for": "data-center-hvac-rag-30-doc-corpus"
+  },
+  "pages": [
+    {
+      "page_number": 1,
+      "section_title": null,
+      "text": "  \n© Copyright, 2006, Pacific Gas and Electric Company.  All rights reserved \n \n \n \n \nPacific Gas and Electric Company \n \nEmerging Technologies Program  \n \nApplication Assessment Report _______ \n \n \n \nData Center Air Management Report \nLawrence Berkeley National Laboratory \nNational Energy Research Scientific Computing Center \nOakland, CA \n \n \n \n \n \nIssued:  December 12, 2006 \n \n \nProject Manager: Stephen Fok \n    Pacific Gas and Electric Company \n  \nPrepared By:  Lawrence Berkeley National Laboratory and  \n    Rumsey Engineers, Inc. \n \n \n \nLEGAL NOTICE \nThis report was prepared by Pacific Gas and Electric Company for exclusive use by its \nemployees and agents.  Neither Pacific Gas and Electric Company nor any of its employees and \nagents: \n(1) makes any written or oral warranty, expressed or implied, including, but not limited to those \nconcerning merchantability or fitness for a particular purpose; \n(2) assumes any legal liability or responsibility fo r the accuracy, completeness, or usefulness of \nany information, apparatus, product, process, method, or policy contained herein;  or \n(3) represents that its use would not infringe any privately owned rights, including, but not \nlimited to, patents, trademarks, or copyrights. "
+    },
+    {
+      "page_number": 2,
+      "section_title": null,
+      "text": "  \n \n \nContents \n \n \nExecutive Summary ...................................................................... 3 \n \nBackground & Objective................................................................ 6 \n \nExperimental Design & Procedure ................................................ 6 \n \nFindings......................................................................................... 9 \n \nConclusion................................................................................... 23 \n \nRecommendations for Future Work ............................................ 23 \n \nAppendix...................................................................................... 25 \n \n \n "
+    },
+    {
+      "page_number": 3,
+      "section_title": null,
+      "text": "  \n3 \nExecutive Summary \n \nThe purpose of this study is to demons trate to data center designers and \noperators the operational and  energy benefits of t houghtful and efficient data \ncenter air management techniques.   To do so, a baseline air distribution \nconfiguration that is repr esentative of typical data ce nters today, was compared \nagainst two alternate configurations.  In  the baseline configuration, supply air \nenters the cold aisle through perforated tile s in a raised floor, passes through the \nserver intakes, and is ejected to the hot  aisle where, through stratification, it \nreturns to the cooling unit.  The ‘Alternate 1’  configuration is similar, except that \nthe cold aisle is sealed at the top and ends of the racks to prevent hot air \nrecirculating back into the cold aisle (Figure 1, below).   \n \n \nFigure 1: Alternate 1 - Cold Aisle Isolation \n \nIn the ‘Alternate 2’ configuration, plastic partitions sealed the hot aisles off from \nthe cold aisle, and the interstitial ceiling space was used as a return air plenum.   \n \n \nFigure 2: Alternate 2 - Hot Aisle Isolation "
+    },
+    {
+      "page_number": 4,
+      "section_title": null,
+      "text": "4  \n \nEach configuration was monitored for energy use, computer inlet and aisle \ntemperatures, and air flow volume.  These values have been compared to \ndetermine cooling effectiveness and efficiency.   From this comparison, Alternate \n1 was found to provide the most effect ive hot and cold air separation, and \ntherefore the greatest cooli ng efficiency.  Following is a summary of the findings \nof the study, which are discussed in detail in subsequent sections of this report: \n \n \nFinding 1: Careful separation of hot and cold aisles allowed fo r better uniformity \nof the supply air temperature at the inlets to the servers.  The variation in supply \nair temperature decreased from 26°F to  18.5°F between Baseline and Alternate \n1. That is, the homogeneity of supply air temperatures improved as a result of \nbetter air management. \n \nFinding 2\n: By minimizing air mixing, and a llowing the temper ature difference \nbetween the supply and return air to incr ease, fan power was able to be reduced \nby 75% without an adverse effect on the server environmental conditions. \n \nFinding 3\n: Higher return air temperatures in creased the capacity of the computer \nroom air handling (CRAH) units by 30% - 49% \n \nFinding 4\n: The temperature difference betw een the chilled water supply and \nreturn increased, which could allow for reduced chilled water flow, saving on \npumping energy. Alternatively, a chilled water temperature differential of 20°F \nprovides a 43% increase in piping capa city (but not chiller capacity) without \nmodifying the chilled water system when compared to the as-found differential of \n14°F. \n \nFinding 5\n: When using variable speed server f ans, power savings can be offset \nor decline to zero if the CRAH fan speed is reduced too low since the server fans \nspeed up in response to the increased supply air temperature, which can \nincrease overall data center power consumption. \n \nFinding 6\n: By minimizing the mixing of supply and return air, the supply air and \nchilled water supply temperatures can be raised. Raising the chilled water supply \ntemperature to 50°F can save 4% in chiller energy. \n \nFinding 7\n: Raising the chilled water supply temperature to 50°F and utilizing \nintegrated water-side economiz ing can save 21% in chill er energy, and result in \nincreased chiller capacity. \n \nFor each of these findings, and where applicable, this report presents calculated \nenergy savings and/or equipment capacit y increases in the test area.  \nAdditionally, these values have been ex trapolated to estimate the savings \npossible in applying the techniques pr esented here to the entire data center.  \nThis extrapolation was performed by mult iplying the computer heat load density "
+    },
+    {
+      "page_number": 5,
+      "section_title": null,
+      "text": "5  \nin the test area to the ent ire floor area of the data ce nter. This load was then \nused to estimate cooling plant energy use.  See Appendix II for detailed \ncalculations and assumptions. \n \n \nSummary of Potential Energy Savings for Entire Data Center \nFinding \n# \nAnnual \nEnergy \nSavings \n(kWh) \nCoincident \nDemand \nReduction \n(kW) \nNon-\ncoincident \nDemand \nReduction \n(kW) \n% \nReduction \nin Cooling \nEnergy \nUse \n% \nReduction \nin Total \nEnergy \nUse \n1 N/A \n2 740,000 84.2 84.2 12% 1.8% \n \n3 N/A \n4 110,000 12.2 12.2 3.2% 0.3% \n \n5 N/A \n6 210,000 24.5 24.5 3.3% 0.5% \n \n7 1,140,000 24.5 24.5 18% 2.8% \n \nFindings marked with “N/A” either increase capacity rather than save \nenergy, or are qualitative observations. \n \nIt is instructive to note that the electrical load of the computing equipment in the \ndata center far outweighs the electrical load of the cooling equipment. The ratio \nof cooling power to the total electrical power in a facility is a commonly-used \nmetric in data centers. The test area, as found, was using approximately 63 kW \nof cooling power to cool approximately 270 kW of computing load. Thus, the ratio \nof cooling power to total power is approximately 20%. Therefore, dramatic \nreductions in cooling power required will not have as dramatic an effect on the \noverall facility’s power use as a whole. This is illustrated by the last two columns \nin the table above. "
+    },
+    {
+      "page_number": 6,
+      "section_title": null,
+      "text": "6  \nBackground & Objective \nAs part of Pacific Gas and Electric’s  (PG&E) Data Center Emerging \nTechnologies Program, Rumsey Enginee rs was asked to conduct an air \nmanagement demonstration and monitoring pr oject in an operating data center, \nthe goal of which is to demonstrate to data center designers and operators the \noperational and energy benefits of thoughtfu l and efficient data center air \nmanagement techniques. Currently, data c enters typically do not optimize air \ndistribution when designing the floor layout  resulting in increased energy use.  \nSome of the methods presented in this st udy are currently in use in industry; \nhowever their application is inconsistent.   \nThe demonstration took place in a small section of the National Energy Research \nScientific Computing (NERSC) Center in downtown Oakland, California from \nJune 12th – June 16th, 2006.   \nDemonstration Design & Procedure \nAn area containing two rows  of server racks was sele cted because of its high \nheat density (approximately 175 W/sf) and ability to be isolated from the \nremainder of the facility.  Cooling equipment serving the demonstration area \nconsists of three 40-ton (nominal) dow nflow CRAH units with chilled water \ncooling coils. The chilled water is provi ded by a central chilled water plant, and \nthe supply air is delivered via a 36” raised floor plenum. In order to maintain a \nconstant chilled water flow for the purpos es of the demonstration, the CRAH unit \nreturn air temperature setpoints were set at 55°F, a value that would ensure that \nthe chilled water valves would remain wide open and not modulate the flow.  \nThe rows of racks are separated into hot and cold aisles, and the return air is not \nducted, but relies upon stratification to collect heat at ceiling level, which \neventually makes its way back to the air intakes at the top of the CRAH units. \nThe spaces between each of the computer racks are well sealed using Plexiglas-\ntype material to prevent mixing of hot and cold air. These conditions served as \nthe baseline configuration for this air management study, and ar e illustrated in \nFigure 3.  "
+    },
+    {
+      "page_number": 7,
+      "section_title": null,
+      "text": "7  \n \nFigure 3: Baseline Air Flow Configuration \n \n \nThe demonstration and study looked at two improved air flow configurations to be \ncompared to the baseline. The first, refe rred to here as “Alternate 1,” involved \nsealing the cold aisle (top and sides) to mini mize mixing of hot and cold air, and \nto more efficiently deliver the cooling air to the servers. The “cold aisle seal” was \nconstructed of lightweight plywood and pl astic sheeting, and is illustrated in \nFigure 1.  Photographs are included in the Appendix. \n \n \n \nFigure 1: Alternate 1 - Cold Aisle Isolation \n(Figure repeated from Page 3 for ease of comparison.) \n  "
+    },
+    {
+      "page_number": 8,
+      "section_title": null,
+      "text": "8  \nThe second revised air flow configuration, referred to as “Alternate 2,” provided a \nsimulated plenum return coupled with ra ck top-to-ceiling air barriers to help \nminimize mixing of hot and cold air. The plenum return was accomplished by \nbuilding intake hoods for the CRAH units,  and utilizing the interstitial ceiling \nspace as a return path, as illustrated in Figure 2. \n \n \nFigure 2: Alternate 2 - Hot Aisle Isolation \n(Figure repeated from Page 3 for ease of comparison.) \n \nSpecial note:  After completing Alternate 1, it was noted that an experimental test \nrack in the project area began to overheat  during the night-time portion of the \nexperiment.  The rack’ s air inlet was located in th e second hot aisle (the right \nside of Figure 3).  To prevent further overheating, the rack’s inlet was covered \nwith a tent that ducted air fr om the supply grille in front of the rack directly to the \ninlets.  To avoid this issue reoccurri ng, the experiment run time was reduced \nduring Alternate 2.  Due to the large air change rate during the experiment, \ntemperatures stabilized quickly during Alte rnate 2, allowing useful data to be \ncollected. \n \nThe following measurements were taken during the baseline and subsequent two \nalternate configurations: \n \n• IT equipment power \n• Temperature distribut ion throughout the space \n• CRAH unit(s) supply air temperature \n• CRAH unit(s) return air temperature \n• Chilled water supply temperature \n• Chilled water return temperature \n• CRAH fan energy \n• Supply and return air volumetric flow rates \n "
+    },
+    {
+      "page_number": 9,
+      "section_title": null,
+      "text": "9  \nFindings \n \nFinding 1: Careful separation of hot and cold  aisles allowed for increased \nuniformity of the supply air temperature at the inlets to the servers.  The variation \nin supply air temperature decreased from  26°F to 18.5°F between Baseline and \nAlternate 1. That is, the homogeneity of supply air te mperatures improved as a \nresult of better air management. \n \n \nSavings Estimates \n Test Area Extrapolated to Entire \nData Center \nAnnual Energy Savings (kWh) N/A N/A \nCoincident Demand Reduction (kW) N/A N/A \nNon-coincident Demand Reduction (kW) N/A N/A \n% Reduction in Total Energy Use N/A N/A \n \nDiscussion \nIn 2004, the American Society of Heatin g, Refrigerating, and Air-Conditioning \nEngineers (ASHRAE) produced  a document entitled, “T hermal Guidelines for \nData Processing Environments.” Included in  this guideline are allowable and \nrecommended temperature ranges for the inle ts to server equipment similar to \nthat seen in the air management demonstrati on facility. This publication cites an \nallowable range of 59°F to 90°F, and a recommended operating range of 68°F to \n77°F server inlet temperature.  Additionally, it presents a recommended range for \nrelative humidity of 40% to 55% RH, and an allowable range of 20% to 80% RH. \n \nWhile the layout of hot and cold aisl es has gained widespread acceptance \namong data center owners, operators, and designers, t here are still additional \nsteps that can be taken to further prev ent the undesirable mixing of the hot and \ncold air. A common occurrence in unseal ed hot aisle/cold aisle configurations \nwith under floor supply air (i.e. the baseline configuration) is that servers near the \nbottom of the racks tend to receive supply air at sufficiently low (or too low) \ntemperature, while server s in the upper reaches of the same rack may receive \nsupply air at a more elevat ed temperature. The servers at or near t he top of the \nrack may have a shorter service life for th at very reason (the supply air is too \nwarm). The broad disparity of  temperatures generally re sults from the mixing of \nhot and cold air at the tops of the racks, and at the ends of the rows. \n \nBy making an effort to s egregate the hot and cold aisles as much as possible, \nthis mixing can be signific antly reduced, resulting in a decrease in the difference \nbetween supply air temperature at low and high level within the cold aisle. This is \nillustrated in the following set of temperature maps.\n \n "
+    },
+    {
+      "page_number": 10,
+      "section_title": null,
+      "text": "10  \n \n \nFigure 4: Average temperature measurements for the baseline configuration \n \nThe temperature map above (of the baseline conditions) shows widespread \ndisparities in cold aisle temperatures. No te particularly the large differences in \ntemperature between the lower level sens ors and the higher le vel sensors. Also \nnoteworthy is the difference in temperatures at the ends of the racks as opposed \nto the middle of the racks. At these location s, hot return air recirculates back into \nthe cold aisle instead of retu rning to the CRAH units. It is also notable that the \nsupply air temperatures to the server s are significantly below the ASHRAE \nrecommended range and in most case s, below the allowable range\n. The supply \nair temperatures are likely lower than necessary in order to deal with the local hot \nspots in the cold aisle created by the mixing of hot and cold air. \n \n "
+    },
+    {
+      "page_number": 11,
+      "section_title": null,
+      "text": "11  \n \nFigure 5: Average temperature measurements for the Alternate 1 configuration \n \nFigure 5 shows the Alternate 1 case with the CRAH units set to a fan speed of 36 \nHz using onboard variable fr equency drives (VFDs), afte r the temperatures have \nreached steady-state. The temperatures  in the cold aisle are more \nhomogeneous, and the supply ai r temperatures near the end of the aisle are \nreduced. \n \nIn both the baseline and Alternate 1 cases, the supply inlet average temperatures \nare below the ASHRAE allowable level of 59°F. This is due to a very low under \nfloor supply air temperature. Operati onal and energy savings can result from \nraising the overall supply air temperat ure to be more in line with the ASHRAE \nallowable range.  But this is more difficult  to achieve in the baseline configuration \ndue to the wider disparity of supply air te mperatures resulting from the mixing of \nhot and cold air. In other words, the supply air temperature needs to be kept \nlower than necessary in order to make up for the mixing that occurs at the tops \nand ends of the racks. \n \n \n "
+    },
+    {
+      "page_number": 12,
+      "section_title": null,
+      "text": "12  \n \nFigure 6: Average temperature measurements for the Alternate 2 configuration \n \nAs seen in Figure 6, Alternate 2 ( with the CRAH VFDs set to 40 Hz and \ntemperatures allowed to reach steady-sta te) displays more stratification than \nAlternate 1, and a nearly identical stratifi cation as the baseline (for a statistical \nanalysis of the supply air te mperatures for all three c onfigurations, see Appendix \nI). The more pronounced cold aisle air strati fication resulted from the removal of \nthe seal from the top and sides of the cold aisle. Additionally, the supply air \ntemperatures are higher, and more in  line with the ASHR AE recommendations.  \nHowever, throughout both Alternatives 1 and 2, air infiltration through the test \narea isolation tent resulted in unexpect ed temperature anomalie s, especially at \nthe ends of the cold aisle. \n \nFurthermore, it was noted that CRAH uni ts 23 and 25 displayed readings of 17% \nand 83% RH, respectively, even though they ar e located within a few feet of one \nanother.  While humidity is not  controlled in this particu lar facility, these readings \npresent an excellent example of the potential for sens ors to go out of calibration, \nespecially humidity sensors.  If humidity were to be actively controlled in this data \ncenter, these two units would fight eac h other, resulting in a tremendous amount \nof wasted energy.  \n \n \n \n \n \n \n \n "
+    },
+    {
+      "page_number": 13,
+      "section_title": null,
+      "text": "13  \n Finding 2: By minimizing air mixing, and a llowing the temperature difference \nbetween the supply and return air to incr ease, fan power was able to be reduced \nby 75% without an adverse effect on the server environmental conditions. \n \n \nSavings Estimates \n Test Area Extrapolated to Entire \nData Center \nAnnual Energy Savings (kWh/yr) 117,000 740,000 \nCoincident Demand Reduction (kW) 13.3 84.2 \nNon-coincident Demand Reduction (kW) 13.3 84.2 \n% Reduction in Total Energy Use N/A 1.8% \n \nDiscussion \nThe efficient separation of hot and cold aisles results in an increase in the \ntemperature difference (“Delta-T”) between the supply and return air, which in \nturn allows one to serve the same coolin g load with less air flow. This can be \nseen in equation 1, \n  \nQ = 1.08 x CFM x (RAT – SAT)  (eq. 1) \n \n   where Q = cooling load in Btu/hr \n   CFM = volumetric flow rate of air in cubic feet per minute \n   SAT = supply air temperature in degrees Fahrenheit \n   RAT = return air temperature in degrees Fahrenheit \n   1.08 = constants and conversion factors for Standard Air (a reasonable  \n    approximation for the air temperatures and humidities   \n    encountered in this study). \n \nEquation 1 shows that if you increase the Delta-T (RAT – SAT), and the load \nremains constant, then the required volumetr ic flow rate of air, or CFM, is \nreduced. This has even further energy saving implications when you consider the \nfan “affinity law,” which describes a cubi c relationship between fan air flow and \nthe fan power required: \n \n   \nHP2 = HP1 x (RPM2 / RPM1)3  (eq. 2) \n \n  where HP 1 = power required in horsepower for situation 1 \n   H P 2 = power required in horsepower for situation 2 \n   R P M 1 = rotational speed of fan in RPM for situation 1 \n   R P M 2 = rotational speed of fan in RPM for situation 2 \n \nAn inspection of equation 2 shows, for ex ample, that by cutting the rotational \nspeed of the fan by 50%, the power required to run the fan is not reduced by half, \nbut by more than 87%. Small reduction s in fan speed can result in large \nreductions in fan power. The equation assumes a system of turbulent flow \nthrough ducts, but is a reasonable approximation in this case.  \n \nFor the baseline configurati on, the CRAH fan VFDs were left at their as-found \nfrequency of 60Hz (full speed). For each of the Alternate configurations 1 and 2, \nthe fans were then manually turned down at the VFD until temperatures in the "
+    },
+    {
+      "page_number": 14,
+      "section_title": null,
+      "text": "14  \ncold aisle reached their upper limit. For the purposes of this study, it was \ndiscussed ahead of time with facility perso nnel that the upper limit cold aisle \ntemperature would be 78°F, which is consistent with ASHRAE recommendations. \nFor Alternate 1, the fans were able to be turned down to a minimum of 20 Hz, or \none-third of their full speed. Alternate 2 a llowed the fans to be turned down to a \nminimum of 40 Hz, or two-thirds of thei r full speed. Figure 7 shows the resulting \npower reduction realized at the CRAH units. \n \n \n \nFigure 7: Computer Room Air Handler (CRAH) Fan Power \n \nFigure 8 gives an example of the air temp erature differences that allowed such \npower savings.  \n "
+    },
+    {
+      "page_number": 15,
+      "section_title": null,
+      "text": "15  \n \nFigure 8: Supply and return temperatures for CRAH-23 \n \nIt was observed during the Alternate 1 a nd 2 tests that the CRAH units were \nsupplying a greater amount of  air than was being returned.  Because the supply \nfans were turned down, the cold aisle became negatively pressurized, which \nresulted in two unintended effects – infilt ration from outside the test area, and \nrecirculation.  First, the negative pressu re in the under floor supply plenum \ncaused supply air from outside the test area to seep through the under floor \nbarriers erected to isolate the test area.  Secondly, exhausted air in the hot aisle \nrecirculated back into the cold aisle th rough the plywood doors and floor tiles.  \nHowever, recorded temperature data indica tes that these effects did not greatly \naffect test results.  For example, the di fference between the supply and return air \ntemperatures increased from an average of 20°F to 29°F between the Baseline \nand Alternate 2 cases. Assuming a constant  load in the test area, the following \nequation applies: \n \n∆T\nBaseline *   CFMBaseline = ∆TAlternate  * CFMAlternate    (eq. 3) \n \nIn this case, the ∆T increased by 20/29 = 69%, which implies the air flow could \nbe reduced by an equivalent amount.  The fans in the Altern ate 2 case were \nturned down to 40 Hz, or 67%.  Therefor e, the fans were turned down roughly \n2% too far, with this small amount of extra cooling possible due to infiltration from \noutside the test area. \n \n \n \n "
+    },
+    {
+      "page_number": 16,
+      "section_title": null,
+      "text": "16  \n \nFinding 3: Higher return air temperatures increased the capacity of the CRAH \nunits by 30% - 49% \n \n Test Area Extrapolated to Entire \nData Center \nAnnual Energy Savings (kWh/yr) N/A N/A \nCoincident Demand Reduction (kW) N/A N/A \nNon-coincident Demand Reduction (kW) N/A N/A \n% Reduction in Total Energy Use N/A N/A \n \nDiscussion \nAccording to equation 1, by increasing the differential between the supply and \nreturn air temperatures, the CRAH fan speed can be reduced.  Alternatively, \nincreasing the temperature differential increases the cooling capacity of the same \nunit without increasing the fan speed.  Ta ble 1 below demonstrates the increase \nin capacity for a given temperature differential. \n \n Temperature \nDifferential (°F) \nCooling Capacity \n(kBTUh) \n% Increase over \nbaseline \nBaseline 19 410 0% \nAlternative 1 32 606 49% \nAlternative 2 27 529 30% \nTable 1: Air temperature differentials and cooling capacities of CRAH units. \n \nAs can be seen, the cooling capacity of the CRAH units is increased the most in \nthe Alternate 1 configuration.  This is due to the superior  isolation of the cold and \nhot aisles under this configuration. \n \n \nFinding 4:  The temperature difference betw een the chilled water supply and \nreturn increased, which could allow for reduced chilled water flow, saving on \npumping energy. Alternatively, a chilled water temperature differential of 20°F \nprovides a 43% increase in piping capa city (but not chiller capacity) without \nmodifying the chilled water system when compared to the as-found differential of \n14°F. \n \n Test Area Extrapolated to Entire \nData Center \nAnnual Energy Savings (kWh/yr) 8,000 110,000  \nCoincident Demand Reduction (kW) 0.9 12.2  \nNon-coincident Demand Reduction (kW) 0.9 12.2  \n% Reduction in Total Energy Use N/A 0.3% \nNumbers above assume a chilled water temperature differential of 20°F \n \nDiscussion \nThe chilled water system in the data center facility is a central plant that serves \nall cooling in the data cent er, and not just the small section that was used for the \nair management demonstrati on. As such, the chilled water supply temperature "
+    },
+    {
+      "page_number": 17,
+      "section_title": null,
+      "text": "17  \ncould not be altered, and remained relatively constant throughout the \ndemonstration period. But t he chilled water return te mperature from the CRAH \nunits serving the demonstration area increased during Alternates 1 and 2, \nresulting in an increase in the overall te mperature difference (“delta-T”) between \nchilled water supply and return, as shown in Figure 9. \n \n \nFigure 9: Chilled water temperature differentials for CRAH-24 and CRAH-25 (chilled water data \nfor CRAH-23 was incomplete). \n \nThe increased chilled water delta-T has several heat transfer implications, and \nthese can be seen by inspection of equation 3.  \n \nQ = 500 x GPM x (CHWRT – CHWST)  (eq. 4) \n \n   where Q = cooling load in Btu/hr \n   GPM = volumetric flow rate  of water in gallons per minute \n   CHWST = supply water temperature in degrees Fahrenheit \n   CHWRT = return water temperature in degrees Fahrenheit \n   500 = constants and conversion factors (8.33 lb/gal nominal water  \n    density * factor of 60 to account for gal/min and Btu/hr) \n    The density of water is directly proportional to temperature, but  \n    this effect is negligible within the range of temperatures   \n    presented here, hence the common value of 8.33 lb/gal (density  \n    water at 70 degF) is applied here.  \n \nThe larger chilled water temperature difference at the coil in the CRAH allows for \nmore heat transfer at a given chilled wa ter flow rate. Therefore, for a given "
+    },
+    {
+      "page_number": 18,
+      "section_title": null,
+      "text": "18  \ncooling load, the chilled water flow rate  can be reduced, providing additional \nenergy savings due to reduced pumping energy using a variable-flow system.  \n \nAlternatively, increasing the temperature differentia l between the chilled water \nsupply and return temperatures increases  the capacity of the cooling system \nwithout any modifications to piping or pum ps.  Again referencing equation 3, it \ncan be seen that leaving the flow rate  constant and increasing the chilled water \ntemperature differential results in a linear  increase in cooling capacity. Table 2 \nbelow presents estimates of the increase in cooling capacity at given chilled \nwater temperature differentials. \n \nTest Area \nCapacity \nTotal Data \nCenter \nCapacity \nChilled \nWater \nDelta-T \n% Pipe \nCapacity \nIncrease \ntons tons \n15 7% 82 1,152 \n20 43% 110 1,535 \n25 79% 137 1,919 \nTable 2: Piping capacity increase at given temperature \ndifferentials. \n \n \nFinding 5: When using variable speed server fans, power savings could be \noffset or decline to zero  if the CRAH fan speed is  reduced too low since the \nserver fans speed up in response to the increased supply air temperature. \n \n Test Area Extrapolated to Entire \nData Center \nAnnual Energy Savings (kWh/yr) N/A N/A \nCoincident Demand Reduction (kW) N/A N/A \nNon-coincident Demand Reduction (kW) N/A N/A \n% Reduction in Total Energy use N/A N/A \n \nDiscussion \nThe server racks in the test area of this study are equipped with variable speed \ncooling fans built into the servers themselves. These fans speed up or down in \nresponse to changing environmental conditions. As seen in Figure 10, as the \nCRAH fans were slowed down; the supply air temperature began to rise.\n \n "
+    },
+    {
+      "page_number": 19,
+      "section_title": null,
+      "text": "19  \n \nFigure 10: Supply air temperature increased due to the reduction in CRAH airflow. \n \nIn response, the onboard server fans sped up to compensate.  Figure 11 shows \nthat not only did the incr ease in the server fan pow er eliminate the CRAH fan \npower savings, the total energy use of the test area as a whole actually \nincreased by 8%. \n "
+    },
+    {
+      "page_number": 20,
+      "section_title": null,
+      "text": "20  \n \nFigure 11: Total power use increases if the CRAH fan speed is too low \n \nAs can be seen above, it is important for data center operators to be aware of the \nairflow and temperature conditions that will cause internal server fans to speed \nup.  Therefore, care must be taken to determine these conditions before slowing \ncooling fans down if energy savings are to be achieved. \n \n \nFinding 6: By preventing the mixing of supply and return air, the supply air and \nchilled water supply temperatures can be raised. Raising the chilled water supply \ntemperature to 50°F can save 4% in chiller energy. \n \n Test Area Extrapolated to Entire \nData Center \nAnnual Energy Savings (kWh/yr) 15,000 210,000  \nCoincident Demand Reduction (kW) 1.8 24.5 \nNon-coincident Demand Reduction (kW) 1.8 24.5 \n% Reduction in Total Energy Use N/A 0.5% \n \nDiscussion \nAs was discussed in Finding 1, properly isolating the supply and return aisles \nresults in greater homogeneity in the supply air temperatures, especially at the \nends of aisles.  Because of this increase, it is no longer necessary to over-cool \nthe supply air to insure that air at the top and ends of the server racks are at safe \ntemperatures.  This allows the supply ai r temperature to be safely raised, and \ntherefore the chilled water supply temperature as well. "
+    },
+    {
+      "page_number": 21,
+      "section_title": null,
+      "text": "21  \nThe higher the temperature of the chilled water, the more efficiently the chiller will \noperate.  Typically, a ch iller will operate 1% more efficiently for every 1°F \nincrease in the chilled water supply temper ature.  However, care must be taken \nwhen increasing the supply temperature in  existing facilities because of the \ncooling coils in the CRAH un its.  These coils are sele cted for a specific set of \ndesign parameters, including water temperat ure, water flow rate, air flow rate, \nand air temperature.  Too great a change in any of t hese parameters will reduce \nthe cooling capacity of the cooling coil, regardless of the operation of the chiller.   \n \nAdditionally, to avoid extra pumping en ergy, the difference between the supply \nand return temperatures of the chilled water must be ma intained.  This is best \nachieved by maintaining a large temperature differential between the supply and \nreturn air temperatures, through such practices as described in Finding 3. \n  \n \nFinding 7: Raising the chilled water supply te mperature to 50°F and utilizing \nintegrated water-side economi zing can save 21% in ch iller energy, and result in \nincreased chiller capacity. \n \n Test Area Extrapolated to Entire \nData Center \nAnnual Energy Savings (kWh/yr) 69,000 970,000  \nCoincident Demand Reduction (kW) 0 0 \nNon-coincident Demand Reduction (kW) 0 0 \n% Reduction in Total Energy Use N/A 2.8% \n \nDiscussion \nUtilizing water-side economizing, chilled water is produced by a cooling tower \ninstead of a chiller, saving significant energy as a result of reduced compressor \nuse.  However, to utilize water-side economizing, several changes must be made \nto a typical data center (this facility in cluded).  First, the condenser water piping \nneeds to be modified to interact with the chilled water.  This  can be done one of \ntwo ways, depending on the type of cooling tower install ed.  With an open loop \ncooling tower, the condenser water pi ping needs to be fitted with a heat \nexchanger because the contam inated condenser water cannot be used directly \nas chilled water (see figure 12, below).  However, with a closed loop condenser \nwater system, and a dedicated economizing tower, the condenser water piping \ncan be fitted with three way valves to directly provide chi lled water whenever \npossible.  The water temperature produced  by the cooling tower needs to be \ncontrolled using a reset method based on outside air conditions.  This way the \ncooling tower is always producing water as cold as possible (as opposed to \ntypical practice where the tower produces water at a constant temperature). \n "
+    },
+    {
+      "page_number": 22,
+      "section_title": null,
+      "text": "22  \n \nFigure 12: Typical water-side economizer with heat exchanger. \n \nThe term ‘integrated’ refers to a design where free cooling can be used to pre-\ncool the return chilled water prior to using a traditional chiller to provide additional \ncooling. This series piping arrangement, with the free cooling system first, can \ngreatly extend the free cooling operatin g hours, simplify chiller staging, and \nincrease overall system reliability. Lastly, the higher the chilled water temperature \nis raised, the more hours in a year water-side economizing can be used. By \nraising the chilled water supply temperature to 50°F, water-side economizing can \nbe utilized (integrated or fu ll-economizing) 3,800 hours in a typical year in the \nOakland weather zone.  The results in T able 2 below present savings based on \nseveral different chilled water supply temperatures. \n \n    Chilled Water Supply Temp. (deg F) \n    \nNo \nEcono. 46 48 50 52 54 \nHours in a Year Available for \nWater Side Economizing N/A 1,976 2,807 3,819 4,875 5,994 \nEstimated Yearly Energy Use \n(kWh)   5,400,000 4,900,000 4,600, 000 4,200,000 3,800,000 3,200,000 \n% Energy Savings     0% 8% 14% 21% 30% 40% \nTable 3: Estimated energy savings with water-side economizing at various chilled water temperatures.  See \nAppendix for calculation details. \n \nAdditionally, raising the chilled water s upply temperature during chiller operation, \nwhile holding the condensing temperature constant, re sults in an increase in \nchiller capacity as well as  efficiency. This is because the compressor ‘lift’ is \ndecreased as a result of the decrease in the difference between the chilled water \nsupply temperature and the ch iller’s condensing temperat ure. As a general rule-\nof-thumb, one can expect approximately 1% increase in chiller capacity for every \n1oF decrease in this temperature different ial. Therefore, by  holding all other \nparameters constant, raising the chil led water supply te mperature from 44 oF to "
+    },
+    {
+      "page_number": 23,
+      "section_title": null,
+      "text": "23  \n50oF could increase the capacity of an 80 0-ton centrifugal ch iller to nearly 850 \ntons. This was verified using chiller selection software. \nConclusion \n \nProperly isolating supply and return air streams achieves several goals for the \ndata center operator.  First, this minimizes temperature stratification in the cold \naisle, thereby potentially increasing the life of computer equipment placed in the \nupper reaches of a rack.  Second, in creasing the differential temperature \nbetween the supply and return air flows increases the heat transfer capacities of \nCRAH units.  By reducing mixing of hot and cold air, the CRAH fan speed can be \nreduced to deliver the same  amount of cooling previ ously available, or the \noperator can realize a capacity increas e without purchasing additional units.  \nSimilarly, the chilled water pumps can be slowed down, yet deliver the same \namount of cooling or deliver  greater cooling with the sa me piping system.  Third, \nin variable speed server fan applications, it is important to be aware of the server \nfan speed when implementing these changes, as too dr amatic a decrease in \nCRAH fan speed can negate savings bec ause the server fans speed up in \nresponse.  Fourth, raising the chill ed water temperature can increase the \nefficiency of the chiller.  Fifth, impl ementing water-side economizing in a data \ncenter, while simultaneously raising the chilled water temperature, can save a \nlarge proportion of chiller energy use in a given year. Lastly, the proper isolation \nof hot and cold air allows for higher supply air temperatures due to the decreased \nmixing and stratification within the cold aisle, enabling a more homogeneous cold \naisle temperature distribution that can be within the ASHRAE recommended \nrange.  Often this could result in raisi ng the temperature of the air delivered by \nthe CRAH units. \n \nRecommendations for Future Work \n \nThese results demonstrate the energy sa vings and/or cooling capacity increase \npossible through proper air flow managem ent techniques.  However, it is \nrecommended that further studies be co nducted to investig ate and quantify \nadditional gains.   \n \nFirst, it is important that this type of study be conducted on an entire data center.  \nThis will allow a more thorough analysis of energy savings on the cooling plant \nand fan units, instead of perfo rming an extrapolation es timate.  Additionally, \nfurther work needs to be conducted to quant ify savings from completely sealing \nfloor openings and gaps between the serv er racks, because cold supply air slips \nout of these openings. \n \nFinally, further education is needed regar ding appropriate supply and return air \ntemperatures.  Many IT and facility managers prefer to supply air below ASHRAE \nrecommended levels; they need to be made aware of the energy and capacity "
+    },
+    {
+      "page_number": 24,
+      "section_title": null,
+      "text": "24  \nlosses when using over-cooled air.  Also, these managers should be educated on \nthe benefits of using a high air-side temperat ure differential, and the strategies to \nachieve it. "
+    },
+    {
+      "page_number": 25,
+      "section_title": null,
+      "text": " \n \nAppendix \n \n \nAppendix I – Collected Data \n \nAppendix II – Detailed Calculations \n \nAppendix III – Photographs \n \nAppendix IV – Sensor Locations \n \nAppendix V – Revised Monitoring Plan \n \n "
+    },
+    {
+      "page_number": 26,
+      "section_title": null,
+      "text": " \n \nAppendix I – Collected Data \n \n \n \n \n \n \n \n \n \n \n \n \n \n "
+    },
+    {
+      "page_number": 27,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nSept 12, 2006\nAppendix I - Data\nPage 1 of 26 Data Center Air Management Demonstration\nServer Rack Power\n0\n50\n100\n150\n200\n250\n300\n350\n06/13/2006\n12:00 PM\n06/14/2006\n12:00 AM\n06/14/2006\n12:00 PM\n06/15/2006\n12:00 AM\n06/15/2006\n12:00 PM\n06/16/2006\n12:00 AM\n06/16/2006\n12:00 PM\nTime\nPower (kW)\nBaseline Alternate 1\nSetup\nSetup\nAlternate 2"
+    },
+    {
+      "page_number": 28,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nSept 12, 2006\nAppendix I - Data\nPage 2 of 26 Data Center Air Management Demonstration\nCRAH Fan Power (Sum of CRAH 23, 24, 25)\n0.0\n5.0\n10.0\n15.0\n20.0\n25.0\n06/13/2006 12:00\nPM\n06/14/2006 12:00\nAM\n06/14/2006 12:00\nPM\n06/15/2006 12:00\nAM\n06/15/2006 12:00\nPM\n06/16/2006 12:00\nAM\n06/16/2006 12:00\nPM\nTime\nPower (kW)\nAlternate 1Baseline\nSetup\nSetup\nAlternate 2\n60 Hz\n36 Hz\n60 Hz\n40 Hz\n20 Hz\n40 Hz"
+    },
+    {
+      "page_number": 29,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nSept 12, 2006\nAppendix I - Data\nPage 3 of 26 Data Center Air Management Demonstration\nTotal Power Use\n0\n50\n100\n150\n200\n250\n300\n350\n06/13/2006 12:00\nPM\n06/14/2006 12:00\nAM\n06/14/2006 12:00\nPM\n06/15/2006 12:00\nAM\n06/15/2006 12:00\nPM\n06/16/2006 12:00\nAM\n06/16/2006 12:00\nPM\nTime\nPower (kW)\nTotal CRAH Fan Power\nServer Power\nTotal\nBaseline Alternate 1\nSetup\nSetup\nAlternate 2"
+    },
+    {
+      "page_number": 30,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nSept 12, 2006\nAppendix I - Data\nPage 4 of 26 Data Center Air Management Demonstration\nAir Temperatures, CRAH-23\n40\n50\n60\n70\n80\n90\n100\n110\n06/13/2006 12:00\nPM\n06/14/2006 12:00\nAM\n06/14/2006 12:00\nPM\n06/15/2006 12:00\nAM\n06/15/2006 12:00\nPM\n06/16/2006 12:00\nAM\n06/16/2006 12:00\nPM\nTime\nTemperature (deg F)\nSAT\nRAT\nBaseline Alternate 1\nSetup\nSetup\nAlternate 2"
+    },
+    {
+      "page_number": 31,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nSept 12, 2006\nAppendix I - Data\nPage 5 of 26 Data Center Air Management Demonstration\nAir Temperatures, CRAH-24\n40\n50\n60\n70\n80\n90\n100\n110\n06/13 12:00 PM 06/14 12:00 AM 06/14 12:00 PM 06/15 12:00 AM 06/15 12:00 PM 06/16 12:00 AM 06/16 12:00 PM\nTime\nTemperature (deg F)\nSAT\nRAT\nBaseline Alternate 1\nSetup\nSetup\nAlternate "
+    },
+    {
+      "page_number": 32,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nSept 12, 2006\nAppendix I - Data\nPage 6 of 26 Data Center Air Management Demonstration\nAir Temperatures, CRAH-25\n40\n50\n60\n70\n80\n90\n100\n110\n06/13 12:00 PM 06/14 12:00 AM 06/14 12:00 PM 06/15 12:00 AM 06/15 12:00 PM 06/16 12:00 AM 06/16 12:00 PM\nTime\nTemperature (deg F) SAT\nRAT\nBaseline Alternate 1\nSetup\nSetup\nAlternate 2"
+    },
+    {
+      "page_number": 33,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nSept 12, 2006\nAppendix I - Data\nPage 7 of 26 Data Center Air Management Demonstration\nCRAH Chilled Water Temperatures\n40\n45\n50\n55\n60\n65\n70\n75\n80\n85\n90\n06/13/2006 12:00\nPM\n06/14/2006 12:00\nAM\n06/14/2006 12:00\nPM\n06/15/2006 12:00\nAM\n06/15/2006 12:00\nPM\n06/16/2006 12:00\nAM\n06/16/2006 12:00\nPM\nTime\nTemperature (deg F)\nCHWST\nCHWRT, CRAH-24\nCHWRT, CRAH-25\nBaseline Alternate 1\nSetup\nSetup\nAlternate 2"
+    },
+    {
+      "page_number": 34,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nSept 12, 2006\nAppendix I - Data\nPage 8 of 26 Data Center Air Management Demonstration\nChilled Water Delta-T\n0\n5\n10\n15\n20\n25\n30\n35\n06/13/2006 12:00\nPM\n06/14/2006 12:00\nAM\n06/14/2006 12:00\nPM\n06/15/2006 12:00\nAM\n06/15/2006 12:00\nPM\n06/16/2006 12:00\nAM\n06/16/2006 12:00\nPM\nTime\nDelta T (deg F)\nCRAH-24\nCRAH-25\nBaseline Alternate 1\nSetup\nSetup\nAlternate 2"
+    },
+    {
+      "page_number": 35,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nSept 12, 2006\nAppendix I - Data\nPage 9 of 26 Data Center Air Management Demonstration\nRack End NW - PGE12816\n40\n50\n60\n70\n80\n90\n100\n110\n06/13/2006 12:00\nPM\n06/14/2006 12:00\nAM\n06/14/2006 12:00\nPM\n06/15/2006 12:00\nAM\n06/15/2006 12:00\nPM\n06/16/2006 12:00\nAM\n06/16/2006 12:00\nPM\nTime\nTemperature (deg F)\nLow\nMed\nHigh\nBaseline Alternate 1\nSetup\nSetup\nAlternate 2\n"
+    },
+    {
+      "page_number": 36,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nSept 12, 2006\nAppendix I - Data\nPage 10 of 26 Data Center Air Management Demonstration\nCold Aisle NW - PGE12813\n40\n45\n50\n55\n60\n65\n70\n75\n80\n85\n90\n06/13/2006 12:00 06/14/2006 0:00 06/14/2006 12:00 06/15/2006 0:00 06/15/2006 12:00 06/16/2006 0:00 06/16/2006 12:00\nTime\nTemperature (deg F)\nLow\nMed\nHigh\nBaseline Alternate 1\nSetup\nSetup\nAlternate 2\n"
+    },
+    {
+      "page_number": 37,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nSept 12, 2006\nAppendix I - Data\nPage 11 of 26 Data Center Air Management Demonstration\nCold Aisle NW (Rack) - PL001 \n30\n40\n50\n60\n70\n80\n90\n100\n06/13/2006 12:00\nPM\n06/14/2006 12:00\nAM\n06/14/2006 12:00\nPM\n06/15/2006 12:00\nAM\n06/15/2006 12:00\nPM\n06/16/2006 12:00\nAM\n06/16/2006 12:00\nPM\nTime\nTemperature (deg F)\nLow\nMed\nHigh\nBaseline Alternate 1\nSetup\nSetup\nAlternate 2\n"
+    },
+    {
+      "page_number": 38,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nSept 12, 2006\nAppendix I - Data\nPage 12 of 26 Data Center Air Management Demonstration\nCold Aisle North Middle - PGE13873 \n40\n45\n50\n55\n60\n65\n70\n75\n80\n85\n06/13/2006 12:00\nPM\n06/14/2006 12:00\nAM\n06/14/2006 12:00\nPM\n06/15/2006 12:00\nAM\n06/15/2006 12:00\nPM\n06/16/2006 12:00\nAM\n06/16/2006 12:00\nPM\nTime\nTemperature (deg F)\nLow\nMed\nHigh\nBaseline Alternate 1\nSetup\nSetup\nAlternate 2\n"
+    },
+    {
+      "page_number": 39,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nSept 12, 2006\nAppendix I - Data\nPage 13 of 26 Data Center Air Management Demonstration\nCold Aisle North Middle (Rack) - PL005 \n30\n40\n50\n60\n70\n80\n90\n100\n110\n06/13/2006 12:00\nPM\n06/14/2006 12:00\nAM\n06/14/2006 12:00\nPM\n06/15/2006 12:00\nAM\n06/15/2006 12:00\nPM\n06/16/2006 12:00\nAM\n06/16/2006 12:00\nPM\nTime\nTemperature (deg F)\nLow\nMed\nHigh\nBaseline Alternate 1\nSetup\nSetup\nAlternate 2\n"
+    },
+    {
+      "page_number": 40,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nSept 12, 2006\nAppendix I - Data\nPage 14 of 26 Data Center Air Management Demonstration\nRack End SW - PGE13190\n40\n50\n60\n70\n80\n90\n100\n110\n06/13/2006 12:00\nPM\n06/14/2006 12:00\nAM\n06/14/2006 12:00\nPM\n06/15/2006 12:00\nAM\n06/15/2006 12:00\nPM\n06/16/2006 12:00\nAM\n06/16/2006 12:00\nPM\nTime\nTemperature (deg F)\nLow\nMed\nHigh\nBaseline Alternate 1\nSetup\nSetup\nAlternate 2\n"
+    },
+    {
+      "page_number": 41,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nSept 12, 2006\nAppendix I - Data\nPage 15 of 26 Data Center Air Management Demonstration\nCold Aisle SW - PGE11659\n40\n45\n50\n55\n60\n65\n70\n75\n80\n85\n06/13/2006 12:00\nPM\n06/14/2006 12:00\nAM\n06/14/2006 12:00\nPM\n06/15/2006 12:00\nAM\n06/15/2006 12:00\nPM\n06/16/2006 12:00\nAM\n06/16/2006 12:00\nPM\nTime\nTemperature (deg F)\nLow\nMed\nHigh\nBaseline Alternate 1\nSetup\nSetup\nAlternate 2\n"
+    },
+    {
+      "page_number": 42,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nSept 12, 2006\nAppendix I - Data\nPage 16 of 26 Data Center Air Management Demonstration\nCold Aisle (Rack) - PL003 \n30\n40\n50\n60\n70\n80\n90\n100\n110\n06/13/2006 12:00\nPM\n06/14/2006 12:00\nAM\n06/14/2006 12:00\nPM\n06/15/2006 12:00\nAM\n06/15/2006 12:00\nPM\n06/16/2006 12:00\nAM\n06/16/2006 12:00\nPM\nTime\nTemperature (deg F)\nLow SW\nHigh SW\nTop, Mid\nTop, End\nBaseline Alternate 1\nSetup\nSetup\nAlternate 2\n"
+    },
+    {
+      "page_number": 43,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nSept 12, 2006\nAppendix I - Data\nPage 17 of 26 Data Center Air Management Demonstration\nCold Aisle South (Rack) - PL004\n20\n30\n40\n50\n60\n70\n80\n90\n100\n110\n06/13/2006 12:00\nPM\n06/14/2006 12:00\nAM\n06/14/2006 12:00\nPM\n06/15/2006 12:00\nAM\n06/15/2006 12:00\nPM\n06/16/2006 12:00\nAM\n06/16/2006 12:00\nPM\nTime\nTemperature (deg F)\nMid Low\nMid Mid\nMid High\nWest Mid\nBaseline Alternate 1\nSetup\nSetup\nAlternate 2\n"
+    },
+    {
+      "page_number": 44,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nSept 12, 2006\nAppendix I - Data\nPage 18 of 26 Data Center Air Management Demonstration\nCold Aisle South Middle - PGE12385 \n40\n45\n50\n55\n60\n65\n70\n75\n80\n06/13/2006 12:00\nPM\n06/14/2006 12:00\nAM\n06/14/2006 12:00\nPM\n06/15/2006 12:00\nAM\n06/15/2006 12:00\nPM\n06/16/2006 12:00\nAM\n06/16/2006 12:00\nPM\nTime\nTemperature (deg F)\nLow\nMed\nHigh\nBaseline Alternate 1\nSetup\nSetup\nAlternate 2\n"
+    },
+    {
+      "page_number": 45,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nSept 12, 2006\nAppendix I - Data\nPage 19 of 26 Data Center Air Management Demonstration\nHot Aisle SW - PL007\n50\n60\n70\n80\n90\n100\n110\n06/13/2006 12:00\nPM\n06/14/2006 12:00\nAM\n06/14/2006 12:00\nPM\n06/15/2006 12:00\nAM\n06/15/2006 12:00\nPM\n06/16/2006 12:00\nAM\n06/16/2006 12:00\nPM\nTime\nTemperature (deg F)\nLow\nMed\nHigh\nBaseline Alternate 1\nSetup\nSetup\nAlternate 2\n"
+    },
+    {
+      "page_number": 46,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nSept 12, 2006\nAppendix I - Data\nPage 20 of 26 Data Center Air Management Demonstration\nHot Aisle South Middle - PL010\n50\n60\n70\n80\n90\n100\n110\n06/13/2006 12:00\nPM\n06/14/2006 12:00\nAM\n06/14/2006 12:00\nPM\n06/15/2006 12:00\nAM\n06/15/2006 12:00\nPM\n06/16/2006 12:00\nAM\n06/16/2006 12:00\nPM\nTime\nTemperature (deg F)\nLow\nMed\nHigh\nBaseline Alternate 1\nSetup\nSetup\nAlternate 2\n"
+    },
+    {
+      "page_number": 47,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nSept 12, 2006\nAppendix I - Data\nPage 21 of 26 Data Center Air Management Demonstration\nBaseline Cold Aisle Temperature Distribution\n0\n200\n400\n600\n800\n1000\n1200\n1400\n46\n48\n50\n52\n54\n56\n58\n60\n62\n64\n66\n68\n70\n72\n74\n76\n78\n80\n82\nMore\nTemperature (deg F)\nFrequency Standard Deviation = 7.33 deg F"
+    },
+    {
+      "page_number": 48,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nSept 12, 2006\nAppendix I - Data\nPage 22 of 26 Data Center Air Management Demonstration\nAlternate 1 Cold Aisle Temperature Distribution\n0\n500\n1000\n1500\n2000\n2500\n3000\n3500\n4000\n4500\n5000\n50\n51\n52\n53\n54\n55\n56\n57\n58\n59\n60\n61\n62\n63\n64\n65\n66\n67\n68\n69\n70\n71\n72\n73\n74\n75\n76\n77\nMore\nTemperature (deg F)\nFrequency Standard Deviation = 4.28 deg F"
+    },
+    {
+      "page_number": 49,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nSept 12, 2006\nAppendix I - Data\nPage 23 of 26 Data Center Air Management Demonstration\nAlternate 2 Cold Aisle Temperature Distribution\n0\n10\n20\n30\n40\n50\n60\n70\n80\n90\n100\n50\n51\n52\n53\n54\n55\n56\n57\n58\n59\n60\n61\n62\n63\n64\n65\n66\n67\n68\n69\n70\n71\n72\n73\n74\n75\n76\n77\nMore\nTemperature (deg F)\nFrequency\nStandard Deviation = 7.84 deg F"
+    },
+    {
+      "page_number": 50,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nLBNL/PG&E Emerging Technologies Datacenter Airflow Study\nAir Flow Data (all velocities in FPM) N\nW^ E\nBaseline Configuration S\nAll three fans at 60 Hz\nUnderfloor Supply\nNumber of floor grates 28\nAssumed area factor 0.9\nTotal area per grate 4 sq.ft.\nAverage CFM per grate 1,588 cfm\nTotal CFM for all 44,464\nAHUs Return Ai\nr\nFree Area for Return  25 sq.ft.\nAHU-23 AHU-24 AHU-25\nAverage Velocity 640 fpm Average Velocity 683 fpm Average Velocity 779 fpm\nTotal cfm 16,050 cfm Total cfm 17,137 cfm Total cfm 19,546 cfm\nTOTAL AHU (all) RA 52,733 cfm\n420\n663 656 600 712 682 655 847 737 753\n376\n469\n466\n382\n442\n453\n507\n435\n456\n449\n489\n405\n432\n426\n498\n524\n432\n400\n469\n429\n403\n418\n341\n429\n485\n482\n434\nAug 16, 2006\nAppendix I - Data\nPage 24 of 26 Data Center Air Management Demonstration"
+    },
+    {
+      "page_number": 51,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nLBNL/PG&E Emerging Technologies Datacenter Airflow Study\nAir Flow Data (all velocities in FPM) N\nW^ E\nAlternate 1 Configuration S\nAll three fans at 20 Hz\nUnderfloor Supply\nNumber of floor grates 28\nAssumed area factor 0.9\nTotal area per grate 4 sq.ft.\nAverage CFM per grate 1,564 cfm\nTotal CFM for all 43,790\nAHUs Return Ai\nr\nFree Area for Return  25 sq.ft.\nAHU-23 AHU-24 AHU-25\nAverage Velocity 227 fpm Average Velocity 216 fpm Average Velocity 245 fpm\nTotal cfm 5,696 cfm Total cfm 5,411 cfm Total cfm 6,139 cfm\nTOTAL AHU (all) RA 17,246 cfm\n415\n176\n82\n478\n477\n460\n498\n497\n500\n495\n507\n473\n443\n494\n453\n445\n462\n465\n469\n399\n475\n489\n425\n437\n485\n430\n411 324\n240 222 219 188 232 227 250 240 244\nAug 16, 2006\nAppendix I - Data\nPage 25 of 26 Data Center Air Management Demonstration"
+    },
+    {
+      "page_number": 52,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nLBNL/PG&E Emerging Technologies Datacenter Airflow Study\nAir Flow Data (all velocities in FPM) N\nW^ E\nAlternate 2 Configuration S\nAll three fans at 40 Hz\nUnderfloor Supply\nNumber of floor grates 28\nAssumed area factor 0.9\nTotal area per grate 4 sq.ft.\nAverage CFM per grate 1,357 cfm\nTotal CFM for all 37,991\nAHUs Return Ai\nr\nFree Area for Return  25 sq.ft. AHU24, 25 not accessible - assumed same airflows as AHU23\nAHU-23 AHU-24 AHU-25\nAverage Velocity 211 fpm Average Velocity 211 fpm Average Velocity 211 fpm\nTotal cfm 5,294 cfm Total cfm 5,294 cfm Total cfm 5,294 cfm\nTOTAL AHU (all) RA 15,883 cfm\n374\n210 234 189 210 234 189 210 234 189\n330\n371\n386\n347\n386\n365\n401\n366\n379\n384\n377\n394\n388\n384\n395\n409\n386\n351\n367\n391\n359\n378\n352\n321\n423\n395\n394\nAug 16, 2006\nAppendix I - Data\nPage 26 of 26 Data Center Air Management Demonstration"
+    },
+    {
+      "page_number": 53,
+      "section_title": null,
+      "text": " \n \nAppendix II – Detailed Calculations "
+    },
+    {
+      "page_number": 54,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nDatacenter Air Management Demonstration\nSummary of Energy Efficiency Measures\nPeak \nPower \nReduction\nEnergy \nReduction\nPeak \nPower \nReduction\nEnergy \nReduction\nkW kWh kW kWh\nIncrease Air Side Delta-T to \n30F 49% N/A 13.3 116,508 84.2 737,884 1.8%\nIncrease Chilled Water Delta\n-\nT to 25F N/A 43% 0.9 7,609 12.2 106,525 0.3%\nIncrease Chilled Water \nSupply Temperature to 50F N/A N/A 1.8 15,333 24.5 214,664 0.5%\nWater Side Economizing \nwith 50F Chilled Water \nSupply Temperature\nN/A N/A 0.0 81,673 0.0 1,143,420 2.8%\nExtrapolated to Entire Data Center\n% Reduction \nin Total \nEnergy Use\nTest Area\nMeasures\nCRAH \nCapacity \nIncrease\nPiping \nCapacity \nIncrease\nSept. 12, 2006 Appendix II - Additional Analysis, Page 1 of 7 Data Center Air Management Demonstration"
+    },
+    {
+      "page_number": 55,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nFacility Wide Power Calculations\nParameters\nAverage Test Area Server Power 270 kW\nAverage Test Area Fan Power 18.5 kW\nAverage Chiller Power, entire data center 613 kW\nAnnual Hours of Operation 8760 hrs\nCalculations\nPower use, extrapolated to entire data center 4,652 kW\nAnnual Energy use 40,748 MWh\nSept. 12, 2006 Appendix II - Additional Analysis, Page 2 of 7 Data Center Air Management Demonstration"
+    },
+    {
+      "page_number": 56,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nIncrease Air Side Delta-T\nParameters Value Units\nCurrent Average Supply Temp 55 Deg F\nCurrent Average Return Temp 72 Deg F\nCurrent Average Cooling Delta-T 19 Deg F\nNumber of CRAH Units (test area) 3\nNumber of CRAH Units (entire data center) 19\nDeluxe System 3 Chilled Water CRAC Capacities\nEntering \nDB Temp\nLeaving DB \nTemp\nCooling \nDelta-T\nCooling \nCapacity\nDeg F Deg F Deg F kBTUh\n75 55.8 19.2 410.5\n80 56.7 23.3 471.6\n85 57.7 27.3 534.1\nData from Mark Daley of Liebert\nCalculated Values\nLinear line fit from provided data 15.258x + 117.07\nCurrent Cooling Capacity 407.0 kBTUh\nCooling Capacity Calculations\nCooling \nDelta-T\n% Capacity \nIncrease \nover Current \nOperation\n20 4%\n27 30%\n32 49%\n35 60%\nEnergy Calculations\nTest Area\nEntire \nData \nCenter\nUnits\nCurrent Power Use 18.9 119.7 kW\nPower use with 30F Delta-T 5.6 35.5 kW\nPeak Power Reduction 13.3 84.2 kW\nYearly Energy Reduction 116,508 737,884 kWh\nComments\nAverage from data collected during observation phase\nAverage from data collected during observation phase\nCurrent power use minus power use with 30F Delta-T\nFrom CAD data center layout\nFrom CAD data center layout\nAssumes 24/7 operation.\nComments\nAssumes 19 CRAHs operating. Power use per CRAH based on data collected from CRAH-23 during normal operation\nAssumes 19 CRAHs operating. Power use per CRAH based on data collected from CRAH-23 when the measured cooling delta-T was approximately 30F.\nSept. 12, 2006 Appendix II - Additional Analysis, Page 3 of 7 Data Center Air Management Demonstration"
+    },
+    {
+      "page_number": 57,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nIncrease Chilled Water Delta-T\nParameters Value Units\nChilled Water Supply Temperature 51 deg F\nChilled Water Return Temperature 65 deg F\nChilled Water Delta-T 14 deg F\n% of Total Area Occupied by Test Area 7%\nTest Area Rack Power Use 270 kW\nTotal Internal Load 1,075 tons\nChilled Water Pumping Power 22 w/gpm\nYearly Hours of Operation 8,760 hrs\nPipe Capacity Calculations\nTest Area \nCapacity\nTotal Data \nCenter \nCapacity\ntons tons\n15 7% 82 1,152\n20 43% 110 1,535\n25 79% 137 1,919\nEnergy Calculations\nFlow Rate \nChilled Water \nPumping \nPower\nYearly \nEnergy Use\ngpm kW kWh\n14 1,842 40.5 355,083\n15 1,720 37.8 331,411\n20 1,290 28.4 248,558\n25 1,032 22.7 198,846\nFrom drawings provided by LBNL\nMeasured\nChilled Water \nDelta-T\n24/7 operation\nThis value was obtained by calculating a power density for the test \narea (rack power input divided by floor area), and then applying that \nsame density to the entire data center floor area\nASHRAE 90.1, Table 11.4.3A, note 5.\n% Pipe \nCapacity \nIncrease\nChilled Water \nDelta-T\nComments\nMeasured\nMeasured\nCHWRT-CHWST\nSept. 12, 2006 Appendix II - Additional Analysis, Page 4 of 7 Data Center Air Management Demonstration"
+    },
+    {
+      "page_number": 58,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nIncrease Chilled Water Supply Temperature\nParameters\nAverage Chiller Efficiency 0.57 kW/ton\nChiller Efficiency Increase for every 1 deg F increase in CHWST 1%\nHeat Exchanger Approach Temperature 2 deg F\nChilled Water Delta-T 12 deg F\nProposed Chilled Water Supply Temperature 50 deg F\nInternal Load 1,075 tons\nChilled Water Flow Rate 2,150 gpm\nAnnual Hours of Operation 8,760 hrs\nAnalysi\ns\nUnits 46 48 50 52 54\nChilled Water Flow Rate GPM 2,150 2,243 2,336 2,430 2,523\nAverage Chiller Efficiency kW/ton 0.57 0.56 0.55 0.54 0.52\nAverage Chiller Power kW 613 600 588 576 564\nEstimated Annual Energy Use kWh 5,366,591 5,259,260 5,151,928 5,044,596 4,937,264\n% Piping Capacity Decrease 0% -4% -9% -13% -17%\n% Energy Savings 0% 2% 4% 6% 8%\nChilled Water Supply Temperature (deg F)\nSept. 12, 2006 Appendix II - Additional Analysis, Page 5 of 7 Data Center Air Management Demonstration"
+    },
+    {
+      "page_number": 59,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\nUtilize Water Side Economizing with Increased Chilled Water Supply Temperature\nParameters\nAverage Chiller Efficiency Efficiency 0.57 kW/ton\nChiller Efficiency Increase for every 1 deg F increase in CHWST 1%\nHeat Exchanger Approach Temperature 2 deg F\nChilled Water Delta-T 12 deg F\nProposed Chilled Water Supply Temperature 50 deg F\nInternal Load 1,075 tons\nChilled Water Flow Rate 2,150 gpm\nResults 46 48 50 52 54\nHours Available for Water Side Economizing N/A 1,976 2,807 3,819 4,875 5,994\nEstimated Yearly Energy Use (kWh) 5,366,591 4,940,436 4,615,996 4,223,171 3,759,362 3,230,948\n% Energy Savings 0% 8% 14% 21% 30% 40%\nHourly Analysis\nOakland weather data\n46 48 50 52 54 46 48 50 52 54 46 48 50 52 54\n°F °F °F °F °F °F °F °F °F tons tons tons tons tons °F °F °F °F °F\n1-Jan 1 42.8 42 42.2 52.2 22221 5 5 4 3 7 5 1 9 6 1 60 3 1 6 2 0 9 1 0 7906 1 3\n1-Jan 2 41.5 40 40.7 50.7 22211 4 2 0 2 4 0 6 100 2 3 9 1 3 4 3 4006 1 3\n1-Jan 3 39.9 38 39.3 49.3 22111 2 9 1 1 1 2000 1 6 6 6 30006 1 3\n1-Jan 4 39.0 38 38.5 48.5 22111 2 2 6 4 7000 1 2 9 2 60006 1 3\n1-Jan 5 39.6 37 38.3 48.3 22111 2 0 2 2 3000 1 1 5 1 30006 1 3\n1-Jan 6 42.1 38 40.1 50.1 22211 3 6 5 1 8 6700 2 0 8 1 0 44006 1 3\n1-Jan 7 43.5 37 40.7 50.7 22211 4 1 8 2 3 9 6 000 2 3 8 1 3 4 3 3006 1 3\n1-Jan 8 45.1 37 41.4 51.4 22211 4 8 6 3 0 7 1 2 800 2 7 7 1 7 2 7 0006 1 3\n1-Jan 9 46.9 37 42.2 52.2 22221 5 5 5 3 7 6 1 9 7 1 80 3 1 7 2 1 0 1 0 8 1 006 1 3\n1-Jan 10 48.6 37 42.9 52.9 22221 6 2 2 4 4 3 2 6 4 8 50 3 5 5 2 4 7 1 4 4 4 506 1 3\n1-Jan 11 52.0 36 44.4 54.4 22222 7 4 9 5 6 9 3 9 0 2 1 1 3 2 4 2 7 3 1 8 2 1 4 1 1 3 1 76 1 3\n1-Jan 12 55.6 35 45.8 55.8 22222 8 7 4 6 9 5 5 1 6 3 3 7 1 5 8 4 9 8 3 8 8 2 8 2 1 8 1 8 36 1 3\n1-Jan 13 59.0 34 47.0 57.0 22222 9 8 5 8 0 6 6 2 7 4 4 8 2 6 9 5 6 2 4 5 0 3 4 3 2 4 0 1 4 16 1 3\n1-Jan 14 57.7 33 45.9 55.9 22222 8 8 9 7 0 9 5 3 0 3 5 1 1 7 2 5 0 6 3 9 6 2 9 0 1 8 8 9 06 1 3\n1-Jan 15 56.5 31 44.8 54.8 22222 7 8 9 6 1 0 4 3 1 2 5 2 7 2 4 5 0 3 4 1 2 3 6 1 3 5 3 86 1 3\n1-Jan 16 55.2 29 43.6 53.6 22221 6 7 7 4 9 8 3 1 9 1 3 90 3 8 6 2 7 8 1 7 4 7 506 1 3\n1-Jan 17 53.1 27 41.7 51.7 22211 5 1 0 3 3 1 1 5 200 2 9 1 1 8 5 8 3006 1 3\n1-Jan 18 50.7 24 39.6 49.6 22111 3 2 7 1 4 7000 1 8 6 8 20006 1 3\n1-Jan 19 48.6 22 37.7 47.7 21111 1 5 40000 8 800006 1 3\n1-Jan 20 47.3 21 36.8 46.8 21111 7 50000 4 300006 1 3\n1-Jan 21 46.4 20 36.2 46.2 21111 1 70000 1 000006 1 3\n1-Jan 22 45.1 19 35.2 45.2 1111100000000006 1 3\n1-Jan 23 44.4 20 34.9 44.9 1111100000000006 1 3\n1-Jan 24 44.1 20 34.9 44.9 1111100000000006 1 3\n31-Dec 1 39.9 30 35.7 45.7 1111100000000006 1 3\n31-Dec 2 39.7 30 35.6 45.6 1111100000000006 1 3\n31-Dec 3 37.6 28 33.7 43.7 1111100000000006 1 3\n31-Dec 4 35.1 26 31.4 41.4 1111100000000006 1 3\n31-Dec 5 36.3 28 32.9 42.9 1111100000000006 1 3\n31-Dec 6 37.6 30 34.3 44.3 1111100000000006 1 3\n31-Dec 7 38.8 32 35.9 45.9 1111100000000006 1 3\n31-Dec 8 45.1 35 40.3 50.3 22211 3 8 9 2 0 9 3 000 2 2 1 1 1 7 1 7006 1 3\n31-Dec 9 51.8 37 44.8 54.8 22222 7 9 1 6 1 2 4 3 3 2 5 4 7 5 4 5 1 3 4 2 2 3 7 1 3 6 3 96 1 3\n31-Dec 10 58.3 40 49.0 59.0 32222 1,075 988 809 630 450 613 552 443 337 236 613\n31-Dec 11 59.5 42 50.2 60.2 33222 1,075 1,075 913 734 554 613 600 499 393 291 613\n31-Dec 12 60.4 43 51.2 61.2 33222 1,075 1,075 1,003 824 645 613 600 549 441 338 613\nAdditional Cooling Required from Chiller\nChilled Water Supply Temperature Chilled Water Supply Temperature\nEconomizing Mode: 1=Full, 2=Integrated, 3=None Chiller Power\nNo \nEconomizing\nNo Econo. Chilled Water Supply Temp. (deg F)\nDate Hour Chilled Water Supply Temperature\nDrybulb \nTemp\nDewpoint \nTemp\nWetbulb \nTemp\nWater \nTemp \nfrom CT\nAll Hours of the year are \nincluded in this analsys, but \nmost have been omitted from \nthis printout for brevity.\nSept. 12, 2006 Appendix II - Additional Analysis, Page 6 of 7 Data Center Air Management Demonstration"
+    },
+    {
+      "page_number": 60,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program\n31-Dec 13 61.7 45 52.4 62.4 33322 1,075 1,075 1,075 929 750 613 600 588 498 393 613\n31-Dec 14 60.4 45 51.9 61.9 33222 1,075 1,075 1,067 888 709 613 600 584 476 372 613\n31-Dec 15 59.5 45 51.6 61.6 33222 1,075 1,075 1,040 861 682 613 600 569 461 358 613\n31-Dec 16 58.3 45 51.2 61.2 33222 1,075 1,075 999 820 641 613 600 547 439 336 613\n31-Dec 17 56.3 43 49.5 59.5 32222 1,075 1,026 847 668 489 613 573 463 358 256 613\n31-Dec 18 54.7 42 47.9 57.9 22222 1,068 889 710 531 351 609 496 388 284 184 613\n31-Dec 19 53.4 40 46.9 56.9 22222 9 7 4 7 9 5 6 1 5 4 3 6 2 5 7 5 5 5 4 4 4 3 3 7 2 3 4 1 3 56 1 3\n31-Dec 20 50.9 40 45.3 55.3 22222 8 3 2 6 5 3 4 7 4 2 9 5 1 1 6 4 7 4 3 6 5 2 5 9 1 5 8 6 16 1 3\n31-Dec 21 48.7 39 44.0 54.0 22222 7 1 7 5 3 8 3 5 9 1 8 01 4 0 9 3 0 1 1 9 6 9 606 1 3\n31-Dec 22 46.4 38 42.5 52.5 22221 5 8 5 4 0 6 2 2 7 4 80 3 3 3 2 2 7 1 2 4 2 606 1 3\n31-Dec 23 44.8 36 40.7 50.7 22211 4 2 3 2 4 4 6 500 2 4 1 1 3 6 3 5006 1 3\n31-Dec 24 43.7 34 39.2 49.2 22111 2 8 9 1 1 0000 1 6 5 6 20006 1 3\nSum 24,206 23,302 22,135 20,879 19,425 4,940,436 4,615,996 4,223,171 3,759,362 3,230,948 5,366,591\nAve. 57.4 49.0 52.7 62.7 2.8 2.7 2.5 2.4 2.2 989 943 881 801 703 564 527 482 429 369 613\nMax. 90.9 68.4 72.7 82.7 3.0 3.0 3.0 3.0 3.0 1,075 1,075 1,075 1,075 1,075 613 600 588 576 564 613\nMin. 34.2 11.1 29.8 39.8 1.0 1.0 1.0 1.0 1.0 00000000006 1 3\nEcono. \nHrs 1,976 2,807 3,819 4,875 5,994\nSept. 12, 2006 Appendix II - Additional Analysis, Page 7 of 7 Data Center Air Management Demonstration"
+    },
+    {
+      "page_number": 61,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program \n \n \nAppendix III – Test Area Photographs \n \n "
+    },
+    {
+      "page_number": 62,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program \nBaseline Photographs \n \n \n \nImage 1 – Entrance to the test area.  The entire area was \nsealed from floor to ceiling, as well as in the under floor supply \nplenum.  \n \n \n \nImage 2 – CRAH-23 on the left, and CRAH-25 on the right.  \nCRAH-23 is adjacent to the hot aisle of the test area. \nSept 12, 2006 Appendix III – Photographs \nPage 2 of 7 \nData Center Air \nManagement \nDemonstration\n "
+    },
+    {
+      "page_number": 63,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program \n \nImage 3 – Temperature sensors in \nthe cold aisle. \n \nImage 4 – Temperature sensors in \nthe hot aisle. \nSept 12, 2006 Appendix III – Photographs \nPage 3 of 7 \nData Center Air \nManagement \nDemonstration\n "
+    },
+    {
+      "page_number": 64,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program \n \nAlternate 1 Photographs \n \nImage 1 – Temperature sensors in \nthe cold aisle.  The cold aisle is \nsealed with plywood above the racks \nand covering the ends of the aisle. \n \n \n \nImage 2 – Plywood roof sealing off the top of the cold aisle. \nSept 12, 2006 Appendix III – Photographs \nPage 4 of 7 \nData Center Air \nManagement \nDemonstration\n "
+    },
+    {
+      "page_number": 65,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program \n \n \n \nImage 3 – Sealed off cold aisle with temperature sensors at the \nend of each of the server racks. \n \nSept 12, 2006 Appendix III – Photographs \nPage 5 of 7 \nData Center Air \nManagement \nDemonstration\n "
+    },
+    {
+      "page_number": 66,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program \nAlternate 2 Photographs \n \nImage 1 – Temperature sensors \nin the cold aisle.  The cold aisle \nis sealed from the top of the \nserver racks to the ceiling. \n \nImage 2 – \nSensors in the hot \naisle and at the \nend of the server \nrack. \n \nSept 12, 2006 Appendix III – Photographs \nPage 6 of 7 \nData Center Air \nManagement \nDemonstration\n "
+    },
+    {
+      "page_number": 67,
+      "section_title": null,
+      "text": "Data Center Emerging Technologies Program \nImage 3 – Open ceiling tiles used to \nroute air to CRAH units.  The \ninterstitial space above the T-bar \nceiling was used as a return air \nplenum. \n \nImage 4 – Temporary return air \nducting for CRAH-25. \n \nSept 12, 2006 Appendix III – Photographs \nPage 7 of 7 \nData Center Air \nManagement \nDemonstration\n "
+    },
+    {
+      "page_number": 68,
+      "section_title": null,
+      "text": " \n \nAppendix IV – Sensor Locations \n \n "
+    },
+    {
+      "page_number": 69,
+      "section_title": null,
+      "text": ""
+    },
+    {
+      "page_number": 70,
+      "section_title": null,
+      "text": ""
+    },
+    {
+      "page_number": 71,
+      "section_title": null,
+      "text": ""
+    },
+    {
+      "page_number": 72,
+      "section_title": null,
+      "text": ""
+    },
+    {
+      "page_number": 73,
+      "section_title": null,
+      "text": ""
+    },
+    {
+      "page_number": 74,
+      "section_title": null,
+      "text": ""
+    },
+    {
+      "page_number": 75,
+      "section_title": null,
+      "text": " \n \nAppendix V – Revised Monitoring Plan \n "
+    },
+    {
+      "page_number": 76,
+      "section_title": null,
+      "text": " \n \n \nD\nATA CENTER AIR MANAGEMENT \nDEMONSTRATION  \n \n \nMEASUREMENT AND MONITORING PLAN \n \n \nREVISED JULY 13, 2006 \n \n  \n \nSPONSORED BY: \n \nPACIFIC GAS & ELECTRIC \n \n \n \n \n \nP\nREPARED BY: \n \n99 LINDEN STREET \nOAKLAND, CA 94607 \n510.663.2070 \nWWW.RUMSEYENGINEERS.COM \n "
+    },
+    {
+      "page_number": 77,
+      "section_title": null,
+      "text": " 2\n \nContents \n \n \nBackground……………………………………………………….…..3 \n \nPreliminary Preparations…………………………………………....4 \n \nBaseline Configuration………………………………………………5 \n \nAlternate 1 Configuration………………...…………………….……6 \n \nAlternate 2 Configuration……………………………………….…...7 \n \nSchedule………………………………………………………….…..8 \n \n \n "
+    },
+    {
+      "page_number": 78,
+      "section_title": null,
+      "text": " 3\nBackground \n \nDue predominantly to their characteristically high internal cooling loads, data \ncenters account for a significant electrical load in the Pacific Gas and Electric \n(PG&E) service territory. As such, PG&E has sponsored the “Data Center \nEmerging Technologies” program, which is targeted toward nurturing \ntechnologies that have the potential to reduce the energy consumption of these \nfacilities, but have not yet gained universal acceptance among data center \ndesigners and operators. Participants in this program have identified several \ntechnologies that would be well-served by  demonstration and monitoring \nprojects, in order to show designers and operators the benefits of incorporating \nthe technologies into their work. \n \nSurveys conducted under the auspices of the Emerging Technologies program \nshowed that the majority of data center professionals expressed interest in a \ndemonstration project showing the benefits of thoughtful and efficient air flow \nmanagement techniques in an operating data center. Lawrence Berkeley \nNational Laboratory has asked Rumsey Engineers to assist in the demonstration, \nmonitoring, and presentation of the results. The goal of this demonstration project \nwill be to show designers, operators, and owners of data center facilities the \npotential increase in energy efficiency and/or cooling capacity that can be gained \nfrom improved air management techniques. \n \nA demonstration site has been selected, and is to be located in a small section of \nan existing, large data center in downtown Oakland, California. According to the \nfacility’s web site, that subsection of the facility that will serve as the \ndemonstration site contains the following computing equipment: \n• 122 8-processor nodes (with 32GB memory each)  \n• 1.9 GHz POWER 5 processors  \n• 111 compute nodes (888 processors)  \n• 3.5 TB aggregate memory on compute nodes  \n• 7.6 GFlops/sec peak processor speed  \n• 6.7 TFlops theoretical peak system performance \n• 100 TB of usable disk space in GPFS \n• 2 login nodes \n• 6 nodes supporting the General Parallel Filesystem (GPFS) \n• Nodes configured to use 16 GB \"Large Page\" memory \nCooling equipment serving the demonstration area consists of two 40-ton Liebert \ndownflow computer room air handling (CRAH) units with chilled water cooling \ncoils. The chilled water is provided by a central chiller plant, and the supply air is \ndelivered via a 36” raised floor plenum. The racks are separated into hot and cold \naisles, and the return air is not ducted, but relies upon stratification to make its \nway back to the intake of the CRAH units, as shown in Figure 1. \n "
+    },
+    {
+      "page_number": 79,
+      "section_title": null,
+      "text": " 4\n \n \nFigure 1: Baseline Air Flow Configuration \n \n \n \nPreliminary Preparations \n \nConstruction of Air Barriers \n \nThe demonstration area is not currently separated physically from the remainder \nof the large data center in which it is contained. One of the first steps will be to \nconstruct an air barrier around the entire demonstration area, separating it from \nthe rest of the data center. This barrier will be from floor to ceiling, as well as \nunderfloor (but not in the interstitial ceiling space), and will completely enclose \nthe demonstration area and the two CRAH units. It is recommended that the \nunderfloor barrier be easily removable such that in the event of a sudden loss of \nair from the dedicated CRAH units, the barrier can be quickly removed to allow \nfor access to the remainder of the underfloor cooling air from the rest of the data \ncenter. Facilities personnel are working with a contractor to construct this and \nsubsequent air barrier systems for the demonstration. Care will be taken in the \nconstruction of the barriers so that barrier materials do not restrict airflow through \nthe racks. \n \n \n \nUser-Operability of CRAH Fan VFDs \n \nThe Liebert Units are equipped with variable frequency drives (VFDs) on the fan \nmotors, but the controls are internal to the unit and factory-wired. This means the \nuser can’t manually adjust the fan speed using the VFD as they are currently \nconfigured. Facilities personnel are working on re-wiring the VFD controls to \nensure user-operability. It is imperative for the demonstration that fan motors be \nable to be manually adjusted. "
+    },
+    {
+      "page_number": 80,
+      "section_title": null,
+      "text": " 5\nDetermination of Cooling Load \n \nFacility personnel measured the rack load on May 30, 2006, and the result was \napproximately 230 kW. This translates into a cooling load of approximately 65 \ntons, meaning more than one of the 40 ton CRAH units will be needed. Spot \nchecks of the measured load will be made throughout the demonstration in case \nthe load changes appreciably. Regardless of the measured cooling load and \ndetermination of equipment needed, there will be no computing down time \nrequired for any aspect of this demonstration project.  \n \n \nDetermination of Temperature Limit \n \nThe demonstration facility staff and users have informed Rumsey Engineers that \nhigh temperature limits are forthcoming from the computer manufacturer. In other \nwords, the manufacturer will be providing the upper limit of safe operating \ntemperatures for the space and equipment. Once determined, this limit will guide \nthe demonstration such that any changes in operational setpoints will ensure that \nthe upper limit shall not be reached. Additionally, the manufacturer may be able \nto provide information on relative humidity tolerances if necessary, and these too \nwill be incorporated into the constraints.   \n \n \nBaseline Configuration \n \nThe baseline configuration to which all measurements will be compared is \nillustrated in Figure 1, and includes the underfloor supply air from the CRAH \nunit(s), the stratified unducted return air back to the CRAH unit(s), and the air \nbarriers enclosing the entire demonstration area. The baseline configuration will \nnot entail any added separation of hot and cold aisles in comparison to the \nexisting conditions. With this configuration in place, the following system \nparameters will be measured in a single day: \n \n• IT equipment power \n• Temperature distribut ion throughout the space \n• CRAH unit(s) supply air temperature \n• CRAH unit(s) return air temperature \n• Chilled water supply temperature \n• Chilled water return temperature \n• CRAH fan energy \n• Supply and return air volumetric flow rates \n  \n \n \n \nMeasurements/Monitoring "
+    },
+    {
+      "page_number": 81,
+      "section_title": null,
+      "text": " 6\n \nPower will be measured using a power meter suitable for 480V/3ph/60Hz \nelectrical power. For overall electrical load measurements at the racks (to \ndetermine cooling load), a power meter will be connected to the electrical panel \nthat serves the rack area. For CRAH fan energy measurement, the meter will \nmeasure the total power draw by the unit, assuming that fan power dominates \nand the remainder of the electrical load from the unit is negligible (i.e. LCD \nreadout, chilled water valve actuator, etc.)  \n \nTemperatures will be measured using portable data loggers and temperature \nsensors (thermistors), Chilled water supply and return temperatures will be \nmonitored and trended by placing thermistors directly upon the outer pipe surface \nand covered with insulation. Air temperatures will be measured by placing \ntemperature sensors underfloor for supply air, at the CRAH intake for return air, \nand scattered throughout the hot and cold aisles to measure temperature \ndistribution throughout the space. Supply and return air flow rates will be \nmeasured using a Shortridge AirData Multimeter. \n    \nThe results of the measured baseline parameters will then be used as a \nbenchmark to compare the same parameters throughout subsequent \nconfigurations of the air flow demonstration.  \n \n \nAlternate 1 Configuration \n \nThe Alternate 1 air management test will involve making a concerted effort to \n“seal off” the cold aisle, which should serve to decrease the degree of mixing \nbetween hot and cold aisles, and hence increase the temperature difference \nbetween the supply and return air. This larger “Delta-T” enables the data center \noperators to serve the same cooling load while moving less air to do so, saving \non fan energy. The sealing of the cold aisle will be accomplished by placing an \nair barrier at the top (and sides) of the racks as shown in Figure 2. The spaces \nbetween racks have already been blocked-off, so that with the added barriers on \ntop and sides of the cold aisle, the path of least resistance for the cooling air will \nbe through the computer equipment as intended. \n \nThe increased air Delta-T can be accomplished by raising the return air \ntemperature setpoint to maintain the original underfloor supply air temperature \nfound in the baseline configuration. Once this is achieved, the delta-T should be \nhigher than before, but it will likely be able to be increased further and still stay \nwithin reasonable bounds of safe operating temperatures (to be provided by the \nmanufacturer). Maximizing this temperature difference minimizes the necessary \nfan energy, and the optimal point will be one in which the delta-T is the highest \npossible, but still within the operational limitations of the computer equipment. \n "
+    },
+    {
+      "page_number": 82,
+      "section_title": null,
+      "text": " 7\n \n \nFigure 2: Alternate 1 Air Flow Configuration \n \nOnce the Alternate 1 configuration has been installed by the barrier contractor, \nthe CRAH fans will be slowed down to a minimum level that does not affect \nserver performance.  Once the fan speed has been reduced, another series of \nmeasurements will be undertaken (same parameters as in the baseline case) \nand the results compared to the baseline case. The measurements will be taken \nin a single day. \n \nAlternate 2 Configuration \n \nThe Alternate 2 air management test will attempt to “encourage” the hot return air \nback to the CRAH unit(s) by utilizing the interstitial ceiling space as a return path. \nCeiling tiles above the hot aisles and CRAH unit(s) will be removed, and a “hood” \nwill be fitted onto the CRAH air intake, as illustrated in Figure 3. \n \n \nFigure 3: Alternate 2 Air Flow Configuration \n \nAs in Alternate 1, the CRAH fan speeds will then be reduced as far as safely \npossible.  A third and final round of measurements will then be taken. After all "
+    },
+    {
+      "page_number": 83,
+      "section_title": null,
+      "text": " 8\nAlternates are complete, the results will be analyzed, and compared to the \nbaseline configuration. All results will then be compiled and presented to PG&E.   \n \nSchedule \n \nWeek of May 22 – May 26, 2006  \n• Rumsey Engineers personnel visi t demonstration site (by 5/23) \n• Draft Monitoring Plan reviewed and commented upon (by 5/26) \n \nWeek of May 29 – June 3, 2006 \n• Measurement of IT equipment  load at PDUs (by 5/30) \n• Monitoring Plan finalized (by 5/30) \n• Barrier constructed around demonstration area (by 6/3) \n• CRAH fan VFD user-operability achieved (by 6/3) \n \nJune 12 – June 16, 2006 \n• Measurement/monitoring of bas eline configuration (6/12) \n• Construction of Alternat e 1 configuration (6/13) \n• Measurement/monitoring of Alte rnate I configuration (6/14) \n• Construction of Alternat e 2 configuration (6/15) \n• Measurement/monitoring of Alte rnate 2 configuration (6/16) \n \nJune 19 – July 13, 2006 \n• Review and analysis of data \n• Preparation of summary repor t in support of PG&E workshop \n• Preparation of Powerpoint presen tation in support of PG&E workshop \n(optional) \n "
+    }
+  ]
+}

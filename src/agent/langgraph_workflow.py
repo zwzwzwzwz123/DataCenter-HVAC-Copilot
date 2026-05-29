@@ -258,6 +258,7 @@ def _merge_step_results(
     final["planner_fallback_used"] = plan.fallback_used
     final["tools"] = _flatten_list(step_results, "tools")
     final["tool_results"] = _flatten_list(step_results, "tool_results")
+    final["tool_calls"] = _flatten_list(step_results, "tool_calls")
     final["citations"] = _dedupe_dicts(_flatten_list(step_results, "citations"))
     final["retrieved_contexts"] = _dedupe_dicts(_flatten_list(step_results, "retrieved_contexts"))
 

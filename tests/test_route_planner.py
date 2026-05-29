@@ -6,7 +6,9 @@ from src.agent.planner import (
     DeterministicRoutePlanner,
     LLMRoutePlanner,
     build_route_planner_from_env,
+    _system_prompt,
 )
+from src.tools.registry import TOOL_REGISTRY
 
 
 class FakePlannerTransport:
@@ -85,6 +87,43 @@ def test_deterministic_planner_creates_bounded_multi_step_plan_with_policy_last(
     assert decision.steps[1].metric_name == "zone_temperature"
     assert decision.steps[2].tool == "policy_runner"
     assert len(decision.steps) <= 3
+
+
+def test_deterministic_planner_selects_data_quality_tool() -> None:
+    planner = DeterministicRoutePlanner()
+
+    decision = planner.plan("Check data quality, missing fields, and timestamp gaps.")
+
+    assert [step.route for step in decision.steps] == ["timeseries_query"]
+    assert decision.steps[0].tool == "data_quality_check"
+
+
+def test_deterministic_planner_selects_zone_hotspot_tool() -> None:
+    planner = DeterministicRoutePlanner()
+
+    decision = planner.plan("Which zone is the hottest hotspot by zone_temperature?")
+
+    assert [step.route for step in decision.steps] == ["timeseries_query"]
+    assert decision.steps[0].tool == "zone_hotspot_rank"
+
+
+def test_deterministic_planner_selects_control_action_audit_tool() -> None:
+    planner = DeterministicRoutePlanner()
+
+    decision = planner.plan("Audit whether control_action is oscillating or changing too fast.")
+
+    assert [step.route for step in decision.steps] == ["timeseries_query"]
+    assert decision.steps[0].tool == "control_action_audit"
+    assert decision.steps[0].metric_name == "control_action"
+
+
+def test_deterministic_planner_selects_comfort_risk_tool() -> None:
+    planner = DeterministicRoutePlanner()
+
+    decision = planner.plan("Assess overheating comfort risk across zones.")
+
+    assert [step.route for step in decision.steps] == ["anomaly_diagnosis"]
+    assert decision.steps[0].tool == "comfort_risk_assessment"
 
 
 def test_deterministic_planner_handles_chinese_multi_intent_questions() -> None:
@@ -314,3 +353,11 @@ def test_llm_planner_prompt_includes_conversation_context() -> None:
     user_payload = json.loads(transport.calls[0]["payload"]["messages"][1]["content"])
     assert user_payload["conversation_context"] == context
     assert "current fresh evidence" in transport.calls[0]["payload"]["messages"][0]["content"]
+
+
+def test_system_prompt_includes_tools_from_registry() -> None:
+    prompt = _system_prompt()
+
+    for tool_name in ["data_quality_check", "comfort_risk_assessment", "policy_runner"]:
+        assert tool_name in TOOL_REGISTRY
+        assert tool_name in prompt

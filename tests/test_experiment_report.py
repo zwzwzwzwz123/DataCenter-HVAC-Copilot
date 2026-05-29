@@ -243,6 +243,52 @@ def test_render_experiment_report_documents_real_dense_configuration() -> None:
     assert "真实 sentence-transformers embedding + FAISS" in markdown
 
 
+def test_render_experiment_report_documents_cross_encoder_reranker_configuration() -> None:
+    markdown = render_experiment_report(
+        {
+            "hybrid_rrf": {
+                "citation_hit_rate": 0.6,
+                "context_recall": 0.6,
+                "retrieval_mrr@10": 0.4,
+                "retrieval_ndcg@10": 0.5,
+                "expected_keyword_coverage": 0.3,
+                "lexical_answer_coverage": 0.2,
+                "tool_selection_accuracy": 0.0,
+                "tool_execution_success_rate": 0.0,
+                "evidence_coverage": 1.0,
+                "answer_correctness_proxy": 0.3,
+                "faithfulness_proxy": 0.3,
+            },
+            "hybrid_rrf_cross_encoder": {
+                "citation_hit_rate": 0.7,
+                "context_recall": 0.7,
+                "retrieval_mrr@10": 0.6,
+                "retrieval_ndcg@10": 0.65,
+                "retrieval_average_latency_seconds": 0.12,
+                "expected_keyword_coverage": 0.35,
+                "lexical_answer_coverage": 0.22,
+                "tool_selection_accuracy": 0.0,
+                "tool_execution_success_rate": 0.0,
+                "evidence_coverage": 1.0,
+                "answer_correctness_proxy": 0.34,
+                "faithfulness_proxy": 0.34,
+            },
+        },
+        eval_record_count=50,
+        expected_keyword_record_count=50,
+        dense_provider="sentence-transformers",
+        dense_backend="faiss",
+        dense_model="BAAI/bge-small-zh-v1.5",
+        cross_encoder_model="BAAI/bge-reranker-base",
+    )
+
+    assert "cross_encoder_model: `BAAI/bge-reranker-base`" in markdown
+    assert "hybrid_rrf_cross_encoder" in markdown
+    assert "query-document pair" in markdown
+    assert "二阶段精排" in markdown
+    assert "retrieval latency" in markdown
+
+
 def test_render_experiment_report_includes_pending_human_calibration() -> None:
     markdown = render_experiment_report(
         {

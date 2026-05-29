@@ -9,6 +9,7 @@ from src.retrieval.retriever import (
     RerankingRetriever,
     reciprocal_rank_fusion,
 )
+from src.retrieval.cross_encoder import CrossEncoderRerankingRetriever
 from src.retrieval.schemas import DocumentMetadata, SourceDocument
 
 
@@ -323,6 +324,82 @@ def test_reranking_retriever_uses_citation_metadata_for_tie_breaking():
 
     assert results[0]["chunk_id"] == "supply_air_reset_risk_note::chunk_0000"
     assert results[0]["metadata_score"] > 0
+
+
+class FakeCrossEncoderScorer:
+    model_name = "fake-cross-encoder"
+
+    def __init__(self, scores: dict[str, float]) -> None:
+        self.scores = scores
+        self.calls: list[tuple[str, list[str]]] = []
+
+    def score(self, query: str, texts: list[str]) -> list[float]:
+        self.calls.append((query, texts))
+        return [self.scores[text] for text in texts]
+
+
+def test_cross_encoder_reranker_reranks_candidate_pairs_and_preserves_base_metadata():
+    base = FixedRetriever(
+        [
+            {
+                "chunk_id": "doc_noise::chunk_0000",
+                "score": 9.0,
+                "text": "generic cooling airflow paragraph without return differential evidence",
+                "citation": {"source_id": "doc_noise", "title": "Noise"},
+                "retrieval_mode": "hybrid_rrf",
+            },
+            {
+                "chunk_id": "doc_target::chunk_0000",
+                "score": 4.0,
+                "text": "rack delta-t return differential alarm evidence from supply return temperatures",
+                "citation": {"source_id": "doc_target", "title": "Target"},
+                "retrieval_mode": "hybrid_rrf",
+            },
+            {
+                "chunk_id": "doc_other::chunk_0000",
+                "score": 3.0,
+                "text": "policy boundary note unrelated to rack delta-t diagnosis",
+                "citation": {"source_id": "doc_other", "title": "Other"},
+                "retrieval_mode": "hybrid_rrf",
+            },
+        ]
+    )
+    scorer = FakeCrossEncoderScorer(
+        {
+            "generic cooling airflow paragraph without return differential evidence": 0.12,
+            "rack delta-t return differential alarm evidence from supply return temperatures": 0.91,
+            "policy boundary note unrelated to rack delta-t diagnosis": 0.25,
+        }
+    )
+
+    retriever = CrossEncoderRerankingRetriever(
+        base,
+        scorer=scorer,
+        candidate_k=3,
+    )
+    results = retriever.search("rack delta-t return differential evidence", top_k=2)
+
+    assert base.calls == [("rack delta-t return differential evidence", 3)]
+    assert scorer.calls == [
+        (
+            "rack delta-t return differential evidence",
+            [
+                "generic cooling airflow paragraph without return differential evidence",
+                "rack delta-t return differential alarm evidence from supply return temperatures",
+                "policy boundary note unrelated to rack delta-t diagnosis",
+            ],
+        )
+    ]
+    assert [result["chunk_id"] for result in results] == [
+        "doc_target::chunk_0000",
+        "doc_other::chunk_0000",
+    ]
+    assert results[0]["retrieval_mode"] == "cross_encoder_rerank"
+    assert results[0]["base_retrieval_mode"] == "hybrid_rrf"
+    assert results[0]["base_score"] == 4.0
+    assert results[0]["cross_encoder_score"] == 0.91
+    assert results[0]["cross_encoder_model"] == "fake-cross-encoder"
+    assert results[0]["candidate_rank"] == 2
 
 
 def test_load_text_documents_loads_supported_files(tmp_path: Path):

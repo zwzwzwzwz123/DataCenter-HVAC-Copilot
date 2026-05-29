@@ -1,10 +1,10 @@
 {
-  "chunk_count": 340,
+  "chunk_count": 1682,
   "chunks_path": "chunks.jsonl",
-  "chunks_sha256": "c59ccd3e32e95002f46c074efcbb59a58e9ea805f416317dc2ca0c5c5d014c7e",
-  "created_at": "2026-05-28T05:42:16.248368+00:00",
+  "chunks_sha256": "033b6a101607fedef69e068c07f844e25a5251dd760c7936c95234f8d93ba7f3",
+  "created_at": "2026-05-29T13:18:48.573483+00:00",
   "embedding_model": "BAAI/bge-small-zh-v1.5",
   "embedding_provider": "sentence-transformers",
   "index_path": "index.faiss",
-  "index_sha256": "6eca519fafe01a3152b60c014c3771c1aad196900844f28e180fbf6fb58e7a93"
+  "index_sha256": "33482e31e2d74aa2cdf4c72bb3bcfc14dfbbd4241c3a8c7f6a0febfb6cc27d76"
 }

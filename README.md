@@ -7,10 +7,10 @@
 
 ```mermaid
 flowchart TD
-    A["/ask<br/>FastAPI / Streamlit"] --> B["Route Planner<br/>controlled schema, <=3 steps"]
+    A["/ask<br/>FastAPI / Streamlit"] --> B["Route Planner<br/>controlled schema, <=5 steps"]
     B --> C["AgentTaskExecutor<br/>shared by LangGraph and baseline"]
     C --> D["RAG<br/>BM25 / dense / hybrid_rrf"]
-    C --> E["Timeseries Tools<br/>query, compare, anomaly"]
+    C --> E["Timeseries Tools<br/>query, quality, risk, hotspots, control audit"]
     C --> F["Policy Tool<br/>rule / replay / DROPT adapter"]
     D --> G["Evidence Aggregator"]
     E --> G
@@ -20,12 +20,15 @@ flowchart TD
     I --> J["Memory<br/>session context + status"]
 ```
 
-**核心亮点入口**：受控 LLM route planner、共享 executor 的可对照 workflow、`hybrid_rrf` 融合检索、FAISS 知识库原子索引、memory 失败降级与状态暴露。
+**核心亮点入口**：受控 LLM route planner、ToolSpec 工具协议、共享 executor 的可对照 workflow、`hybrid_rrf` 融合检索、FAISS 知识库原子索引、memory 失败降级与状态暴露。
 
 ## 项目亮点
 
 **受控 LLM Route Planner**  
-Planner 只允许输出 `document_qa`、`timeseries_query`、`anomaly_diagnosis`、`policy_recommendation` 四类 route，计划长度限制为 1-3 步，工具名和 `time_window` 也经过 schema 校验；如果包含 policy step，必须放在最后。这样把 LLM 用在“任务分解和路由”上，而不是让它自由调用工具或生成控制动作；非法 JSON、非法 route/tool、超长计划或 LLM 调用异常都会回退到 deterministic planner。代码位置：`src/agent/planner.py`。
+Planner 只允许输出 `document_qa`、`timeseries_query`、`anomaly_diagnosis`、`policy_recommendation` 四类 route，计划长度限制为 1-5 步，工具名和 `time_window` 也经过 schema 校验；如果包含 policy step，必须放在最后。这样把 LLM 用在“任务分解和路由”上，而不是让它自由调用工具或生成控制动作；非法 JSON、非法 route/tool、超长计划或 LLM 调用异常都会回退到 deterministic planner。代码位置：`src/agent/planner.py`。
+
+**ToolSpec + HVAC 高频工具集**
+`src/tools/registry.py` 统一描述工具名、route、输入输出 schema、风险等级、默认 metric 和关键词，planner 白名单从 ToolSpec 派生，避免“文档写了工具但 executor 不能执行”的漂移。时序工具已扩展为数据质量检查、舒适风险评估、zone 热点排行、控制动作审计、冷却效率摘要，加上原有 metric 查询、周期对比、趋势序列、能耗拆解和异常检测，覆盖 HVAC 运维分析中最常见的质量、舒适性、能效和控制稳定性问题。代码位置：`src/tools/registry.py`、`src/tools/timeseries.py`、`src/agent/executor.py`。
 
 **LangGraph Workflow 与 Deterministic Baseline 共享 Executor**  
 LangGraph 编排和 deterministic baseline 复用同一个 `AgentTaskExecutor`，底层 RAG、时序工具、policy runner、answer audit 不因 workflow 变化而漂移。这个设计让 LangGraph 可以展示多步 trace 和可选 LLM planner，同时 baseline 仍然能作为回归对照；当前 `rag_tool_agent` 与 `langgraph_tool_agent` 在核心 eval 指标上保持一致。代码位置：`src/agent/langgraph_workflow.py`、`src/agent/executor.py`。
@@ -152,7 +155,7 @@ pip install -e ".[dev]"
 pip install -e ".[dev,dense]"
 ```
 
-这会启用本地 FAISS dense retrieval、`rag_dense` 和 `hybrid_rrf`，不需要 API；Qdrant 仍可作为后续可替换向量库。
+这会启用本地 FAISS dense retrieval、`rag_dense`、`hybrid_rrf`，并在 `scripts/run_eval.py` 中默认加入 cross-encoder reranker baseline，不需要 API；Qdrant 仍可作为后续可替换向量库。
 
 可选：如果要运行 DROPT / Guided-DiffFNO policy backend（研究型 policy adapter，不是 RAG demo 的必需依赖）：
 
@@ -181,7 +184,7 @@ curl -X POST http://localhost:8000/ask \
   -d "{\"question\":\"最近 zone_temperature 有没有异常？\",\"workflow_engine\":\"langgraph\"}"
 ```
 
-运行默认完整评测（使用仓库默认配置）：
+运行默认完整评测（使用仓库默认配置；默认包含 `hybrid_rrf_cross_encoder`）：
 
 ```bash
 python scripts/run_eval.py
@@ -192,6 +195,18 @@ python scripts/run_eval.py
 ```bash
 pip install -e ".[dev,dense]"
 python scripts/run_eval.py --dense-provider sentence-transformers --dense-backend faiss --dense-model BAAI/bge-small-zh-v1.5
+```
+
+默认二阶段 cross-encoder 精排使用 `BAAI/bge-reranker-base`；如需指定模型：
+
+```bash
+python scripts/run_eval.py --dense-provider sentence-transformers --dense-backend faiss --dense-model BAAI/bge-small-zh-v1.5 --cross-encoder-model BAAI/bge-reranker-base
+```
+
+如果只想快速 smoke test 或当前环境没有 reranker 模型，可显式关闭：
+
+```bash
+python scripts/run_eval.py --disable-cross-encoder-rerank
 ```
 
 使用 BGE-small-zh + FAISS 跑 50 条真实文档子集：
@@ -225,7 +240,7 @@ Docker 一键启动支持 fresh clone，本地不要求预先创建 `.env`。Com
 LangGraph 负责多步流程、trace 和 planner 接入；`AgentTaskExecutor` 负责实际工具行为。这样 workflow 可以迭代，评测仍能用 deterministic baseline 发现行为漂移，也便于把 agent 编排问题和工具正确性问题分开调试。
 
 **把检索实验命名为可验证 baseline**  
-`rag_keyword`、`rag_hybrid`、`hybrid_rrf`、`rag_hybrid_rerank` 分别对应不同 retriever / wrapper，而不是把所有检索都写成“hybrid”。这种命名降低了 README 和代码之间的语义风险，也让评测表能直接回答“哪个检索改动真的带来收益”。
+`rag_keyword`、`rag_hybrid`、`hybrid_rrf`、`rag_hybrid_rerank`、`hybrid_rrf_cross_encoder` 分别对应不同 retriever / wrapper，而不是把所有检索都写成“hybrid”。`hybrid_rrf_cross_encoder` 先用 BM25 + dense RRF 召回候选，再用 cross-encoder 对 query-document pair 做二阶段精排，并单独记录 latency，便于回答“排序质量提升是否值得额外推理成本”。这种命名降低了 README 和代码之间的语义风险，也让评测表能直接回答“哪个检索改动真的带来收益”。
 
 **把知识库索引视为可恢复状态**  
 SQLite 是 document/chunk metadata 的 source of truth，FAISS 是可重建索引。manifest、hash、sidecar 行数校验和原子替换让索引更新失败时保持旧索引可用，适合面向上传文档的 demo，而不是只在进程内维护一次性向量。
@@ -251,7 +266,7 @@ src/api/          FastAPI app, schemas, demo factory
 src/retrieval/    keyword, BM25 lexical, dense, FAISS, RRF, rerank, query rewrite
 src/knowledge/    upload parsing, SQLite metadata, FAISS indexer/retriever/service
 src/memory/       SQLite conversation memory, retrieval, indexing, context budget
-src/tools/        BEAR-like time-series query, compare, anomaly, energy breakdown
+src/tools/        ToolSpec registry plus HVAC time-series, quality, risk, hotspot, control audit tools
 src/policies/     rule-based, offline replay, MPC-like, diffusion/DROPT adapters
 src/evaluation/   dataset loader, metrics, baseline comparison, reports, judge hooks
 src/ingestion/    BEAR schema, sample loader, processed rollout loader

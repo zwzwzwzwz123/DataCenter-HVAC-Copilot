@@ -1,0 +1,272 @@
+{
+  "document_id": "doc_bbdbdf6368e44257b7d85401e8f6b21f",
+  "filename": "lbnl_liquid_cooling_new_horizons_2019.pdf",
+  "file_type": ".pdf",
+  "file_hash": "810bcaad6a72d90eef9540af54ee66066f206940ec9ac07181a9c6282bdb949f",
+  "source_path": "data\\knowledge\\uploads\\doc_bbdbdf6368e44257b7d85401e8f6b21f_lbnl_liquid_cooling_new_horizons_2019.pdf",
+  "metadata": {
+    "filename": "lbnl_liquid_cooling_new_horizons_2019.pdf",
+    "source_path": "data\\knowledge\\uploads\\doc_bbdbdf6368e44257b7d85401e8f6b21f_lbnl_liquid_cooling_new_horizons_2019.pdf",
+    "source_url": "https://datacenters.lbl.gov/sites/default/files/7x24LiquidCooling_New_Horizons.pdf",
+    "authority": "LBNL/DOE Data Centers Center of Expertise",
+    "topic": "liquid-cooling",
+    "curated_for": "data-center-hvac-rag-30-doc-corpus"
+  },
+  "pages": [
+    {
+      "page_number": 1,
+      "section_title": null,
+      "text": "1 | Federal Energy Management Program femp.energy.gov\nDale Sartor, P.E.New Horizons:\nGetting (Back) to Liquid Cooling\n7×24 Exchange International Fall Conference \nPhoenix, AZ\nOctober 29, 2019\nVersion: 9/19/19\nOtto Van Geet, P .E.\nDave Martinez\nLawrence Berkeley National Laboratory\nNational Renewable Energy Laboratory\nSandia National Laboratory"
+    },
+    {
+      "page_number": 2,
+      "section_title": null,
+      "text": "2U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nLiquid in the Rack:  Liquid Cooling Your Data Centers\nDale Sartor, PE, Lawrence Berkeley National Laboratory"
+    },
+    {
+      "page_number": 3,
+      "section_title": null,
+      "text": "3U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nBenefits of Liquid Cooling\n• Higher compute densities\n• Higher efficiency\nVision: Eliminate compressor \nbased cooling and water \nconsumption\n"
+    },
+    {
+      "page_number": 4,
+      "section_title": null,
+      "text": "4U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nMoving (Back) to Liquid Cooling\n• As heat densities rise, liquid solutions become more attractive\n• Volumetric heat capacity comparison:\n~ 190,000 cubic foot blimp\n=\nWater\nAir\n(1.5 m3)\n(5,380 m3)"
+    },
+    {
+      "page_number": 5,
+      "section_title": null,
+      "text": "5U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nWhy Liquid Cooling?\n• Liquids can provide cooling at higher temperatures\n– Improved cooling efficiency\n– Increased economizer hours\n– Potential use of waste heat\n• Reduced transport energy:\n"
+    },
+    {
+      "page_number": 6,
+      "section_title": null,
+      "text": "6U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nLiquid Cooling Solution\nTypical liquid cooled equipment room, with external coolant distribution units (CDUs)\n• For most locations data centers may be operated without chillers with a water-side economizer\n"
+    },
+    {
+      "page_number": 7,
+      "section_title": null,
+      "text": "7U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nIn-Rack Liquid Cooling\n• Racks with integral coils and full containment:\nCooling\nCoil\n"
+    },
+    {
+      "page_number": 8,
+      "section_title": null,
+      "text": "8U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nRear-Door Heat Exchanger\n• Passive technology:  \nrelies on server fans for airflow\n• Active technology:  \nsupplements server fans with external\nfans in door\n• Can use chilled or higher temperature\nwater for cooling\nPhoto courtesy of Vette\n"
+    },
+    {
+      "page_number": 9,
+      "section_title": null,
+      "text": "9U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nLiquid On-Board Cooling\n"
+    },
+    {
+      "page_number": 10,
+      "section_title": null,
+      "text": "10U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nIBM System x iDataPlex\n•90% water cooled\n•10% air cooled\n•Cooling water temperature as high as 44C\nWater inside\nExample: Maui DOD HPC Center Warm Water Cooling \nDry Coolers, 10 kW each \ncompared to 100 kW Chillers\n"
+    },
+    {
+      "page_number": 11,
+      "section_title": null,
+      "text": "11U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nServer\nCondenserVapor\nBoiling\nLiquid\nTank\nPump Dry TowerFacility\nWall\nAmbient as \nhigh as 55°C\nFacility Water\nCooling Power = Pump + Fan\nNo longer requires:\n• chillers • raised floors\n• cooling towers • CRACs\n• water use • earplugs!\nLiquid Immersion Cooling\nComputers in glass tank"
+    },
+    {
+      "page_number": 12,
+      "section_title": null,
+      "text": "12U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\n“Chill-Off 2” Evaluation of Liquid Cooling Solutions\n"
+    },
+    {
+      "page_number": 13,
+      "section_title": null,
+      "text": "13U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\n“Free Cooling” w/ Water-Side Economizers\n• Cooling without Compressors\n• Easier retrofit\n• Added reliability (backup in case of\nchiller failure)\n• No contamination issues\n• Put in series with chiller\n• Uses tower or dry cooler\nCooling tower and HX = Water-side Economizer\nNo or \nminimum \ncompress\nor cooling"
+    },
+    {
+      "page_number": 14,
+      "section_title": null,
+      "text": "14U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nRe-Use of Waste Heat\n• Heat from a data center can be used for:\n– Heating adjacent offices directly\n– Preheating make-up air (e.g., “run around coil” for adjacent laboratories)\n• Use a heat pump to elevate temperature\n– Waste heat from LBNL ALS servers captured with rear door coolers feeds a heat \npump that provides hot water for reheat coils\n• Warm-water cooled computers are used to heat:\n– Greenhouses, swimming pools,\nand district heating systems\n"
+    },
+    {
+      "page_number": 15,
+      "section_title": null,
+      "text": "15U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\n• While liquid cooling potential is understood, uptake is slow\n• Most solutions are unique and proprietary\n• Needed:\n– Multi-source solutions\n– Reusable rack infrastructure \n• Users can drive faster technology development and adoption\nOpen Specifications for Liquid Cooled Rack\n"
+    },
+    {
+      "page_number": 16,
+      "section_title": null,
+      "text": "16U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\n• Goal:\n– An open specification for a liquid cooled rack that would \nencourage a multiple vendor solution, and provide a lasting \ninfrastructure for multiple refresh cycles with a variety of liquid \ncooled server suppliers.\n• The “cold plate” working groups are working on:\n– Water based transfer fluid: quality, treatment and compatibility\n– Wetted material list (OK and not OK)\n– Universal (multi-vendor) quick connectors\n– Operating conditions (e.g. supply pressure, temperatures)\n• Challenges \n– Proprietary nature of components, e.g. chemical compositions of \ntransfer fluids and the quick connects \nOpen Compute Project (OCP) and EEHPCWG Initiative(s)"
+    },
+    {
+      "page_number": 17,
+      "section_title": null,
+      "text": "17U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nASHRAE Design Reference Conditions - 2015\n"
+    },
+    {
+      "page_number": 18,
+      "section_title": null,
+      "text": "18U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nResources: Center of Expertise for EE in Data Centers\nExplore the \ndiverse activities \nthat CoE is \nengaged in.  \nUse CoE’s Energy \nEfficiency Toolkit\nFilter CoE’s many \nresources by type \nand topic.\nChoose from upcoming live \nwebinars, pre-recorded trainings, \nand in-person Data Center Energy \nPractitioner (DCEP) trainings.\nSearch \nresources \nby topics \nof interest.\nFollow us on Twitter \n@DataCenterCoE\n• datacenters.lbl.gov\n• datacenters.lbl.gov/technologies/liquid-cooling"
+    },
+    {
+      "page_number": 19,
+      "section_title": null,
+      "text": "19U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDale Sartor, P.E.\nLawrence Berkeley National Laboratory\nMS 90-3111\nUniversity of California\nBerkeley, CA 94720\nDASartor@LBL.gov\n(510) 486-5988\nhttp://datacenters.lbl.gov/\nContact Info\n"
+    },
+    {
+      "page_number": 20,
+      "section_title": null,
+      "text": "20U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nData Center Optimization Strategies\nOtto Van Geet, PE, NREL\nOctober 2019"
+    },
+    {
+      "page_number": 21,
+      "section_title": null,
+      "text": "21U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY 21\nNREL Data Center Design\n• Showcase Facility\n– ESIF 182,000 ft.2 research facility\n– 10,000 ft.2 data center\n– 10 MW at full buildout\n– LEED Platinum facility, PUE ≤ 1.06\n– No mechanical cooling (eliminates expensive \nand inefficient chillers)\n• Data Center Features\n• Direct, component-level liquid cooling, 24ºC \n(75ºF) cooling water supply\n• 35ºC–40ºC (95ºF–104ºF) return water \n(waste heat), captured and used to heat \noffices and lab space\n• Pumps more efficient than fans\n• High voltage 480 VAC power distribution \ndirectly to high power density 60kW–80 kW \ncompute racks\n• Compared to a Typical Data Center\n– Lower CapEx—costs less to build\n– Lower OpEx—efficiencies save\nUtilize the bytes and the BTUs!\nIntegrated “Chips to Bricks” Approach"
+    },
+    {
+      "page_number": 22,
+      "section_title": null,
+      "text": "22U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nLiquid Cooling – Considerations\n• Liquid cooling essential at high-power density\n• Compatible metals and water chemistry is crucial\n• Redundancy in hydronic system (pumps, heat exchangers)\n• Plan for hierarchy of systems\n– Cooling in series rather than parallel\n– Most sensitive systems get coolest liquid\n• At least 95% of rack heat load captured directly to liquid"
+    },
+    {
+      "page_number": 23,
+      "section_title": null,
+      "text": "23U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nAir-Cooled to Liquid-Cooled Racks\nTraditional air-cooled allow for rack \npower densities of 1kW–5kW\nLiquid-cooled when rack power densities \nin 5kW–80kW range, have several \noptions"
+    },
+    {
+      "page_number": 24,
+      "section_title": null,
+      "text": "24U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nLiquid-Cooled Server Options\nCold Plates\nPeregrine HPC Tray"
+    },
+    {
+      "page_number": 25,
+      "section_title": null,
+      "text": "25U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nFanless Liquid-Cooled Server Options\nDirect Immersion\nFixed Plate\n"
+    },
+    {
+      "page_number": 26,
+      "section_title": null,
+      "text": "26U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\n2\n6\nPUE =  \n“Facility energy” + “IT energy”\n“IT energy”\nERE =  \n“Facility energy” + “IT energy” – “Reuse energy”\n“IT energy”\nMetrics"
+    },
+    {
+      "page_number": 27,
+      "section_title": null,
+      "text": "27U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\n2\n7\nWUE =  \n“Annual Site Water Usage”\n“IT energy”\nthe units of WUE are liters/kWh\nWUESOURCE =\n“Annual Site Water Usage” + “Annual Source Energy Water Usage”\n“IT energy”\nWUESOURCE =  \n“Annual Site Water Usage”\n“IT energy” +  [EWIF  PUE] \nwhere EWIF is energy water intensity factor\nMetrics"
+    },
+    {
+      "page_number": 28,
+      "section_title": null,
+      "text": "28U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY 28\nAir- and Water-Cooled System Options\n• Air-Cooled System\n– Operation is based on DRY BULB temperature\n– Consumes no water (no evaporative cooling)\n– Large footprint requires very large airflow rates\n• Water-Cooled System\n– Operation is based on the lower WET BULB \ntemperature\n– Evaporative cooling process uses water to improve \ncooling efficiency\n• 80% LESS AIRFLOW = lower fan energy\n• Lower cost and smaller footprint\n– Colder heat rejection temperatures improve system \nefficiency\n However, water-cooled \nsystems depend on a \nreliable, continuous source \nof water."
+    },
+    {
+      "page_number": 29,
+      "section_title": null,
+      "text": "29U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nTraditional Wet Cooling System\n2\n9\n95°F (35.0°C)\nProcess Loop\nHeat In\nMoist \nHeat Out\nWet Loop\nSized for Design Day\nThermal Duty\n75°F (23.9°C)\n95°F (35.0°C) 75°F (23.9°C)\nCondenser Water Pump"
+    },
+    {
+      "page_number": 30,
+      "section_title": null,
+      "text": "30U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nBasic Hybrid System Concept\n3\n0\n95°F (35.0°C)\nHeat In\nMoist \nHeat OutWet Loop\nSized for Design Day\nThermal Duty\n75°F (23.9°C)\n75°F (23.9°C)\nCondenser Water Pump\nProcess Loop\nDry Loop\nSized for Water \nSavings\n85°F (29.4°C)\nDry Heat \nOut\n“Wet” when it’s hot, “dry” when it’s not.\nDry Sensible Cooler\n95°F (35.0°C)"
+    },
+    {
+      "page_number": 31,
+      "section_title": null,
+      "text": "31U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nImproved WUE—Thermosyphon\n3\n1\n"
+    },
+    {
+      "page_number": 32,
+      "section_title": null,
+      "text": "32U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nESIF Data Center Efficiency Dashboard\n"
+    },
+    {
+      "page_number": 33,
+      "section_title": null,
+      "text": "33U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY 33\nApplications\n• Favorable Application Characteristics\n– Year-round heat rejection load (24/7, 365 days is best)\n– Higher loop temperatures relative to average ambient temperatures\n– High water and wastewater rates or actual water restrictions\n– Owner’s desire to mitigate risk of future lack of continuous water availability (water resiliency)\n– Owner’s desire to reduce water footprint to meet water conservation targets\nAny application using an open cooling tower is a potential \napplication for a hybrid cooling system, but certain \ncharacteristics will increase the potential for success."
+    },
+    {
+      "page_number": 34,
+      "section_title": null,
+      "text": "34U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nSample Data: Typical Loads and Heat Sinks\n3\n4\n"
+    },
+    {
+      "page_number": 35,
+      "section_title": null,
+      "text": "35U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nData Center Metrics\n3\n5\nPUE = 1.034 \nERE = 0.929 \nWUE = 0.7 liters/kWh \nFirst Year of TSC Operation (9/1/16–8/31/17) \nHourly average IT Load = 888 kW \nWUESOURCE = 5.4 liters/kWh\nWUESOURCE = 4.9 liters/kWh if energy from 720 kW PV \n(10.5%) is included\nusing EWIF 4.542 liters/kWh for Colorado\nAnnual Heat Rejection\nwith only cooling towers, WUE = 1.42 liters/kWh\nhttps://www.nrel.gov/docs/fy18osti/72196.pdf\nCooling\nTowers\n47%\nBuilding Heat 11%\nThermosyphon\n42%\nCooling\nTowers\n47%\nBuilding Heat 11%"
+    },
+    {
+      "page_number": 36,
+      "section_title": null,
+      "text": "36U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nCost and Water Savings\n"
+    },
+    {
+      "page_number": 37,
+      "section_title": null,
+      "text": "37U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nMesa 720 kW\nGarage \n1,156 kW\nParking\n524 kW\nRSF B \n449 kW\nRSF A \n408 \nkW\nS&TF \n94 kW\nOTF+ \n50 \nkW\nOtto VanGeet, 303-384-7369, otto.vangeet@nrel.gov\nNREL PV Systems ~ 3,600 kW \nSouth Table Mesa Campus\nCATS \n200 kW\nContact"
+    },
+    {
+      "page_number": 38,
+      "section_title": null,
+      "text": "38U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nNotice\nThis research was performed using computational resources sponsored by the U.S. Department of Energy's \n(DOE) Office of Energy Efficiency and Renewable Energy and located at the National Renewable Energy \nLaboratory under Contract No. DE-AC36-08GO28308. Funding provided by the Federal Energy Management \nProgram. The views expressed in the presentation do not necessarily represent the views of the DOE or the U.S. \nGovernment. The U.S. Government retains and the publisher, by accepting the presentation for publication, \nacknowledges that the U.S. Government retains a nonexclusive, paid-up, irrevocable, worldwide license to \npublish or reproduce the published form of this work, or allow others to do so, for U.S. Government purposes."
+    },
+    {
+      "page_number": 39,
+      "section_title": null,
+      "text": "Sandia National Laboratories is a multimission laboratory managed \nand operated by National Technology & Engineering Solutions of \nSandia, LLC, a wholly owned subsidiary of Honeywell International \nInc., for the U.S. Department of Energy’s National Nuclear \nSecurity Administration under contract DE -NA0003525.\n7X24 Exchange InternationalFall 2019\nSandia National Laboratories\nDavid J. Mar tinez"
+    },
+    {
+      "page_number": 40,
+      "section_title": null,
+      "text": "Liquid Cooling Close Coupled Systems\n1st Generation:  Liquid indirectly on the chip positive pressure ~typical 65% heat \ncaptured to liquid\nSystem 1:  Fixed plate cooling technology indirect cooling with thermal interface 90% \nheat capture to liquid\nSystem 2:  Liquid indirectly on the chip works in a vacuum ~70% heat capture to liquid\nImmersion cooling several vendors – dielectric fluid with total board submerged with \n~100% heat capture liquid\nAll good solutions with warm water some are less maintenance and less \ninitial  infrastructure cost ,several advantages vs disadvantages all solutions \nare more effective in heat capture than current air solutions along with less \nOPEX.\n40"
+    },
+    {
+      "page_number": 41,
+      "section_title": null,
+      "text": "• Aquarius 480 volt 15 kW half  rack Standard \nOpen Compute Project Rack (OCP)\n• Emerson 12VDC Power rectifier\n• 36 compute nodes (1/2 rack)\n• Nodes never throttled back while testing (2 \nweek test) water parameters were in a operating \nrange between 75F - 95F entering at 10 GPM \nwith a delta of  12 to 15 degrees\n• Energy Performance Evaluation of  Aquila’s Aquarius \nFixed Cold Plate Cooling System at NREL’s High \nPerformance Computing Center\nhttps://www.nrel.gov/docs/fy19osti/73356.pdf\n41\nSystem Innovative Solutions:\nAquarius Warm Water Cooling “ Yacumama”\nNode and heat transfer material"
+    },
+    {
+      "page_number": 42,
+      "section_title": null,
+      "text": "42 Aquarius Inside Look\nPlates before \nnode install\nWater connections  1” \nquick coupling \nNREL testing \nstation"
+    },
+    {
+      "page_number": 43,
+      "section_title": null,
+      "text": "43\nSystem 2,  ATTAWAY COMPUTER\n1,488 compute nodes (8 scalable units)\n◦ 1.93 PFLOPs peak\n◦ Will be the fastest production cluster at Sandia\n2.3 GHz processors\n◦ Nodes have dual sockets with 18 cores each\n◦ Intel Xeon Gold 6140 “Skylake”\n◦ ~1.3 TFLOPs per node!\n192 GB RAM per node (5.3 GB per core)\nIntel Omni-Path high speed interconnect\n◦ 2:1 oversubscription\n◦ Mellanox ConnectX4 HCA ’s in IO nodes\nPenguin Tundra™ hardware platform\n◦ Open Compute (OC) 21’’ racks\n◦ 3 nodes compute nodes slotted in 1 Open Unit (OU)\nNext generation water cooling:\n◦ Processors are directly cooled by cold plate \n◦ Fins provide additional air cooling/heat exchange \n◦ Floor based CDU’s provide negative pressure to prevent leaks and to improve system resilience.\n◦ ~60-70% of  node heat is removed via water \nDelivery in August/September 2019\n"
+    },
+    {
+      "page_number": 44,
+      "section_title": null,
+      "text": "44\nAttaway Computer System\n• 24 OCP compute racks 6 sys \nadministrative racks\n• 480 volt 60 amp per rack\n• ~30 kW per rack 12 volt DC \n(OCP Bus Bar)\n• 70% liquid cooled medium \ntemp supply water 70 F return \nwater ~90 F, entering air temp \n78 F\n• Reverse Osmosis (RO) process \nwater with rust inhibitor and \nbiocides"
+    },
+    {
+      "page_number": 45,
+      "section_title": null,
+      "text": "45\nNode For New Attaway Computer\nCPU\nProcess Supply\nMemory\nProcess Return\nFans"
+    },
+    {
+      "page_number": 46,
+      "section_title": null,
+      "text": "46\nCooling Distribution Unit (CDU)\n1. Pump Chamber\nThe Chamber is where coolant is stored, supplied to the servers and received from the servers.  \nThe system cycles through the main and auxiliary chambers allowing for a steady flow\n2. Heat Exchanger (2x)\nTransfers the heat created by the servers to the cooling tower or chiller.  The HX are connected \nin series to minimize the processor temperature on hot humid days with warm facility water.\n3. Liquid Ring Pump (LRP)\nLRP uses water as a seal to provide the required vacuum necessary to propel the coolant.  The \nwater seal does not wear out.\n4. Microprocessor Control\nThe temperature in the fluid reservoir is controlled to maintain the coolant temperature above \nthe dew point in the data center.\n5. Water Quality Control\nThe water quality is monitored and controlled to maintain corrosion and bacterial protection.  \nAutomatic fill, drain, air purge and leak test are included and coolant additive is stored on board.\n6. Coolant Handling Manifold\nStandard 6 cooling loops exiting bottom of  CDU.  Optional single feed coolant supply for \nICEdoorTM applications at either bottom or top."
+    },
+    {
+      "page_number": 47,
+      "section_title": null,
+      "text": "47\nChilldyne Negative Pressure CDU\n• Three CDU’s share cooling load that two \nCDU’s can handle\n•Each CDU cools up to 300 KW  \n•Failover valves control which 2 CDU’s do \nthe cooling\n• Closed loop in data center with 2x heat \nexchangers in each CDU removes heat to \ncooling tower\n• 480V power + stainless steel chamber \npump new for Sandia\n• 65 GPM primary water \n"
+    },
+    {
+      "page_number": 48,
+      "section_title": null,
+      "text": "48\nChilldyne Cold Plate\nRobust Cold Plate design\nIncludes fins for back up air cooling\nTurbulator\n"
+    },
+    {
+      "page_number": 49,
+      "section_title": null,
+      "text": "49\nSandia Rack and manifold design\n• Manifold design for negative \npressure\n•Straight Barbs\n•Temperature and pressure \nsensors in each rack\n•Room for additional servers \n(up to 102 possible)"
+    },
+    {
+      "page_number": 50,
+      "section_title": null,
+      "text": "Conclusion (two different but like systems) \nEach system have different characteristic's however both systems have quite a few \ncommon points:\n• Both systems are noninvasive to the system administrator (can service nodes without \nhaving a mechanical engineering degree or plumber background)\n• Both systems have great heat transfer and are flexible when adding additional systems\n•Both systems can utilize warm water cooling with a possibility of  capturing reheat use\n•Both systems are designed with further enhancement capabilities \n•Both systems are designed with ease of  accessibility while servicing\n•Both systems utilize simplistic chemistry in the water composition\n•Both systems facility interface connections are standard to the industry\n50"
+    },
+    {
+      "page_number": 51,
+      "section_title": null,
+      "text": "Dave Martinez\nEngineering Program/Project Lead\nInfrastructure Computing Services\nPO BOX 5800 MS-0823\nOffice: 505-844-6531\nCell: 505-506-6865\ndavmart@sandia.gov\n51\nContact Info\n"
+    }
+  ]
+}

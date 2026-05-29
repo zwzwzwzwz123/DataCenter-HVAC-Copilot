@@ -1,0 +1,182 @@
+﻿[
+    {
+        "Status":  "ok",
+        "Name":  "lbnl_guidance_zombie_servers_2024.pdf",
+        "Bytes":  507806,
+        "Url":  "https://datacenters.lbl.gov/sites/default/files/2024-07/Guidance%20on%20Finding%20Zombie%20Servers%20in%20Data%20Centers.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "lbnl_it_tool_user_manual_2023.pdf",
+        "Bytes":  844229,
+        "Url":  "https://datacenters.lbl.gov/sites/default/files/2023-11/FINAL%20IT%20Tool%20User%20Manual%2010-27-2023%20Version%202.5.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "lbnl_sandia_holistic_data_center_design_2023.pdf",
+        "Bytes":  1659032,
+        "Url":  "https://datacenters.lbl.gov/sites/default/files/2023-02/Sandia%20Labs_Holistic%20Data%20Center%20Design.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "lbnl_computer_server_selection_guidelines_2022.pdf",
+        "Bytes":  1192237,
+        "Url":  "https://datacenters.lbl.gov/sites/default/files/2022-03/Computer%20Server%20Selection%20Guidelines%2012-22%20%284%29.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "lbnl_accessing_onboard_server_data_2021.pdf",
+        "Bytes":  1281101,
+        "Url":  "https://datacenters.lbl.gov/sites/default/files/FINAL%20Accessing%20Onboard%20Server%20Data%209-20-2021%20%281%29.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "lbnl_dcee_actions_master_list_2020.pdf",
+        "Bytes":  1630031,
+        "Url":  "https://datacenters.lbl.gov/sites/default/files/2024-04/DCEE%20Actions%20Master%20List_090920_final.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "lbnl_data_center_resilience_demand_response_microgrids_2019.pdf",
+        "Bytes":  4589771,
+        "Url":  "https://datacenters.lbl.gov/sites/default/files/Designing%20and%20Managing%20Data%20Centers%20for%20Resilience%20-%20Demand%20Response%20and%20Microgrids_3Dec2019_0.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "lbnl_liquid_cooling_new_horizons_2019.pdf",
+        "Bytes":  7063657,
+        "Url":  "https://datacenters.lbl.gov/sites/default/files/7x24LiquidCooling_New_Horizons.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "lbnl_coe_dcoi_fact_sheet_2019.pdf",
+        "Bytes":  948076,
+        "Url":  "https://datacenters.lbl.gov/sites/default/files/LBNL%20CoE%20DCOI%20Fact%20Sheet_1-30.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "lbnl_getting_started_energy_efficiency_opportunities_2019.pdf",
+        "Bytes":  4236055,
+        "Url":  "https://datacenters.lbl.gov/sites/default/files/EEx%202019%20-%20Getting%20Started_%20Identifying%20and%20Assessing%20Energy%20Efficiency%20Opportunities%20in%20Your%20Data%20Center_final.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "lbnl_open_spec_liquid_cooled_server_rack_2018.pdf",
+        "Bytes":  1052940,
+        "Url":  "https://datacenters.lbl.gov/sites/default/files/OpenSpecification.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "lbnl_us_data_center_energy_usage_report_2016.pdf",
+        "Bytes":  4033426,
+        "Url":  "https://datacenters.lbl.gov/sites/default/files/DataCenterEnergyReport2016_0_0.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "lbnl_system_tools_carbon_reduction_2022.pdf",
+        "Bytes":  1520223,
+        "Url":  "https://datacenters.lbl.gov/sites/default/files/2023-02/Training-%20System%20Tools%20with%20Carbon%20Reduction%203-23-2022_1.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "lbnl_barriers_to_data_center_efficiency_2023.pdf",
+        "Bytes":  5989639,
+        "Url":  "https://datacenters.lbl.gov/sites/default/files/2024-03/2023%20barriers%20interview%20webinar%20v2.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "lbnl_tour_coe_toolkit_resources_2023.pdf",
+        "Bytes":  2286283,
+        "Url":  "https://datacenters.lbl.gov/sites/default/files/2024-03/Tour%20of%20CoE%20Toolkit%20Resources%20FINAL%2010-10-2023.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "lbnl_assessment_tips_dcep_training_2023.pdf",
+        "Bytes":  2687618,
+        "Url":  "https://datacenters.lbl.gov/sites/default/files/2023-10/Assessment%20tips%20from%20DCEP%20training%207-24-2023%20-%20Updated_1.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "lbnl_air_management_tool_user_manual_2023.pdf",
+        "Bytes":  4534675,
+        "Url":  "https://datacenters.lbl.gov/sites/default/files/2023-07/DOE%20AM%20Tool--User%27s%20Manual%20v3.1%20%287-25-2023%29.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "lbnl_air_management_tool_engineering_reference_2023.pdf",
+        "Bytes":  3189451,
+        "Url":  "https://datacenters.lbl.gov/sites/default/files/2023-03/DOE%20AM%20Tool--Eng%20Reference%20v3%20%283-15-2023%29.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "lbnl_data_center_air_management_report_2006.pdf",
+        "Bytes":  2734429,
+        "Url":  "https://datacenters.lbl.gov/sites/default/files/DC%20AIr%20Management%20Report_2006.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "lbnl_air_management_small_data_centers_2016.pdf",
+        "Bytes":  2446142,
+        "Url":  "https://datacenters.lbl.gov/sites/default/files/pgande_final_report_2016_herrlin2001204.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "doe_data_center_energy_efficiency_fact_sheet_2025.pdf",
+        "Bytes":  358014,
+        "Url":  "https://www.energy.gov/sites/default/files/2025-08/femp-data-centers-fact-sheet-2025.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "doe_thermosyphon_hybrid_cooling_water_efficiency_2019.pdf",
+        "Bytes":  305133,
+        "Url":  "https://www.energy.gov/sites/default/files/2019/05/f63/data-center-water-efficiency-0.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "doe_hpc_energy_efficiency_opportunities_2013.pdf",
+        "Bytes":  1105321,
+        "Url":  "https://www.energy.gov/cmei/femp/articles/energy-efficiency-opportunities-federal-high-performance-computing-data-centers"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "doe_federal_data_center_dashboard_recommendations_2014.pdf",
+        "Bytes":  1291209,
+        "Url":  "https://www.energy.gov/cmei/femp/articles/general-recommendations-federal-data-center-energy-management-dashboard-display"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "doe_hpc_data_center_metering_protocol_2011.pdf",
+        "Bytes":  1410330,
+        "Url":  "https://www.energy.gov/cmei/femp/articles/high-performance-computing-data-center-metering-protocol"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "doe_nsidc_energy_reduction_strategies_2013.pdf",
+        "Bytes":  1337636,
+        "Url":  "https://www.energy.gov/cmei/femp/articles/nsidc-data-center-energy-reduction-strategies"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "doe_retro_commissioning_data_center_efficiency_2013.pdf",
+        "Bytes":  881692,
+        "Url":  "https://www.energy.gov/cmei/femp/articles/retro-commissioning-increases-data-center-efficiency-low-cost"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "ashrae_tc99_thermal_guidelines_refcard_2021.pdf",
+        "Bytes":  161831,
+        "Url":  "https://www.ashrae.org/file%20library/technical%20resources/bookstore/supplemental%20files/therm-gdlns-5th-r-e-refcard.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "ashrae_904_2022_fact_sheet.pdf",
+        "Bytes":  158080,
+        "Url":  "https://www.ashrae.org/file%20library/about/government%20affairs/advocacy%20toolkit/virtual%20packet/standard-90.4-2022-fact-sheet.pdf"
+    },
+    {
+        "Status":  "ok",
+        "Name":  "lbnl_ashrae_liquid_cooling_guidelines_hpc_2011.pdf",
+        "Bytes":  430197,
+        "Url":  "https://datacenters.lbl.gov/sites/default/files/ashrae-recommend-6-2011.pdf"
+    }
+]

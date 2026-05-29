@@ -1,0 +1,337 @@
+{
+  "document_id": "doc_2407390debb34fcc8e462695e9e686f7",
+  "filename": "lbnl_data_center_resilience_demand_response_microgrids_2019.pdf",
+  "file_type": ".pdf",
+  "file_hash": "c7543eab9f25bb53487d5cd9b2beedda9caedc83c6681b1b06edfd2f7fb3dc83",
+  "source_path": "data\\knowledge\\uploads\\doc_2407390debb34fcc8e462695e9e686f7_lbnl_data_center_resilience_demand_response_microgrids_2019.pdf",
+  "metadata": {
+    "filename": "lbnl_data_center_resilience_demand_response_microgrids_2019.pdf",
+    "source_path": "data\\knowledge\\uploads\\doc_2407390debb34fcc8e462695e9e686f7_lbnl_data_center_resilience_demand_response_microgrids_2019.pdf",
+    "source_url": "https://datacenters.lbl.gov/sites/default/files/Designing%20and%20Managing%20Data%20Centers%20for%20Resilience%20-%20Demand%20Response%20and%20Microgrids_3Dec2019_0.pdf",
+    "authority": "LBNL/DOE Data Centers Center of Expertise",
+    "topic": "resilience-demand-response",
+    "curated_for": "data-center-hvac-rag-30-doc-corpus"
+  },
+  "pages": [
+    {
+      "page_number": 1,
+      "section_title": null,
+      "text": "1U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDesigning and Managing Data Centers for Resilience: Demand \nResponse and Microgrids"
+    },
+    {
+      "page_number": 2,
+      "section_title": null,
+      "text": "2U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nWebinar Logistics\n• This webinar is being recorded. The Q&A portion will not be \nmade publicly available. \n• Your phone will be muted throughout the webinar.\n• Enter any questions in the Question Box throughout the webinar. \n• Instructions to take the quiz will be provided at the end of \nwebinar. \n• Slides will be sent out afterwards to those who attend the entire \nwebinar "
+    },
+    {
+      "page_number": 3,
+      "section_title": null,
+      "text": "3U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nPresenters\nRachel Shepherd\nDOE-FEMP\nData Center Program Lead\nDale Sartor, P.E.\nLawrence Berkeley Laboratory\nStaff Scientist/Engineer\nRish Ghatikar\nElectric Power Research Institute\nProject Lead, Senior Program \nManager\nBruce Myatt, P.E.\nARUP\nData Center Business Lead\nMukesh Khattar\nElectric Power Research Institute\nTechnical Executive, Data Centers\nRussell Carr, P.E. \nARUP\nTechnical Lead\n"
+    },
+    {
+      "page_number": 4,
+      "section_title": null,
+      "text": "4U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nAgenda\n• Introduction\n• What does resilience mean for data centers?\n• Resilience and efficiency\n• Intro to advanced strategies for data center resilience\n• Data center demand response (DR)\n• Data center microgrids\n• Next steps toward a resilience strategy\n• Summary\n• Resources\n• Q&A "
+    },
+    {
+      "page_number": 5,
+      "section_title": null,
+      "text": "5U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nResilience – What is it? \n• Very large-scale events (VLSEs) \nwith potentially catastrophic \nimpacts pose increasing risk.*\n– Can be man-made (cyber, \nelectromagnetic pulse) or natural \n(hurricanes, wildfires)\n• Frequency and severity of VLSEs \nmay continue to increase with \n“malicious intent” and “climate \nrisks.” \nThe number bars, left axis, type colors, and annual cost right vertical axis of U.S. billion-dollar disasters from 1980-2018 \nSource: NOAA\nThe ability to prepare for and adapt to changing conditions and withstand and recover \nrapidly from disruptions. Resilience includes the ability to withstand and recover from \ndeliberate attacks, accidents, or naturally occurring threats or incidents.*\n* Presidential Policy Directives PPD 8 & 21 2013; Grid \nModernization Laboratory Consortium 2017; FERC 2018"
+    },
+    {
+      "page_number": 6,
+      "section_title": null,
+      "text": "6U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nChallenges to Electric System Resilience\nNatural\nHazards\nHigh-Magnitude Earthquake\nGeomagnetic Disturbance (GMD) - Severe Space Weather\nHurricanes, Wildfires, Other Severe Weather Events\nSource: Electric Power Research Institute\nManmade\nHazards\nElectromagnetic Pulse (EMP), Nuclear/Chem/Bio\nCyber Terrorism\nCoordinated Physical Assault\nOther \nInterruptions\n Accidents, Fuel Supply Unavailability, Public Safety Power Shutoff"
+    },
+    {
+      "page_number": 7,
+      "section_title": null,
+      "text": "7U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nThree Complementary Pathways to Improving Resilience\nSource: Electric Power Research Institute\nWithstand\n Assess and Recover"
+    },
+    {
+      "page_number": 8,
+      "section_title": null,
+      "text": "8U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nWhat is Data Center Resilience?\nReliability\n•How often a component or system suffers an outage or fails, e.g., MTBF\nAvailability\n•How much time power and cooling is available for IT operations\nResilience \n•Above plus ability to withstand extreme, system-wide events with managed \nrecovery\n•Reaches beyond the data center, e.g., ensures a durable upstream fuel supply \nchain\n•Sustains delivery of the most critical end services"
+    },
+    {
+      "page_number": 9,
+      "section_title": null,
+      "text": "9U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nCritical Missions Demand High Resilience\n• Data centers are already sited, designed and operated for high \nreliability.\n• High availability of power, cooling, networks & applications\n• Utility & Grid Independence \n– Uninterruptible power supplies (UPS), on-site generation, e.g., diesel \ngenerators and thermal storage are commonly used."
+    },
+    {
+      "page_number": 10,
+      "section_title": null,
+      "text": "10U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nMission Critical Power Availability\n• Redundant electrical system, e.g., \n2N\n• Dual Path Power – Grid and \nUPS/Generator\nImage Source: Aruba S.p.A"
+    },
+    {
+      "page_number": 11,
+      "section_title": null,
+      "text": "11U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nMission Critical Cooling Availability\n• Redundant chilled water system\n• May have redundant water \nsupply\n"
+    },
+    {
+      "page_number": 12,
+      "section_title": null,
+      "text": "12U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nData Center Availability: Tier Classifications\n• Tier 1 = Non-redundant capacity components, single uplink and servers \n• Tier 2 = Tier 1 + redundant capacity components \n• Tier 3 = Tier 2 + dual-powered equipment and multiple uplinks\n• Tier 4 = Tier 3 + all components are fully fault-tolerant and dual-powered, \nincluding uplinks, availability storage, chillers, HVAC systems, servers, etc."
+    },
+    {
+      "page_number": 13,
+      "section_title": null,
+      "text": "13U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nWhat Tier Is Best?\n• Carefully evaluate applications: What is really needed?\n– Not all data center applications are critical, especially for a short interruption.\n• Higher tiers add cost, complexity\n– Higher energy cost due to redundant systems operating in parallel at low load\n• Tiers don’t guarantee availability\n– Can still have fuel contamination, broken fuel or water pumps, etc.\n– Slow breaker can turn brief outage into a data center crash\n• Many examples of data centers without redundant systems, UPS, generation and even \ncompressor-based cooling\n– National lab HPCs\nResilience strategies can be different\n– Data centers can have low-tier availability but still be resilient – e.g., if they can “fail over” or transfer IT \nload to another facility unaffected by large-scale events.\n– More diversity in location and power/fuel supply = greater resilience."
+    },
+    {
+      "page_number": 14,
+      "section_title": null,
+      "text": "14U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nBeyond Tiers: Mission Critical Network & Application Availability\nImage Source: Amazon Web Services\nReliability is often not about a single facility. \n• Networking and failover among multiple data centers can be very cost effective\n• “Availability zones” feature one or more data centers linked in a given geographic region to allow \nreplication of applications and data across physically separate data centers. Failure of any one \ndata center leaves up-to-date copies or “instances” of those services available at other data \ncenters.\n• Parallel data processing\n• IT/data failover from one DC to \nanother\n• Other forms of networked \nredundancy (asynchronous, cloud)"
+    },
+    {
+      "page_number": 15,
+      "section_title": null,
+      "text": "15U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nCan Resilience Be Synergistic With Efficiency?\n• Efficiency is a resilience strategy, but EE and resilience can sometimes \nbe in tension.\n• Strategies that boost efficiency can support resilience:\n– Smart air management - optimizing fan and cooling energy while improving reliability\n– Back-up cooling and generation can be minimized, given lower demand\n– Wider environmental envelopes (w/more robust IT equipment) allow for greater \nefficiency and continued operation under compromised conditions, e.g., failure of \ncompressor cooling.\n– Data Center Infrastructure Management (DCIM) can detect faults and provide early \nwarning of potential problems.  Can also help segregate loads by mission criticality.\n• Simple systems (e.g., no compressor cooling) are generally more efficient \nand can be more reliable by reducing chances of human error."
+    },
+    {
+      "page_number": 16,
+      "section_title": null,
+      "text": "16U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nBeyond Redundancy: Two Advanced Resilience Strategies\nDemand Response (DR)\n• Controlled changes in electric usage:\n• Lower electricity use at times of high \nprices or when system reliability is \njeopardized.\n• Increase electricity use when prices are \nlow (e.g., batch loads).\n• Multiple choices of mode, timing and \nmagnitude of load change\n• Especially effective in conjunction with \nmicrogrids and variable supply resources.\nMicrogrids\n• A bounded, local energy system capable \nof operating in isolation of the grid (e.g., \ncontrol and balancing of loads, gen and \nstorage). \n• Many components already deployed in \ndata centers.\n• Allows “arbitrage” among multiple \nresources\n• Given the high value of redundancy and \navailability, data centers are a good \ntarget for microgrids."
+    },
+    {
+      "page_number": 17,
+      "section_title": null,
+      "text": "17U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDemand Response as a Strategy for Resilience \nin Federal Data Centers\nRish Ghatikar and Mukesh Khattar, Electric Power Research Institute (EPRI)"
+    },
+    {
+      "page_number": 18,
+      "section_title": null,
+      "text": "18U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nContext and Problem Statement: Demand Response (DR)\n1. Traditional DR has focused on managing peak \nelectricity usage.\n2. Increasing proliferation of variable renewable \ngeneration and advanced communications and \ncontrol technologies are enabling fast-responding \nDR resources.\n3. Large energy consuming customers (e.g., \nindustrial facilities) commonly contract with \nsystem operators for interruptible electricity in \nexchange for lower electricity rates.\nChanges in electric usage by demand-side resources from their normal consumption \npatterns in response to changes in electricity price, incentives to lower electricity use at times \nof high wholesale market prices or when system reliability is jeopardized.*\nEvolution of “Flexible \nPower Use”\n* Federal Energy Regulatory Commission (FERC)"
+    },
+    {
+      "page_number": 19,
+      "section_title": null,
+      "text": "19U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\n1. Energy Efficiency programs reduce overall electricity consumption, generally \nalso at times of peak demand.\n2. Price Response programs move consumption from times of high prices to \ntimes of lower prices (real time pricing or time of use) – can address \ntransmission distribution congestion management.\n3. Peak Shaving programs require more response during peak hours and focus \non reducing peaks on high-system load days – can address transmission & \ndistribution congestion management.\n4. Reliability Response (contingency response) requires the fastest, shortest \nduration response. Response is only required during power system “events.” \nThis is new and slowly developing.\n5. Regulation Response continuously follows minute-to-minute commands \n(sub-minute telemetry) from the grid in order to balance the aggregate \nsystem load and generation. This is also very new and appears to be very \npromising for certain loads.\nExpanding Demand-Side Management Objectives\nAdapted from:  Demand Response Spinning Reserve Demonstration Project, Consortium for Electric Reliability Technology, LBNL, Joseph Eto presentation October 19, 2009 \n(http://certs.lbl.gov/certs-loadkey-drsrdp.html). \nShape\nShift\nShed\nShimmy"
+    },
+    {
+      "page_number": 20,
+      "section_title": null,
+      "text": "20U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDemand Response (DR) Context for Data Centers\nData Center DR opportunities: Facility infrastructure and IT infrastructure\n"
+    },
+    {
+      "page_number": 21,
+      "section_title": null,
+      "text": "21U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDemand Response (DR) Context for Data Centers\n• Data centers sparingly participate in DR programs\n– Perceived risks (e.g., to availability) often given more weight than the value from participation \n– Most participation is from cooling loads, which in some private-sector data centers are declining \nwith increased use of direct/indirect evaporative cooling of outside air without mechanical cooling \nand thus increased efficiency (PUE)*\n𝐏𝐔𝐄 = 𝐓𝐨𝐭𝐚𝐥 𝐅𝐚𝐜𝐢𝐥𝐢𝐭𝐲 𝐄𝐧𝐞𝐫𝐠𝐲\n𝐈𝐓 𝐄𝐪𝐮𝐢𝐩𝐦𝐞𝐧𝐭 𝐄𝐧𝐞𝐫𝐠𝐲\n• Data center participation is often focused on managing cooling loads\n– Example: Raise temperature set-points during the DR event.\n• Leveraging IT equipment load is critical for long-term DR engagement efficacy.**\n– Computing power-capping technology developed by the industry.\n– Reducing computing load has synergistic effects on cooling loads\n* For example, a PUE 2.0 data center with 2 MW demand, uses 1 MW for non-IT load.\n** Ghatikar G., V. Ganti, N. Matson, & M. A. Piette, Demand Response Opportunities and Enabling Technologies for Data Centers: Findings from Field Studies, Aug. 2012. LBNL-5763E.   "
+    },
+    {
+      "page_number": 22,
+      "section_title": null,
+      "text": "22U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDR Improves Resilience of Electric System and Data Center Site\nDR \nStrategies\nElectric \nSystem \nResilience\nLocal \nResilience\n• Data centers can effectively integrate DR best practices\n– Power capping reduces clock speeds during peak demand periods and so can improve \nresilience and lower electricity costs.\n• DR is used now to improve electricity system resilience\n– Adaptation to increased over- and under-generation supply\n• Raising or lowering temperature set-points and/or variable fan speeds\n– Can be even more important within a microgrid \n• DR can also be effective in improving local resilience:\n– Enable lowering of the infrastructure requirements, e.g., cooling system size\n• Lower back-up capacity and costs due to lower demand\n– Extending the timespan of local resilience \n• Extends duration of islanded operation\nSlow-responding DR resources: Can support “withstand.”\nFast-responding DR resources:  Can support “withstand, survive, & recover.”"
+    },
+    {
+      "page_number": 23,
+      "section_title": null,
+      "text": "23U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nExpanding DR to Support Local Resilience\nData Center Demand    Data Center Backup\nkW\nTime\nDR-Mode\nData Center Backup for Resilience Under DR Mode\nkW\nTime\nkW\nTime\nLower Capacity\nExpanded Operations\nAfter (“recover”)Before (“withstand”)\n"
+    },
+    {
+      "page_number": 24,
+      "section_title": null,
+      "text": "24U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nData Center DR Strategies: IT Infrastructure\nEquipment, \nFunction Type\nDR Operational Strategy\nIT Load\nPower capping\n• Limit clock speeds or otherwise slow process for less or non-essential loads.\nLoad shifting or queuing IT jobs\n• Use job scheduling techniques to reduce (or increase) load as desired.\nUse built-in server power management capabilities for more aggressive load reduction.\nUse virtualization or techniques such as software-based power management to manage \nloads and power utilization (temporarily manage the available buffer)\nUse virtualization and migration technologies to move load to another facility on a lower \nstressed grid\nImplement more aggressive network power management"
+    },
+    {
+      "page_number": 25,
+      "section_title": null,
+      "text": "25U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nData Center DR Strategies: Facility Infrastructure\nEquipment, \nFunction Type\nDR Strategy\nFacility \nInfrastructure\nIncrease temperature set points (e.g., from recommended to allowable range)\n• Decreases load, and increases cooling efficiency including greater use of economizers\nCycle off or reduce power (e.g., speed control) to chillers, CRACs, fans, lights, UPS (e.g., \nput in “eco” mode), transformers, etc. \n• Modern UPS technologies and batteries provide additional value to support DR while \nmaintaining back-up availability/reliability\nIntelligent linking of controls to respond to IT load reductions (rapid multiplier effect).\nEnergy storage (also can increase availability)\n• Thermal Storage\n• Electric Storage (including short duration strategic use of UPS to help utility balance loads \nand frequency)\nStrategic use of emergency fossil-based generation\n• When allowed by local air quality or environmental rules\n• Run required testing when DR desired "
+    },
+    {
+      "page_number": 26,
+      "section_title": null,
+      "text": "26U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nData Center DR Case Studies: Net Apps, Berkeley Lab, UC-Berkeley & San \nDiego Supercomputing Center\nGhatikar G., V. Ganti, N. Matson, & M. A. Piette, Demand Response Opportunities and Enabling Technologies for Data Centers: Findings from Field Studies, Aug. 2012. LBNL-5763E.   \nData Center DR IT, Facility Infrastructure and Network Migration Operational Strategies\nNetApp\nShift/Queue data backups to storage\nTemperature set point adjustment\nLBNL 50B Server and CRAC units shutdown\nData Center Shutdown\nSDSC, UCB and LBNL 50B\nLoad migration - Homogeneous – Idling\nLoad migration - Homogeneous – Shutdown\nLoad migration – Heterogeneous - Decay\nKey Lessons\n• DR effectiveness proven for many infrastructure and IT loads*\n• No negative impacts (e.g., when recovering/recovered)\n• High value to the grid and low operational impact on DC"
+    },
+    {
+      "page_number": 27,
+      "section_title": null,
+      "text": "27U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nUC Berkeley (Mako) >> SDSC (Thresher) Load Migration Strategy\nDR Event:  12.30 pm to 5.10 pm (4hrs, 40mins)\nResults show a linear correlation between CPU utilization rate and power draw for dynamic \nincrease or decrease in CPU capacity reservation.\nField Test Results | Correlation of CPU Utilization and Power\nSpatial Migration\nGhatikar G., V. Ganti, N. Matson, & M. A. Piette, Demand Response Opportunities and Enabling Technologies for Data Centers: Findings from Field Studies, Aug. 2012. LBNL-5763E.   "
+    },
+    {
+      "page_number": 28,
+      "section_title": null,
+      "text": "28U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nResilience Enabling Technologies: DR Flexibility & Connectivity\nThree Attributes of the Power System in a “No-Regrets” Strategy\nSource: EPRI Report ID 3002007376, February 2016"
+    },
+    {
+      "page_number": 29,
+      "section_title": null,
+      "text": "29U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\n1. Reliability Response\n2. Regulation Response\nAdvanced Technologies for Fast-Responding Energy Resources\n• Faster responding DR resources (e.g., reliability and \nregulation response) are well-suited for shorter-\nnotification resilience events (e.g., flash floods).\n• Advanced technologies (internal and external) play a \nkey role in supporting resilience objectives.\no Secure external communication systems to grid operators \non emergency conditions.\no Secure internal communications and control operational \nstrategies to manage demand.\no Interoperable communication technologies with electric grid \n(e.g., utilities, system operators) and internal systems (e.g., \ncooling and IT systems)\n• Advanced technologies require supporting markets \nfor electric system resilience (e.g., prevent a blackout \nfrom undergeneration)\n"
+    },
+    {
+      "page_number": 30,
+      "section_title": null,
+      "text": "30U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nData Center Local Resilience\nPost\nResilience Event\n(Recover)\nOverarching\nConnectivity\nResilience \nStrategy\n•DR: Aggressive reduction \nof non-critical demand.\n•Local & network \nredundancy\n•Local supply: DER and \nmicrogrids\nStrategy\n•Enhanced cybersecurity\n•Strategies for robust and \nreliable network & \ncommunications\n•Strategic digital & analog \ncapabilities\nData Center Strategies for Local Resilience\nAdapted from EPRI Reference Framework for Grid Resiliency.\nStrategy\nDuring\nResilience Event\n(Withstand)\n•DR: Reduce non-critical \ndemand.\n•Fuel supply assurance.\n•Equipment and service \nhardening, and disaster \nrecovery planning"
+    },
+    {
+      "page_number": 31,
+      "section_title": null,
+      "text": "31U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nOpen Questions: DR Programs to Resilience\n• While benefits can be fairly quantified for local resilience, the same are not well-quantified for electric \nsystem resilience.\n– How do we value resilience for the system?\n– What are the cost and benefits of resilience? \n• How do we show DR business value and test-cases during- and post-resilience periods?\n– When is N+1 or 2N+1 a better design choice?\n– Is network redundancy a better alternative for certain resilience triggers?\n– What metrics can we use for DR to provide resilience value?\n• How do we value resilience for data centers since there is no one-size-fits-all resilience metric?\n– Attribute-based metrics:  Measure components or properties of an asset or system that increase its \nresilience\n– Performance-based metrics: Assess how an asset or system performs during a disruption.\n• Can we answer some or all of these questions working with federal data centers owners and \noperators. and field tests?"
+    },
+    {
+      "page_number": 32,
+      "section_title": null,
+      "text": "32U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDemand Response Summary\n• Proven for a range of loads, purposes, and business-cases in data \ncenters \n• More important with increasing variable generation capacity\n– Especially for microgrids with limited supply options/resources\n– Can withstand and adapt to over- and under-generation supply conditions \nonsite and on the grid\n• Continue to operate mission critical infrastructure originating from \nresilience triggers by activating DR operational strategies.\n• DR Operational strategies can also be effective in:\n– Lowering the infrastructure need for local resilience\n– Increasing the timespan of power and cooling availability"
+    },
+    {
+      "page_number": 33,
+      "section_title": null,
+      "text": "33U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nAdvanced Microgrids as a Resiliency Strategy for \nFederal Data Centers\nBruce Myatt, PE, and Russell Carr, PE, Arup North America"
+    },
+    {
+      "page_number": 34,
+      "section_title": null,
+      "text": "34U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nFrom Mission Critical Facilities to Resilient Service Delivery\n• Hazards mitigation and preventative measures\n– Accelerating changes in global weather patterns  \n– Flood plain map changes from human & natural reasons  \n• Survival strategies for aggressive & frequent cyber attacks \n• Single site vs multi-site regional perspective\n– “Shared Fate” of multiple nearby facilities can make network fail-over ineffective \n– PRA analysis, FMEA data & engineered solutions for selective hardening \n• Long term operations and recovery after an event\n– Historical building performance and utility recovery timeline after event\n• Microgrids\n– Distributed Energy \n– Grid Interdependence"
+    },
+    {
+      "page_number": 35,
+      "section_title": null,
+      "text": "35U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nWhat is a Microgrid? - Distributed Energy & Grid Interdependence \nTon, D. and Smith, M. (2012). The U.S. Department of Energy's Microgrid Initiative.The \nElectricity Journal, 25(8), pp.84-94.\nU.S. Department of Energy Microgrid \nExchange Group:\n– A microgrid is a group of interconnected \nloads and distributed energy resources within \nclearly defined electrical boundaries that \nacts as a single controllable entity with \nrespect to the grid. \n– A microgrid can connect and disconnect from \nthe grid to enable it to operate in both grid-\nconnected or island-mode.\nDERs can involve onsite conventional and \nclean generation (e.g. renewables, fuel cells, \nCCHP), as well as demand management and \nstorage (thermal and electric)."
+    },
+    {
+      "page_number": 36,
+      "section_title": null,
+      "text": "36U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nMoving From Back-Up Power to Resilient Microgrid\n• Multiple generation sources (on-site and grid)\n– Multiple sources of continuously synchronized power, inc. onsite primary generation & energy storage\n• Advanced communication networks and controllers\n– Onsite centralized SCADA or distributed independent controls\n– Real-time algorithms to access the most available and lowest cost supply\n• Optimized operations for resiliency, efficiency and sustainability\n– Balance and sequence multiple loads and energy sources in real time \n– Shape load with electric storage and/or shifting IT loads\n– Shed non-critical loads or migrate to another data center\n• Potential for full Direct Current (DC) power\n– DC generators to DC-powered servers, HVAC (VSDs) and LEDs\n– Simpler, more robust system - more reliable switching, fewer inverters, less conversion losses\n– Energy and cost savings\n36\n"
+    },
+    {
+      "page_number": 37,
+      "section_title": null,
+      "text": "37U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nEfficient, Sustainable and Resilient Microgrids\nAREA WITHOUT MICROGRID WITH MICROGRID\nImproved power \nreliability / resilience\n• Typically standby power is provided by \ndiesel generators only\n• Limited fuel supply; site is vulnerable \nif system fails or fuel is exhausted\n• Multiple power sources providing power – if \none source fails, can load shed and use \nother source, e.g., fuel cells. \nCost risk reduction \n(outages)\n• Typical utility outages are 0-4 hours in \nlength and fuel storage is usually \nacceptable\n• Extreme events – wildfire, earthquakes, \nhurricanes – longer outage durations\n• Multiple power sources including renewables, \nmay operate indefinitely\nImproved \nsustainability\n• Offset energy use with renewables\n• Still rely on diesel as back-up\n• Onsite renewables - no large transmission \nlosses\n• In island mode, reduces diesel consumption\nSavings, e.g., \ndemand response \nand total cost of \nownership \n• Less flexibility for load shifting • Many load-shifting mechanisms available\n• UPS system as a resource \n• Demand response of non-critical loads\n• Generation assets when power is \nexpensive via gen and storage dispatch. "
+    },
+    {
+      "page_number": 38,
+      "section_title": null,
+      "text": "38U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nWhy Microgrids Today?\nPower outages by state - Eaton Blackout Tracker (2018). \nhttps://switchon.eaton.com/blackout-tracker - Outages from 2008 - 2017\n• Improved power availability & \nresiliency\n• Cost risk reduction (fewer service \noutages)\n• Improved sustainability\n• Operating cost savings \n– Energy efficiency\n– demand response \n– total cost of ownership "
+    },
+    {
+      "page_number": 39,
+      "section_title": null,
+      "text": "39U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nMicrogrids Growth Curve – Today & Tomorrow\nSource: Navigant Research\n• Exponential growth\n• Driven by C&I \ncustomers\n• Technology is being \ntried and proven \ntrue\n• Mission critical \napplications "
+    },
+    {
+      "page_number": 40,
+      "section_title": null,
+      "text": "40U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nBusiness Case Studies – Onsite Gen for Advanced Data Center Microgrids\n• FUEL CELLS – Ebay & Equinix\n• NATURAL GAS ENGINES – NetApp\n• MICRO-TURBINES – DataGryd\n• BIO GAS FUEL CELLS – Microsoft\n• SOLAR & WIND POWER – Apple \n• NATURAL GAS TURBINES & CCHP – Qualcomm\n"
+    },
+    {
+      "page_number": 41,
+      "section_title": null,
+      "text": "41U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nProposed $1 Billion Connecticut Data Center Site\n– Fuel cell microgrid receives $55.2m tax break\n– Energy Innovation Park, LLC (EIP) and Thunderbird CHP\n20MW Fuel Cell-Powered Microgrid \n– Data center coming later\n– 44 trailer-sized fuel cells in a 45,000 square foot factory\nStrong Business Case Support  \n– CT Department of Energy and Environmental Protection approved the fuel cell-powered facility in July of \n2018\n– Site expected to bring 3,000 jobs, $200 million in state tax revenue and $45 million in local tax revenue \nover 20 years\n– $8 million of that tax revenue would come from the fuel cell project alone.\nAlternative Energy – Primary On-Site Power\nSource: Data Center Dynamics, https://www.datacenterdynamics.com/news/proposed-1-billion-connecticut-data-center-fuel-cell-microgrid-receives-552m-tax-\nbreak/?mkt_tok=eyJpIjoiT0RFM016UmhORGhqTnpRMyIsInQiOiIrTCtnNWowWWJHRGh0aGk5bEoyZU9NcGhVVVVYRDJmcGhoczJzKzd3UWhoSGk5a0JRZURxQ3JkZnhGN2dVeElrTFJDRkR5WkZJbjB1\nWnN2YmVQQmxPdVllOGE2STJZYmttS1wvcVdGWnhkemZGQk1JM1lXMUtobFp5Z1wvMmVNRHYrIn0%3D\n"
+    },
+    {
+      "page_number": 42,
+      "section_title": null,
+      "text": "42U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nRenewable Energy - PPA or IPP\nSource: https://www.computerworld.com/article/3161732/apple-to-build-200mw-solar-\nfarm-to-power-data-center.html\n• Apple built a 50MW solar power plant \n– 300 acres in Florence, Arizona\n– Powering its Mesa data center\nSolar Farms Adjacent to Data Centers\n• Apple announced a joint venture \nwith Nevada Energy (NV Energy)\n– Builds out 200MW of PV solar to power \nits data center in Reno, Nevada  \n– Apple's largest solar project to date \nand live in 2019\n• NV Energy PPA price is 3.099¢/kWh \nwith 2% annual escalator \n– Very inexpensive energy\n– Two other solar farm PPA’s \n– Lowest overall price for US solar power\n– 3.24¢/kWh and 3.42¢/kWh for 25-\nyear terms "
+    },
+    {
+      "page_number": 43,
+      "section_title": null,
+      "text": "43U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nNATURAL GAS TURBINES – QUALCOMM\n Proven technology globally with efficiencies approaching 50%\n Excellent for full CCHP (combined cooling, heat and power) tri-generation with high \ntemperature waste heat opportunities like power, steam and hot & chilled water with 70-\n80% efficiencies\n Turbine “back-up” fuel options include jet fuel, \nwhich is easier to store on site than natural gas\n Historically slower to respond to power outages \nthan diesels, as backup (newer systems are faster)\n Excellent as primary source of power and cooling, and \nbest with an off-taker for steam & water by-product for CCHP\nGE Natural Gas Turbines from 11 MW to 340 MW \nHeavy Duty, High Efficiency Turbines  \nNatural Gas Turbines – Combined Cooling, Heat & Power"
+    },
+    {
+      "page_number": 44,
+      "section_title": null,
+      "text": "44U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDistributed Generation & Loads Management \nA microgrid is a local energy system that incorporates three key components: Generation, Storage and \nDemand, all within a bounded and controlled network. It may or may not be connected to the grid.\n• Generation may be from a range \nof variable distributed energy \nresources \n• Storage may include battery \narrays, electric vehicles and liquid \nair, among others. \n• A microgrid is a distributed level\nenergy  system which includes all \nthe necessary components to \noperate in isolation of the grid.\n• When operating independently of \nthe grid in ‘‘island’’ mode, a \nmicrogrid is a self-sustaining  \nindependent energy system. \n• Demand is modulated through the \nmicrogrid control systems,  \nincorporating demand response.\n• Microgrids are predominantly \nelectrically based, but they can \nalso incorporate a thermal  \nenergy component.\n• They operate as AC, DC, high-\nfrequency AC or a combination.\nImage Source: Arup"
+    },
+    {
+      "page_number": 45,
+      "section_title": null,
+      "text": "45U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nControlled Balance of Supply & Demand\nMicrogrids can balance available supply and desirable load through a careful marriage of supply and \ndemand, combined with intelligent control of any imbalance. \n• Microgrid energy supply \n– Diverse sources ranging from readily controlled to \nintermittent and less controllable\n• Microgrid energy storage \n– Critical supply fall-back as well as a means to “time-\nshift” own generation to match load demands.\n• Microgrid energy load \n– Range of controllability characteristics ranging from \ncritical loads such as data systems to adjustable \nloads such as lighting or grid dispatch.\nImage Source: Arup"
+    },
+    {
+      "page_number": 46,
+      "section_title": null,
+      "text": "46U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\n“Advanced” Microgrids for the Data Center \nNavigant Research, IDC\n• Interdependent grid operations\n– Improved resilience of local grid\n• Demand management\n– Dynamic dispatch algorithms\n– Predictive energy management\n• Load growth\n• Lower costs of outages\n• Technology readiness\n• Cleaner cloud \n• Improved cybersecurity\n• Resource sharing with community\nAldaouab, I. and Daniels, M.C. (2018). Model predictive control energy \ndispatch to optimize renewable penetration for a microgrid with battery and \nthermal storage. 2018 IEEE Texas Power and Energy Conference (TPEC), \n1-6."
+    },
+    {
+      "page_number": 47,
+      "section_title": null,
+      "text": "47U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nWhy Advanced Microgrids for Data Centers?\n47\n• Build on existing infrastructure and share \ncommunity resources\n• Prioritize and shape demand and supply \nbased upon load criticality and \navailability/cost\n• Manage data center energy systems to \nwithstand, survive, and recover \noperations after unexpected events \n• Improve overall resiliency including \ncontinuation during extended VLSE \noutages\n• Cleaner and renewable power generation\nSource: Schneider Electric "
+    },
+    {
+      "page_number": 48,
+      "section_title": null,
+      "text": "48U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nData Center Applications – One Size Does Not Fit All\nData Center Type Suitable DR and Microgrid Applications\nHyperscale Onsite primary power generation (e.g. natural gas fuel cells or combustion \ngenerators, and occasionally renewables) and storage that facilitates grid \nindependence, energy efficiency and controlled shut down.\nEdge Possible energy resource sharing with local community, campus, or base to \nprioritize and deliver grid and onsite power capacities, waste heat recovery and use \nfor district heating, chilled water (possibly via CCHP) for cooling, and data and \ncommunications as a commodity.  \nColocation and \nEnterprise\nLarge-scale & stand alone - similar to Hyperscale but with a greater need for back-\nup/resilient power (high availability). \nSmall-scale & building mixed use (e.g. embedded with shared resources like \ncooling plant) – similar to Edge with variations based on mission criticality/SLAs.\nHPC Similar to Hyperscale and Edge (depending on size), often with less of a need for \nback-up power resources (e.g. scientific computing), a lower power priority for \ncompute resources, and higher potential to capture and reuse heat."
+    },
+    {
+      "page_number": 49,
+      "section_title": null,
+      "text": "49U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nThe Microgrid Value Chain \nTo receive maximum value/benefits and ROI, stack as many \nvalue propositions as possible.\nSome benefit the user while others benefit the grid\nUtilities and electric grid managers can—and do--- provide \nfinancial incentives and payments for many types of services.\nCommon business justifications for microgrids include event \nmanagement, black-start capabilities, storm hardening and \nfinancial optimization.\nMicrogrids can be:\n• Optimized for Resiliency\n• Optimized for Economics  \n• Optimized for Sustainability\n• All of the Above\nSource: The Economics of Battery Energy Storage 2015   |  By  Garrett Fitzgerald James Mandel Jesse Morris Hervé Touati"
+    },
+    {
+      "page_number": 50,
+      "section_title": null,
+      "text": "50U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nBusiness Models: Microgrid Ownership Models \n• Single-party owner\n• Shared ownership\n• Third-party owner\n• Utility ownership\n• Community ownership\nExamples of capital and service exchanges in a third party ownership model – Arup 2019"
+    },
+    {
+      "page_number": 51,
+      "section_title": null,
+      "text": "51U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nMicrogrid Delivery Models \n• Design-bid-build (DBB)\n• Design-build-finance (DBF)\n• Integrated project delivery (IPD)\n• Public-private partnership (P3)\n• Construction manager at risk (CMAR)\nExamples of capital and service exchanges using CMAR project delivery – Arup 2019\n"
+    },
+    {
+      "page_number": 52,
+      "section_title": null,
+      "text": "52U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nAdvanced Microgrids - New Build vs. Retrofit \nSource: Schneider Electric \nNEW BUILD \n• Planned from the outset\n• Common integrated platform can \nbe developed\n• Equipment is all of the same \nvintage \n• Commissioning can be undertaken \nin an empty building \n• Can be cheaper than retrofit \nRETROFIT \n• Varying vintages of equipment in a \nbuilding \n• Not all equipment will be able to be \ncontrolled with retrofit\n• Severe disruption when commissioning\n• Upgrade equipment to “microgrid \nready” during asset replacement to fully \nbuild out as replacement happens "
+    },
+    {
+      "page_number": 53,
+      "section_title": null,
+      "text": "53U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nProject Development: Commissioning & Operations\n• Commissioning\n• Integrated Systems Testing\n• Verification & Validation\n• Retro-commissioning\n• Ongoing O&M Procedures\nImage Source: Data Center Dynamics"
+    },
+    {
+      "page_number": 54,
+      "section_title": null,
+      "text": "54U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nConclusions – The Data Center Advanced Microgrid\n• Advanced microgrids deliver intelligent, flexible orchestration of loads and power supplies \n• Open new paths to higher availability and resilience:\n• On-site primary generation\n• Demand response\n• Added energy storage\n• Improved data center uptime: \n• Overcoming short-term outages with resources other than redundant generators\n• Idle diesel generators can be replaced with alternative sources of on-site primary power, coupled with quick-\nstart diesel generators for black start and life-safety power. \n• Owner gets improved control of energy costs and quality   \n• Microgrid also enables sustainability, efficiency and grid independence/inter-dependence.\n• Mutually beneficial operations with utility, grid and local community "
+    },
+    {
+      "page_number": 55,
+      "section_title": null,
+      "text": "55U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nNext Steps - Microgrids\n• Update energy & risk management plans for your data center(s) \n– Regional planning for natural hazards events and mitigations \n– Impact of microgrids on disaster recovery & business continuity plans\n• Measure the total cost & benefit of today’s new microgrid strategies\n– Renewable/alternative on-site primary power generation and storage\n– Community benefits of energy resource sharing for multiple buildings & loads\n– Intelligent controls for energy sourcing, distribution and utilization\n• Identify and measure opportunities for your existing facilities \n– Energy costs and uptime improvements \n– Current DER and grid connectivity \n– Edge and distributed computing demand"
+    },
+    {
+      "page_number": 56,
+      "section_title": null,
+      "text": "56U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nDR and Microgrids as Two Overlapping Strategies for \nFederal Data Center Resilience"
+    },
+    {
+      "page_number": 57,
+      "section_title": null,
+      "text": "57U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nNext Steps: Weighing Resilience Needs, Choosing a Strategy\n• Explore and develop resilience plans for a single building or multiple sites with \nFEMP’s Technical Resilience Navigator (https://femp.energy.gov/resilience/)\n– Identify mission-critical assets and functions\n– Identify threats and vulnerabilities\n– Develop solutions\n• Other considerations unique to data centers include:\n– Resilience investments can offset redundancy and its costs\n– Demand response can bolster the grid and reduce costs (e.g., DR incentives, \nlower demand charges)\n– Costs of disaster recovery, lost business continuity often underestimated for \ndata centers\n– New build vs. retrofit, own vs. energy service\n• For more in-depth resources on data center efficiency, see the DOE Center for \nExpertise in Energy Efficiency in Data Centers at LBNL https://datacenters.lbl.gov"
+    },
+    {
+      "page_number": 58,
+      "section_title": null,
+      "text": "58U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nSummary\nDemand Response\n• Proven for a range of loads and purposes in \ndata centers \n• More important with increasing variable \ngeneration capacity\n– Can help data centers ride out over-/under-\ngeneration conditions onsite and on the grid\n– Both enabled by and complementary to \nmicrogrids\n• Can also be effective in:\n– Lowering infrastructure needs, including \nredundancy and demand charges\n– Increasing the timespan of power and cooling \navailability\nMicrogrids\n• Microgrids orchestrate loads and supply to \nenable continuity of service\n– Provide a natural extension of existing data \ncenter infrastructure\n– Enable islanding\n– Integrate multiple primary onsite generators \nwith the shaping and sequencing of loads\n– One size does not fit all – not every data \ncenter or commercial site needs a microgrid, \ne.g., lab HPCs\n58\n Data centers typically are built for high degrees of resilience.\n Demand response and microgrids are advanced strategies that can enhance resilience \nand offset some redundancy."
+    },
+    {
+      "page_number": 59,
+      "section_title": null,
+      "text": "59U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nTechnical Advisory Group\n Peter Asmus, Navigant Consulting LLC\n Peter Gross, PMG Associates (formerly Bloom Energy)\n Aloke Gupta, California Public Utilities Commission\n Suresh Pichai, Equinix\n Alex Portilla, Pacific Gas & Electric"
+    },
+    {
+      "page_number": 60,
+      "section_title": null,
+      "text": "60U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\n"
+    },
+    {
+      "page_number": 61,
+      "section_title": null,
+      "text": "61U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nContacts\n• Rachel Shepherd, Data Center Program Lead, Federal Energy Management \nProgram, rachel.shepherd@ee.doe.gov\n• Dale Sartor, Staff Scientist and Director of the DOE Center of Expertise on \nEnergy Efficiency in Data Centers, Lawrence Berkeley National Laboratory, \ndasartor@lbl.gov\n• Rish Ghatikar, Senior Program Manager, Electric Power Research Institute, \ngghatikar@epri.com\n• Bruce Myatt, Data Center Business Lead, Arup North America, \nBruce.Myatt@arup.com"
+    },
+    {
+      "page_number": 62,
+      "section_title": null,
+      "text": "62U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nSLIDE REFERENCES \nhttps://www.energy.gov/sites/prod/files/2019/05/f62/femp-resilience.pdf \nhttps://femp.energy.gov/resilience/about-technical-resilience-navigator \nhttps://journal.uptimeinstitute.com/application-resiliency-vs-infrastructure-resiliency/\nGhatikar G, M.A. Piette, S. Fujita, A. McKane, J.H. Dudley, A. Radspieler, K.C. Mares, D. Shroyer; Demand Response and Open Automated Demand \nResponse Opportunities for Data Centers. January 2010. LBNL-3047E. DOI 10.2172/981725\nData Centers and Advanced Microgrids Meeting Resiliency, Efficiency, and Sustainability Goals Through Smart and Cleaner Power Infrastructure \nPublished 4Q 2017 Commissioned by Schneider Electric\nTon, D. and Smith, M. (2012). The U.S. Department of Energy's Microgrid Initiative. The Electricity Journal, 25(8), pp.84 -94.\nhttps://www.navigantresearch.com/news-and-views/navigant-research-identifies-2258-microgrid-projects-representing-nearly-20-gw-of-capacity\nAldaouab, I. and Daniels, M.C. (2018). Model predictive control energy dispatch to optimize renewable penetration for a microgrid with battery and \nthermal storage. 2018 IEEE Texas Power and Energy Conference (TPEC), 1-6.\nhttps://www.scientificamerican.com/article/how-big-batteries-at-data-centers-could-replace-power-plants/\nThe Economics of Battery Energy Storage\n2015|  By  Garrett Fitzgerald James Mandel Jesse Morris Hervé Touati\nhttps://www.bloomenergy.com/newsroom/press-releases/equinix-install-largest-deployment-fuel-cells-colocation-data-center\nhttps://www.datacenterknowledge.com/the-facebook-data-center-faq-newest-page"
+    },
+    {
+      "page_number": 63,
+      "section_title": null,
+      "text": "63U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nIACET Credit for Webinar\nThe National Institute of Building Sciences’ (NIBS) Whole Building Design Guide (WBDG) hosts the \nFEMP training program’s learning management system (LMS). \nThe WBDG LMS:\n• Allows for taking multiple trainings from multiple organizations through one platform.\n• Houses the assessments and evaluations for all accredited courses.\n• Allows you to: \n– Track all of your trainings in one place.\n– Download your training certificates of completion.\n• Eases the CEU-achievement process.\nVisit the WBDG at www.wbdg.org to view courses and create an account\n"
+    },
+    {
+      "page_number": 64,
+      "section_title": null,
+      "text": "64U.S. DEPARTMENT OF ENERGY       OFFICE OF ENERGY EFFICIENCY & RENEWABLE ENERGY\nIACET Credit for Webinar\nTo receive IACET-Certified CEUs, attendees must:\n• Attend the training in full (no exceptions).\n– If you are sharing a web connection during the training, you must send an e-mail to Elena \nMeehan (elena.meehan@ee.doe.gov) and indicate who was on the connection and who \nshowed as connected (will reflect in the WebEx roster).\n• Complete an assessment demonstrating knowledge of course learning objectives \nand an evaluation within six weeks of the training. A minimum of 80% correct \nanswers are required for the assessment.\nTo access the webinar assessment and evaluation, visit:\nhttps://www.wbdg.org/continuing-education/femp-courses/femplw12032019\nIf you have a WBDG account and enrolled previously, simply log in and click the \nContinuing Education tab on the user account page. Click Proceed to Course next to \nthe course title."
+    }
+  ]
+}

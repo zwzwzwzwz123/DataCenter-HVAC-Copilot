@@ -21,6 +21,16 @@ from src.retrieval.rag import ExtractiveRAGPipeline
 from src.retrieval.retriever import KeywordRetriever
 
 
+class FakeCrossEncoderScorer:
+    model_name = "fake-cross-encoder"
+
+    def score(self, query: str, texts: list[str]) -> list[float]:
+        return [
+            1.0 if "Cooling systems should keep thermal conditions" in text else 0.0
+            for text in texts
+        ]
+
+
 def write_small_eval_dataset(path: Path) -> Path:
     records = [
         {
@@ -231,6 +241,28 @@ def test_run_baseline_comparison_returns_named_modes(tmp_path: Path):
     assert "timeseries_query" in result["by_task_type"]["rag_tool_agent"]
 
 
+def test_run_baseline_comparison_can_include_cross_encoder_rerank_mode(tmp_path: Path):
+    eval_path = write_small_eval_dataset(tmp_path / "small_eval.jsonl")
+
+    result = run_baseline_comparison(
+        eval_path=eval_path,
+        orchestrator=mock_orchestrator(),
+        cross_encoder_scorer=FakeCrossEncoderScorer(),
+    )
+
+    assert "hybrid_rrf_cross_encoder" in result["summary"]
+    assert "citation_hit_rate" in result["summary"]["hybrid_rrf_cross_encoder"]
+    assert "retrieval_mrr@10" in result["summary"]["hybrid_rrf_cross_encoder"]
+    prediction = next(
+        run["predictions"][0]
+        for run in result["runs"]
+        if run["mode"] == "hybrid_rrf_cross_encoder"
+    )
+    assert prediction["retrieved_contexts"][0]["retrieval_mode"] == "cross_encoder_rerank"
+    assert prediction["retrieved_contexts"][0]["cross_encoder_model"] == "fake-cross-encoder"
+    assert prediction["retrieved_contexts"][0]["base_retrieval_mode"] == "hybrid_rrf"
+
+
 def test_run_baseline_comparison_includes_grounded_rag_mode_and_grounding_rate(tmp_path: Path):
     eval_path = write_small_eval_dataset(tmp_path / "small_eval.jsonl")
     result = run_baseline_comparison(
@@ -402,6 +434,120 @@ def test_run_eval_script_outputs_portable_data_source_paths(tmp_path: Path):
         content = path.read_text(encoding="utf-8")
         assert portable_path in content
         assert "data/documents/" in content
+
+
+def test_run_eval_script_enables_cross_encoder_rerank_by_default_without_downloading_model(
+    tmp_path: Path,
+):
+    eval_path = write_small_eval_dataset(tmp_path / "small_eval.jsonl")
+    output_path = tmp_path / "script_predictions.jsonl"
+    comparison_path = tmp_path / "baseline_comparison.json"
+    report_path = tmp_path / "experiment_report.md"
+
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "scripts/run_eval.py",
+            "--eval-path",
+            str(eval_path),
+            "--output",
+            str(output_path),
+            "--comparison-output",
+            str(comparison_path),
+            "--report-output",
+            str(report_path),
+            "--cross-encoder-model",
+            "fake-cross-encoder",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env={
+            **os.environ,
+            "HVAC_COPILOT_TEST_FAKE_CROSS_ENCODER": "1",
+            "KNOWLEDGE_BASE_DIR": str(tmp_path / "isolated_knowledge"),
+        },
+    )
+
+    assert completed.returncode == 0
+    comparison = __import__("json").loads(comparison_path.read_text(encoding="utf-8"))
+    assert "hybrid_rrf_cross_encoder" in comparison["summary"]
+    report = report_path.read_text(encoding="utf-8")
+    assert "cross_encoder_model: `fake-cross-encoder`" in report
+
+
+def test_run_eval_script_can_disable_default_cross_encoder_rerank(tmp_path: Path):
+    eval_path = write_small_eval_dataset(tmp_path / "small_eval.jsonl")
+    output_path = tmp_path / "script_predictions.jsonl"
+    comparison_path = tmp_path / "baseline_comparison.json"
+
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "scripts/run_eval.py",
+            "--eval-path",
+            str(eval_path),
+            "--output",
+            str(output_path),
+            "--comparison-output",
+            str(comparison_path),
+            "--disable-cross-encoder-rerank",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env={
+            **os.environ,
+            "HVAC_COPILOT_TEST_FAKE_CROSS_ENCODER": "1",
+            "KNOWLEDGE_BASE_DIR": str(tmp_path / "isolated_knowledge"),
+        },
+    )
+
+    assert completed.returncode == 0
+    comparison = __import__("json").loads(comparison_path.read_text(encoding="utf-8"))
+    assert "hybrid_rrf_cross_encoder" not in comparison["summary"]
+
+
+def test_run_eval_script_can_force_demo_documents_without_persistent_knowledge(tmp_path: Path):
+    eval_path = write_small_eval_dataset(tmp_path / "small_eval.jsonl")
+    output_path = tmp_path / "script_predictions.jsonl"
+    comparison_path = tmp_path / "baseline_comparison.json"
+
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "scripts/run_eval.py",
+            "--eval-path",
+            str(eval_path),
+            "--output",
+            str(output_path),
+            "--comparison-output",
+            str(comparison_path),
+            "--disable-cross-encoder-rerank",
+            "--disable-persistent-knowledge",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env={**os.environ, "KNOWLEDGE_BASE_DIR": str(Path("data/knowledge"))},
+    )
+
+    assert completed.returncode == 0
+    predictions = [
+        __import__("json").loads(line)
+        for line in output_path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    doc_prediction = next(prediction for prediction in predictions if prediction["id"] == "doc_qa_015")
+    source_ids = {
+        context["citation"]["source_id"]
+        for context in doc_prediction["retrieved_contexts"]
+    }
+    assert source_ids
+    assert all(not source_id.startswith("doc_") for source_id in source_ids)
 
 
 def test_run_eval_script_can_write_comparison_summary(tmp_path: Path):

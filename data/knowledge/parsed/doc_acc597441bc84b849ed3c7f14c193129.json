@@ -1,0 +1,87 @@
+{
+  "document_id": "doc_acc597441bc84b849ed3c7f14c193129",
+  "filename": "lbnl_ashrae_liquid_cooling_guidelines_hpc_2011.pdf",
+  "file_type": ".pdf",
+  "file_hash": "7ef8f7f3094ae4d16692410eda6575d2e795eb8eaa2322dbde2b5df07f722e34",
+  "source_path": "data\\knowledge\\uploads\\doc_acc597441bc84b849ed3c7f14c193129_lbnl_ashrae_liquid_cooling_guidelines_hpc_2011.pdf",
+  "metadata": {
+    "filename": "lbnl_ashrae_liquid_cooling_guidelines_hpc_2011.pdf",
+    "source_path": "data\\knowledge\\uploads\\doc_acc597441bc84b849ed3c7f14c193129_lbnl_ashrae_liquid_cooling_guidelines_hpc_2011.pdf",
+    "source_url": "https://datacenters.lbl.gov/sites/default/files/ashrae-recommend-6-2011.pdf",
+    "authority": "LBNL/ASHRAE",
+    "topic": "liquid-cooling-guidelines",
+    "curated_for": "data-center-hvac-rag-30-doc-corpus"
+  },
+  "pages": [
+    {
+      "page_number": 1,
+      "section_title": null,
+      "text": "Recommendation to ASHRAE TC 9.9\nLiquid Cooling Guidelines\nHPC Compressorless Liquid Cooling \nBuilding Supplied Cooling Water \nGuideline\nHPC User Group\nLiquid Cooling subcomittee\nJune 27, 2011"
+    },
+    {
+      "page_number": 2,
+      "section_title": null,
+      "text": "HPC User Group\n• Initiated by LBNL, supported by the DOE-\nFederal Energy Management Program and \nnow DOE – Sustainability Projects Office\n• National laboratories, other Federal Agencies, \nUniversities, Industry HPC operators, HPC \nmanufacturers\n• Over 160 members\n• Large market presence\n6/29/2011 http://eehpcwg.lbl.gov\n2"
+    },
+    {
+      "page_number": 3,
+      "section_title": null,
+      "text": "Motivation/Goals\n• Compressorless cooling can provide significant CAPX and \nOPEX (energy) savings for HPC facilities.\n• Liquid cooling facilitates compressorless cooling.\n• Minimize water use - Investigate the feasibility of dry cooling \nor cooling tower only infrastructure for HPC.\n• Develop liquid cooling temperature guidelines to standardize \nHPC mfg designs and facility requirements.   Temperatures \nshould be high enough to eliminate compressor cooling in at \nleast 90% of the National Laboratory HPC locations.\n• Liquid cooling guidelines could standardize  broader data \ncenter cooling applications"
+    },
+    {
+      "page_number": 4,
+      "section_title": null,
+      "text": "Methods\n• building water supply guidelines: e.g. supply and return temperature, \ndelta pressure, quality -\n• for ~90% of National Labs. (15 sites),  design point = 99.6% of hours per \nASHRAE \n• investigate dry cooler (dry bulb) and cooling tower (wet bulb) \ninfrastructure types\n• assume infrastructure design for feasibility study; assume plate frame and \nCDU components\n• document component approach temperatures\n• forecast processor case temperature compared to case temperature \nmaximum for continuous operation (Intel Xeon 5500: Tcase=~76C)\n• construct supply water temperature guideline table"
+    },
+    {
+      "page_number": 5,
+      "section_title": null,
+      "text": "Liquid Direct Cooling Architectures\nusing Cooling Towers or Dry Coolers\ndry\ncooler CDU Pre-\nHeat\nDry Bulb\nAmbient\nDry Cooler\nExit\nCDU\nExit\nPre-Heat\nExit\nChip Case\nTemp.\nDirect Cooled \n°C/watt\nRack or HPC Solution\nServer\ncooling\ntower\nPlate\nFrame\nPre-\nHeat\nWet Bulb\nAmbient\nCooling\nTower\nExit\nPlate\nFrame\nExit\nPre-Heat\nExit\nChip Case\nTemp.\nDirect Cooled \n°C/watt\nRack or HPC Solution\nServer\n6/29/2011 5http://eehpcwg.lbl.gov"
+    },
+    {
+      "page_number": 6,
+      "section_title": null,
+      "text": "Air Cooled Solution Architectures\nusing Cooling Towers or Dry Coolers\n6/29/2011 http://eehpcwg.lbl.gov 6\ncooling\ntower\nplate\nframe\nair/\nliquid\nhex\nhs\nWB\nAmbient\nTower\nExit\nPlate F.\nExit\nServer\nInlet Chip Sink\nInlet\nChip Case\nTemp.\nSolution/Rack\nServer\nAir Cooled \n°C/watt\nDry Cooler\nExit\npre-\nheat\ndry \ncooler\nair/\nliquid\nhex\nhs\nDB\nAmbient\nServer\nInlet Chip Sink\nInlet\nChip Case\nTemp.\nSolution/Rack\nServer\nAir Cooled \n°C/watt\npre-\nheat"
+    },
+    {
+      "page_number": 7,
+      "section_title": null,
+      "text": "Sort by 0.4% dry bulb ( exceeded on average of 3 hours/month)\nHPC Data Center Owner U.S. State City Name Lat Long\nElevation\n(ft)\nClosest\nASHRAE Location Lat Long\nElevation\n(ft)\nDry Cooling\n0.4% DB\n(F)\nEvap. Cooling\n0.4% WB\n(F)\nPacific Northwest National Laboratory Washington Richland 46.285 -119.283 384 Pasco 46.27 -119.12 404 99.5 72.1\nLawrence Livermore National Laboratory California Livermore 37.682 -121.767 480 Livermore Municipal Apt 37.69 -121.82 397 98.8 70.8\nHouston Texas - Owner TBD Texas Houston Bush Intl. Apt. 29.99 -95.36 105 96.8 80.1\nLos Alamos National Laboratory New Mexico Los Alamos 35.888 -106.306 7320 Albuquerque Intl Apt 35.04 -106.62 5315 95.2 65.3\nSandia National Laboratory New Mexico Albuquerque 35.050 -106.540 5436 Albuquerque Intl Apt 35.04 -106.62 5315 95.2 65.3\nJefferson Laboratory Virgina Newport News 37.130 -76.490 New Port News 37.13 -76.49 52 94.5 79.7\nOak Ridge National Laboratory Tennessee Oak Ridge 36.010 -84.270 875 Nashville Intl Apt 36.12 -86.69 604 94.4 78.2\nNational Renewable Energy Laboratory Colorado Golden 39.755 -105.220 5675 Denver Stapleton Intl Apt 39.77 -104.87 5285 93.5 64.4\nPrinceton Plasma Phisics Laboratory Princeton New Jersey 40.348 -74.659 Mcguire AFB 40.02 -74.6 148 92.9 78.8\nSLAC California Palo Alto 37.416 -122.202 262 San Jose Intl Apt 37.36 -121.93 49 92.3 69.5\nArgonne National Laboratory Illinois Argonne 41.711 -87.983 685 Chicago Midway Apt 41.79 -87.75 617 92.1 78.0\nIdaho National Laboratory Idaho Falls Idaho 43.466 -112.030 Fanning Field Apt 43.52 -112.07 4744 91.7 64.9\nFermilab Illinois Batavia 41.850 -88.313 771 Aurora Municipal Apt 41.77 -88.47 705 90.8 77.7\nAmes National Laboratory Iowa Ames 42.020 -93.640 Ames Muni Apt 42 -93.62 955 90.5 79.2\nBrookhaven National Laboratory New York Upton 40.883 -72.870 81 Long Island Macarthur Apt 40.79 -73.1 108 88.4 76.7\nLawrence Berkeley National Laboratory California Berkeley 37.870 -122.250 1000 Oakland 37.76 -122.22 89 81.8 67.6\nHPC Data Center Owner U.S. State City Name Lat Long\nElevation\n(ft)\nClosest\nASHRAE Location Lat Long\nElevation\n(ft)\nDry Cooling\n0.4% DB\n(F)\nEvap. Cooling\n0.4% WB\n(F)\nHouston Texas - Owner TBD Texas Houston Bush Intl. Apt. 29.99 -95.36 105 96.8 80.1\nJefferson Laboratory Virgina Newport News 37.130 -76.490 New Port News 37.13 -76.49 52 94.5 79.7\nAmes National Laboratory Iowa Ames 42.020 -93.640 Ames Muni Apt 42 -93.62 955 90.5 79.2\nPrinceton Plasma Phisics Laboratory Princeton New Jersey 40.348 -74.659 Mcguire AFB 40.02 -74.6 148 92.9 78.8\nOak Ridge National Laboratory Tennessee Oak Ridge 36.010 -84.270 875 Nashville Intl Apt 36.12 -86.69 604 94.4 78.2\nArgonne National Laboratory Illinois Argonne 41.711 -87.983 685 Chicago Midway Apt 41.79 -87.75 617 92.1 78.0\nFermilab Illinois Batavia 41.850 -88.313 771 Aurora Municipal Apt 41.77 -88.47 705 90.8 77.7\nBrookhaven National Laboratory New York Upton 40.883 -72.870 81 Long Island Macarthur Apt 40.79 -73.1 108 88.4 76.7\nPacific Northwest National Laboratory Washington Richland 46.285 -119.283 384 Pasco 46.27 -119.12 404 99.5 72.1\nLawrence Livermore National Laboratory California Livermore 37.682 -121.767 480 Livermore Municipal Apt 37.69 -121.82 397 98.8 70.8\nSLAC California Palo Alto 37.416 -122.202 262 San Jose Intl Apt 37.36 -121.93 49 92.3 69.5\nLawrence Berkeley National Laboratory California Berkeley 37.870 -122.250 1000 Oakland 37.76 -122.22 89 81.8 67.6\nLos Alamos National Laboratory New Mexico Los Alamos 35.888 -106.306 7320 Albuquerque Intl Apt 35.04 -106.62 5315 95.2 65.3\nSandia National Laboratory New Mexico Albuquerque 35.050 -106.540 5436 Albuquerque Intl Apt 35.04 -106.62 5315 95.2 65.3\nIdaho National Laboratory Idaho Falls Idaho 43.466 -112.030 Fanning Field Apt 43.52 -112.07 4744 91.7 64.9\nNational Renewable Energy Laboratory Colorado Golden 39.755 -105.220 5675 Denver Stapleton Intl Apt 39.77 -104.87 5285 93.5 64.4\n7\nSort by 0.4% wet bulb ( exceeded on average of 3 hours/month)\n6/29/2011 http://eehpcwg.lbl.gov\nNatural Break Points"
+    },
+    {
+      "page_number": 8,
+      "section_title": null,
+      "text": "Wet and Dry Bulb Temperatures\nASHRAE CD, 99.6% of yearly hours, National Laboratory HPC Locations.\n6/29/2011 8http://eehpcwg.lbl.gov\n60\n65\n70\n75\n80\n85T emperature (°F)\nWet Bulb Temperature - 99.6% of hours per ASHRAE CD - U.S. National Laboratories \nSelected Max. = 79.7 °F (26.5°C)\n16\n18\n21\n24\n27\n29\nTemperature (°C)\n75\n80\n85\n90\n95\n100T emperature (°F)\nDry Bulb Temperature - 99.6% of hours per ASHRAE CD - U.S. National Laboratories \nMax. = 99.5 °F (37.5°C) 38\n35\n32\n24\n27\n29\nTemperature (°C)"
+    },
+    {
+      "page_number": 9,
+      "section_title": null,
+      "text": "Thermal Assumptions\n9\nHeat TransferComponent Delta Description Approach/Delta\n°F °C\nOpen Cooling Tower WB Ambient to Water Leaving 71 3.8\nDry Fin Cooler DB Ambient to Water Leaving 107 5.5\nPlate and Frame Heat Exchanger Cooling Water Entering\nTo Cooled Water Leaving 35 1.67\nCooling Distribution Unit (CDU)\ne.g. Water to Water or \nRefrigerant to Water\nCooling Water Entering\nTo Cooled Water Leaving 59 2.77\nAir to Water Heat Exchanger Cooling Water Entering \nTo Cooled Air Leaving (server entering) 16.2 93\nServer Bezel Pre-Heating Server Air Entering\nTo Chip Air Cooler Entering 5.4 34\nWater Rack Pre-Heating Rack Water Increase Due to \nSerial Circuits 9 58\nChip Air Cooler (heat sink) Cooling Air Entering\nTo Chip Tcase Max.\n0.405\n°F/watt\n0.2252\n°C/watt\nChip Liquid Cooler (plate?) Cooling  Liquid Entering\nTo Chip Tcase Max.\n0.315\n°F/watt\n0.1756\n°C/watt\n6/29/2011 http://eehpcwg.lbl.gov"
+    },
+    {
+      "page_number": 10,
+      "section_title": null,
+      "text": "Thermal Architecture Approach References\n10\n(1) Open Cooling Tower water cooled from 95°F to 85°F using a WB temperature of 78°F – 1996 ASHRAE \nSystems and Equipment Handbook – page 36.2 – reference to description of nominal cooling tower tons.  \nApproach in this case is 7°F.   Colorado Springs Utilities – White Paper #14 3/11/2005 – Smart Use of Your \nHV\nAC Cooling Towers – “Approach temperatures lower than 7 degrees encounter diminishing returns and \nrequire larger investment in fan horsepower for each additional degree.”\n(2) Air Cooling Heat Sink Performance SGI – Larry Seibold – Xeon 5500 processor 1U form factor – Nehalem \n95W – 0.18 to 0.22 C/W – Tcase 75C and 76  using a high performance heat sink, email May 29, 2011  IBM \n– M. Ellsworth – June 2, 2011, air cooling = 0.25C/W, question watts 80? or 100?  Range :  0.18 to 0.27 \nC/W, averaging = 0.225 C/W? (group discussion needed plus watt level)   Cray Inc. – G. Pautsch – Xeon \nprocessor  2U server – 0.27C /W\n– email  May 24, 2011.\n(3) Air Cooling Heat Exchanger Air to Liquid Approach – Vette passive door data \n(4) Server Bezel Air Pre-Heating server bezel entry to cpu heat sink entry – 3C conservative number \nassuming only misc components in path not storage or memory modules and well controlled internal \nrecirculation. – B. Maltz Electronic Cooling Solutions – June 2, 2011\n(5) Plate Frame Heat Exchanger Approach   Plate Frame – BG P47-90-TMTL4 – 200gpm cold, 220gpm hot –\ncold side 62F entering – 72F leaving, warm side 74F entering, 65F leaving – Taylor 8/23/2010 LBNL ALS \nUSB Server Room, Drawing M0.2\n(6) Liquid Direct Cooling Approach \n- M. Ellsworth June 2, 2011 – 0.2C/W – Greg Pautsch (Cray) 0.15C/W \npossible, 0.175C/W average used\n(7) Dry Fin Cooler Dry Cooler Info. – www.drycoolers.com – 10F approach typical , 5F possible with 2x # of \nunits using pure water.\n(8) Server Liquid Pre-Heating 5C per M. Ellsworth\n(9) CDU Approach TBD  \n6/29/2011 http://eehpcwg.lbl.gov"
+    },
+    {
+      "page_number": 11,
+      "section_title": null,
+      "text": "Dry Cooler and Cooling Tower\nDirect Cooling Infrastructure\nCPU Case Temperature Forecast \nCompared to Intel Xeon 5500 \nTcase maximum.\ncooling water using a dry cooler  \nat 109°F (43°C)\ncooling water using a cooling \ntower and plate frame heat \nexchanger at 90°F (32°C)\nLiquid Cooled Server\n6/29/2011 11http://eehpcwg.lbl.gov\n70\n80\n90\n100\n110\n120\n130\nDry Cooler\nApproach\nCDU\nApproach\nAmbient Dry Bulb – 99.5°F(37.5°C)\n(99.6% Hours – ASHRAE CD)\n(U.S. National Labs.)\n140\n150\n160\n170\nTcase Max.\n77.6°C (172°F)\nContinuous Operation\nIntel Xeon EC5545 @ 85w\nCPU Tcase\n  Forecast\n       138°F\n         (59°C)\nCooling\nTower\nApproach\nPlate-Frame\nApproach\nAmbient Wet Bulb 79.7°F(26.5°C)\n(99.6% Hours – ASHRAE CD)\n(U.S. National Labs.)\n  CPU Tcase\n      Forecast\n         114°F\n            (45°C)\nCooling\nDesign\nMargin\nTemperature (°F)\nBuilding\nInterface\n25\n30\n35\n40\n45\n50\n55\n60\n65\nTemperature (°C)\n70\n75\n10°F\n5°F\n3°F\n7°F\n2.8°C\n5.6°C\n3.9°C\n1.7°C\nCooling\nDesign\nMargin\nDirect\nLiquid\nCooling\nDevice\nDelta\n85w\n0.175 °C/w\n14.8°F 8.3°C\nPre-Heat9°F 5°C\nDirect\nLiquid\nCooling\nDevice\nDelta\n85w\n0.175 °C/w\n14.8°F 8.3°C\nPre-Heat9°F 5°C\nPre-Heat:  allowance for inside \nserver routing (components in \nseries) and local pipe heating"
+    },
+    {
+      "page_number": 12,
+      "section_title": null,
+      "text": "Dry Cooler and Cooling Tower Infrastructure\nCPU Case Temperature Forecast Compared to \nIntel Xeon 5500 Tcase maximum.\ncooling water using a dry cooler  \nat 109°F (43°C)\ncooling water using a cooling \ntower and plate frame hex at \n90°F (32°C)\nAir Cooled Server\n6/29/2011 12http://eehpcwg.lbl.gov\nPre-Heat:  allowance for heating \nfrom sever inlet to cpu heat sink\n70\n80\n90\n100\n110\n120\n130\nDry Cooler\nApproach\nAmbient Dry Bulb – 99.5°F (37.5°C)\n(99.6% Hours – ASHRAE CD)\n(U.S. National Labs.)\n140\n150\n160\n170\nTcase Max.\n77.6°C (172°F)\nContinuous Operation\nIntel Xeon EC5545 @ 85w\nCPU Tcase\n  Forecast\n       150°F\n(65.7°C)\nCooling\nTower\nApproach\nPlate-Frame\nApproach\nAmbient Wet Bulb 79.7°F\n(99.6% Hours – ASHRAE CD)\n(U.S. National Labs.)\n  CPU Tcase\n      Forecast\n         130°F\n           (54°C)\nCooling\nDesign\nMargin\nTemperature (°F)\nBuilding\nInterface\n25\n30\n35\n40\n45\n50\n55\n60\n65\nTemperature (°C)\n70\n75\n10°F\n3°F\n7°F\n5.6°C\n3.9°C\n1.7°C\nCooling\nDesign\nMargin\nAir to Liquid \nCDU Approach\n16.2°F 9 °C\nAir to Liquid \nCDU Approach\n16.2°F 9 °C\nAir\nCooling\nDevice\nDelta\n85w\n0.225 °C/w\n19.1°F 10.6°C\nAir\nCooling\nDevice\nDelta\n85w\n0.225 °C/w\n19.1°F 10.6°C\nPre-Heat5.4°F 3°C\nPre-Heat5.4°F 3°C"
+    },
+    {
+      "page_number": 13,
+      "section_title": null,
+      "text": "HPC Liquid Cooling Guideline\nrev. June 27, 2011\n(building supplied cooling water to HPC solution)\nRange\nName\nBuilding Supplied\nWater Temperature Range Notes\nW3 43°C (109°F) to \n17.2°C (63°F)\nTop of range: \nUse with dry cooler\nBottom of range: Highest of value \nlisted or 4°F above dew point\nW2 32°C (90°F) to \n17.2°C (63°F)\nTop of range: Use with cooling tower\nBottom of range: Highest of value \nlisted or 4°F above dew point\nW1 65F\nlegacy chilled water plant\nsites\n136/29/2011 http://eehpcwg.lbl.gov -"
+    },
+    {
+      "page_number": 14,
+      "section_title": null,
+      "text": "6/29/2011 http://eehpcwg.lbl.gov\nHPC Survey \n• What climatic data do we use?\n• Two options:\n– 0.4% (3 hours/month) average exceeded\n– 1.0% (14 hours/month) average exceeded\n• Results\n– 13 respondents\n– 69% of the respondents chose 0.4%\n14"
+    }
+  ]
+}

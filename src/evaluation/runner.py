@@ -39,6 +39,11 @@ from src.retrieval.embeddings import (
     SentenceTransformerEmbeddingProvider,
 )
 from src.retrieval.faiss_retriever import FaissDenseRetriever
+from src.retrieval.cross_encoder import (
+    CrossEncoderScorer,
+    CrossEncoderRerankingRetriever,
+    SentenceTransformersCrossEncoderScorer,
+)
 from src.retrieval.query_rewrite import (
     LLMMultiQueryRAGPipeline,
     HyDERAGPipeline,
@@ -77,6 +82,7 @@ def run_baseline_eval(
                 "citations": output.get("citations", []),
                 "retrieved_contexts": output.get("retrieved_contexts", []),
                 "tool_results": output.get("tool_results", []),
+                "tool_calls": output.get("tool_calls", []),
                 "planned_steps": output.get("planned_steps", [{"route": output.get("route")}]),
                 "answer_audit": output.get("answer_audit", {}),
             }
@@ -108,6 +114,7 @@ def run_baseline_comparison(
     dense_provider: str = "deterministic",
     dense_backend: str = "memory",
     dense_model: str | None = None,
+    cross_encoder_scorer: CrossEncoderScorer | None = None,
 ) -> dict[str, Any]:
     records = load_eval_dataset(eval_path)
     chunks = getattr(orchestrator.rag_pipeline.retriever, "chunks", [])
@@ -216,6 +223,21 @@ def run_baseline_comparison(
             _run_rag_only(records, orchestrator.rag_pipeline),
         ),
     ]
+    if cross_encoder_scorer is not None:
+        cross_encoder_rag = build_hybrid_rrf_cross_encoder_rag_pipeline(
+            chunks,
+            provider=dense_provider,
+            backend=dense_backend,
+            model_name=dense_model,
+            scorer=cross_encoder_scorer,
+        )
+        runs.append(
+            _evaluate_predictions(
+                "hybrid_rrf_cross_encoder",
+                records,
+                _run_rag_only(records, cross_encoder_rag, include_latency=True),
+            )
+        )
     agent_run = run_baseline_eval(eval_path, orchestrator)
     runs.append(
         {
@@ -322,6 +344,39 @@ def build_hybrid_rrf_rag_pipeline(
             dense_rag.retriever,
             candidate_k=candidate_k,
             rrf_k=rrf_k,
+        )
+    )
+
+
+def build_hybrid_rrf_cross_encoder_rag_pipeline(
+    chunks: list[DocumentChunk],
+    *,
+    provider: str = "deterministic",
+    backend: str = "memory",
+    model_name: str | None = None,
+    scorer: CrossEncoderScorer | None = None,
+    cross_encoder_model: str = "BAAI/bge-reranker-base",
+    candidate_k: int = 20,
+    rrf_k: int = 60,
+    rerank_candidate_k: int = 20,
+) -> ExtractiveRAGPipeline:
+    dense_rag = build_dense_rag_pipeline(
+        chunks,
+        provider=provider,
+        backend=backend,
+        model_name=model_name,
+    )
+    first_stage = HybridRRFRetriever(
+        HybridRetriever(chunks),
+        dense_rag.retriever,
+        candidate_k=candidate_k,
+        rrf_k=rrf_k,
+    )
+    return ExtractiveRAGPipeline(
+        CrossEncoderRerankingRetriever(
+            first_stage,
+            scorer=scorer or SentenceTransformersCrossEncoderScorer(cross_encoder_model),
+            candidate_k=rerank_candidate_k,
         )
     )
 

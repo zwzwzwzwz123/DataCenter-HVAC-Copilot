@@ -41,6 +41,7 @@ def render_experiment_report(
     dense_provider: str = "deterministic",
     dense_backend: str = "memory",
     dense_model: str | None = None,
+    cross_encoder_model: str | None = None,
 ) -> str:
     lines = [
         "# 实验报告",
@@ -62,6 +63,7 @@ def render_experiment_report(
         f"- dense_provider: `{dense_provider}`",
         f"- dense_backend: `{dense_backend}`",
         f"- dense_model: `{dense_model or 'default'}`",
+        f"- cross_encoder_model: `{cross_encoder_model or 'disabled'}`",
         "",
         "## Baseline 对比",
         "",
@@ -169,6 +171,19 @@ def _reranker_comparison_conclusion(
 ) -> str:
     hybrid = comparison_summary.get("rag_hybrid", {})
     rerank = comparison_summary.get("rag_hybrid_rerank", {})
+    cross_encoder = comparison_summary.get("hybrid_rrf_cross_encoder")
+    if cross_encoder:
+        base = comparison_summary.get("hybrid_rrf", {})
+        cross_context = cross_encoder.get("context_recall", 0.0)
+        base_context = base.get("context_recall", 0.0)
+        cross_mrr = cross_encoder.get("retrieval_mrr@10", 0.0)
+        base_mrr = base.get("retrieval_mrr@10", 0.0)
+        relation = "提升" if cross_context > base_context or cross_mrr > base_mrr else "补充评估"
+        return (
+            "- `hybrid_rrf_cross_encoder` 使用 BM25 + dense RRF 召回候选，再用 cross-encoder "
+            f"对 query-document pair 做二阶段精排；当前相对 `hybrid_rrf` 是{relation}，"
+            "需要结合 retrieval latency 判断排序质量与推理成本。"
+        )
     if not rerank:
         return "- `rag_hybrid_rerank` 尚未纳入当前报告。"
     hybrid_context = hybrid.get("context_recall", 0.0)
@@ -311,6 +326,7 @@ def save_experiment_report(
     dense_provider: str = "deterministic",
     dense_backend: str = "memory",
     dense_model: str | None = None,
+    cross_encoder_model: str | None = None,
 ) -> None:
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -326,6 +342,7 @@ def save_experiment_report(
             dense_provider=dense_provider,
             dense_backend=dense_backend,
             dense_model=dense_model,
+            cross_encoder_model=cross_encoder_model,
         ),
         encoding="utf-8",
     )

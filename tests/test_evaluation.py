@@ -147,6 +147,111 @@ def test_context_recall_counts_required_documents_in_retrieved_contexts():
     assert context_recall(records, predictions) == 0.5
 
 
+def test_document_metrics_match_required_document_aliases_from_citation_metadata(tmp_path: Path):
+    dataset_path = tmp_path / "alias_eval.jsonl"
+    dataset_path.write_text(
+        (
+            '{"id":"alias_001","question":"q","task_type":"document_qa",'
+            '"gold_answer":"a","required_tools":[],'
+            '"required_documents":["lbnl_air_management_tool_user_manual_2023.pdf"],'
+            '"expected_keywords":[],"expected_output_format":"answer"}\n'
+        ),
+        encoding="utf-8",
+    )
+    records = load_eval_dataset(dataset_path)
+    predictions = {
+        "alias_001": {
+            "citations": [
+                {
+                    "source_id": "doc_b0eb00b5ec964fcc9a54cf4190296f5c",
+                    "title": "lbnl_air_management_tool_user_manual_2023.pdf",
+                    "source_path": (
+                        "data/knowledge/uploads/"
+                        "doc_b0eb00b5ec964fcc9a54cf4190296f5c_"
+                        "lbnl_air_management_tool_user_manual_2023.pdf"
+                    ),
+                }
+            ],
+            "retrieved_contexts": [
+                {
+                    "citation": {
+                        "source_id": "doc_b0eb00b5ec964fcc9a54cf4190296f5c",
+                        "title": "lbnl_air_management_tool_user_manual_2023.pdf",
+                        "source_path": (
+                            "data/knowledge/uploads/"
+                            "doc_b0eb00b5ec964fcc9a54cf4190296f5c_"
+                            "lbnl_air_management_tool_user_manual_2023.pdf"
+                        ),
+                    },
+                    "metadata": {
+                        "filename": "lbnl_air_management_tool_user_manual_2023.pdf",
+                        "file_hash": "hash-air-management",
+                        "source_url": "https://datacenters.lbl.gov/air-management.pdf",
+                    },
+                }
+            ],
+        }
+    }
+
+    assert citation_hit_rate(records, predictions) == 1.0
+    assert context_recall(records, predictions) == 1.0
+    assert retrieval_recall_at_k(records, predictions, k=1) == 1.0
+    assert retrieval_mrr_at_k(records, predictions, k=1) == 1.0
+    assert retrieval_ndcg_at_k(records, predictions, k=1) == 1.0
+
+
+def test_retrieval_metrics_match_file_hash_and_url_aliases(tmp_path: Path):
+    dataset_path = tmp_path / "alias_eval.jsonl"
+    dataset_path.write_text(
+        "\n".join(
+            [
+                (
+                    '{"id":"alias_hash","question":"q1","task_type":"document_qa",'
+                    '"gold_answer":"a","required_tools":[],'
+                    '"required_documents":["hash-thermal-guidelines"],'
+                    '"expected_keywords":[],"expected_output_format":"answer"}'
+                ),
+                (
+                    '{"id":"alias_url","question":"q2","task_type":"document_qa",'
+                    '"gold_answer":"a","required_tools":[],'
+                    '"required_documents":["https://www.ashrae.org/thermal-refcard.pdf"],'
+                    '"expected_keywords":[],"expected_output_format":"answer"}'
+                ),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    records = load_eval_dataset(dataset_path)
+    predictions = {
+        "alias_hash": {
+            "retrieved_contexts": [
+                {
+                    "citation": {"source_id": "doc_fc01407c4a9c49d18694b13e669e371d"},
+                    "metadata": {
+                        "filename": "ashrae_tc99_thermal_guidelines_refcard_2021.pdf",
+                        "file_hash": "hash-thermal-guidelines",
+                    },
+                }
+            ]
+        },
+        "alias_url": {
+            "retrieved_contexts": [
+                {
+                    "citation": {"source_id": "doc_fc01407c4a9c49d18694b13e669e371d"},
+                    "metadata": {
+                        "filename": "ashrae_tc99_thermal_guidelines_refcard_2021.pdf",
+                        "source_url": "https://www.ashrae.org/thermal-refcard.pdf",
+                    },
+                }
+            ]
+        },
+    }
+
+    assert retrieval_recall_at_k(records, predictions, k=1) == 1.0
+    assert retrieval_mrr_at_k(records, predictions, k=1) == 1.0
+
+
 def test_retrieval_ranking_metrics_use_required_documents_as_binary_relevance(tmp_path: Path):
     dataset_path = tmp_path / "ranking_eval.jsonl"
     dataset_path.write_text(
