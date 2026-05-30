@@ -223,14 +223,17 @@ def test_readme_uses_current_eval_count_and_task_distribution() -> None:
 def test_readme_eval_numbers_match_current_default_artifact() -> None:
     content = Path("README.md").read_text(encoding="utf-8")
 
-    assert "tool_selection_accuracy        = 0.882" in content
-    assert "evidence_coverage              = 0.917" in content
-    assert "expected_keyword_coverage      = 0.628" in content
-    assert "answer_correctness_proxy       = 0.541" in content
-    assert "faithfulness_proxy             = 0.486" in content
-    assert "langgraph_tool_agent tool_selection_accuracy      = 0.882" in content
-    assert "langgraph_tool_agent evidence_coverage            = 0.917" in content
+    assert "python scripts/run_eval.py --disable-cross-encoder-rerank --disable-persistent-knowledge" in content
+    assert "rag_tool_agent tool_selection_accuracy        = 0.838" in content
+    assert "rag_tool_agent evidence_coverage              = 1.000" in content
+    assert "rag_tool_agent expected_keyword_coverage      = 0.625" in content
+    assert "rag_tool_agent answer_correctness_proxy       = 0.546" in content
+    assert "rag_tool_agent faithfulness_proxy             = 0.492" in content
+    assert "langgraph_tool_agent tool_selection_accuracy  = 0.809" in content
+    assert "langgraph_tool_agent evidence_coverage        = 1.000" in content
+    assert "safety adversarial overall_hit_rate           = 0.657" in content
     assert "tool_selection_accuracy        = 1.000" not in content
+    assert "tool_selection_accuracy        = 0.882" not in content
     assert "evidence_coverage              = 0.910" not in content
 
 
@@ -239,8 +242,10 @@ def test_readme_copy_sets_safety_memory_and_human_review_boundaries() -> None:
 
     assert "确定性边界审计" in content
     assert "small adversarial audit" in content
-    assert "hit rate 0.586" in content
-    assert "英文/翻译/paraphrase" in content
+    assert "hit rate 0.657" in content
+    assert "unverified_action" in content
+    assert "hit rate 0.586" not in content
+    assert "英文/翻译表达" in content
     assert "session-scoped SQLite conversation memory" in content
     assert "retrieved context loading" in content
     assert "预留人审接口和模板" in content

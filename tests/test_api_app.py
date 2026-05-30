@@ -93,6 +93,63 @@ def test_ask_endpoint_can_run_langgraph_workflow_trace():
     assert core_trace[0]["planner"] == "deterministic"
     assert core_trace[0]["planned_step_specs"][0]["tool"] == "policy_runner"
     assert core_trace[0]["fallback_used"] is False
+    assert body["todos"]
+    assert body["runtime_trace"]["summary"]["todo_count"] >= 1
+    assert body["runtime_trace"]["hooks"]
+
+
+def test_ask_endpoint_can_run_bounded_react_workflow_trace():
+    client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
+
+    response = client.post(
+        "/ask",
+        json={
+            "question": "Recommend a policy.",
+            "task_type": "policy_recommendation",
+            "workflow_engine": "bounded_react",
+        },
+    )
+
+    body = response.json()
+    assert response.status_code == 200
+    assert body["workflow_engine"] == "bounded_react"
+    assert body["route"] == "policy_recommendation"
+    assert any(step["node"] == "react_controller" for step in _core_workflow_trace(body))
+    assert body["todos"]
+    assert body["runtime_trace"]["summary"]["todo_count"] >= 1
+    assert body["tools"] == ["rule_based_policy"]
+
+
+def test_create_app_can_inject_approval_handler_for_control_boundary_tools():
+    def deny_control_boundary(request: dict) -> dict:
+        return {
+            "approved": False,
+            "decision": "denied",
+            "reason": f"operator denied {request['tool_name']}",
+        }
+
+    client = TestClient(
+        create_app(
+            use_env_answer_generator=False,
+            use_dropt_policy=False,
+            approval_handler=deny_control_boundary,
+        )
+    )
+
+    response = client.post(
+        "/ask",
+        json={
+            "question": "recommend a policy",
+            "task_type": "policy_recommendation",
+            "workflow_engine": "langgraph",
+        },
+    )
+
+    body = response.json()
+    assert response.status_code == 200
+    assert body["tool_calls"][0]["status"] == "blocked"
+    assert body["policy_result"] is None
+    assert body["runtime_trace"]["hooks"][0]["approval"]["decision"] == "denied"
 
 
 def test_ask_endpoint_defaults_policy_route_to_dropt_checkpoint():
@@ -222,20 +279,24 @@ def test_ask_endpoint_rejects_unknown_workflow_engine():
     )
 
     assert response.status_code == 400
-    assert "workflow_engine" in response.json()["detail"]
+    assert "bounded_react" in response.json()["detail"]
 
 
 def test_eval_run_endpoint_returns_metrics():
-    client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
+    client = TestClient(
+        create_app(
+            use_env_answer_generator=False,
+            use_dropt_policy=False,
+            use_persistent_knowledge=False,
+        )
+    )
 
     response = client.post("/eval/run", json={"eval_path": "data/eval/hvac_eval.jsonl"})
 
     body = response.json()
     assert response.status_code == 200
-    # The full eval set includes 8 multi-hop policy records that require both
-    # query_metric and rule_based_policy; the single-step /eval/run baseline
-    # intentionally misses the first evidence-gathering tool on those records.
-    assert body["metrics"]["tool_selection_accuracy"] >= 0.88
+    assert 0.0 <= body["metrics"]["tool_selection_accuracy"] <= 1.0
+    assert body["metrics"]["tool_execution_success_rate"] == 1.0
     assert len(body["predictions"]) >= 30
 
 

@@ -35,6 +35,7 @@ TASK_OPTIONS = {
 
 WORKFLOW_OPTIONS = {
     "LangGraph workflow": "langgraph",
+    "Bounded ReAct agent": "bounded_react",
     "Deterministic baseline": "deterministic",
 }
 
@@ -1067,16 +1068,19 @@ def build_execution_timeline(result: dict) -> list[dict]:
 def build_workflow_trace_rows(result: dict) -> list[dict]:
     rows = []
     for index, item in enumerate(result.get("workflow_trace", []), start=1):
-        tools = item.get("tools") or _planned_tools(item)
+        observation = item.get("observation") if isinstance(item.get("observation"), dict) else {}
+        tools = item.get("tools") or _planned_tools(item) or _react_tools(item, observation)
         citation_count = int(item.get("citation_count", 0) or 0)
-        tool_result_count = int(item.get("tool_result_count", 0) or 0)
+        tool_result_count = int(
+            item.get("tool_result_count", observation.get("tool_result_count", 0)) or 0
+        )
         audit_value = item.get("audit_passed", item.get("passed"))
         rows.append(
             {
                 "step": index,
                 "node": item.get("node", "unknown"),
-                "route": item.get("route", result.get("route", "unknown")),
-                "classifier": str(item.get("classifier", item.get("planner", "n/a"))),
+                "route": _trace_route(item, observation, result),
+                "classifier": str(item.get("classifier", item.get("planner", item.get("controller", "n/a")))),
                 "fallback": _format_fallback_status(item.get("fallback_used")),
                 "tools": ", ".join(str(tool) for tool in tools) if tools else "none",
                 "evidence": f"{citation_count} citations / {tool_result_count} tool results",
@@ -1084,6 +1088,72 @@ def build_workflow_trace_rows(result: dict) -> list[dict]:
             }
         )
     return rows
+
+
+def build_agent_trace_rows(result: dict) -> list[dict]:
+    runtime_trace = result.get("runtime_trace") or {}
+    rows = []
+    for todo in runtime_trace.get("todos", []):
+        rows.append(
+            {
+                "stage": "Todo",
+                "item": f"{todo.get('id', 'todo')} / {todo.get('route', 'unknown')}",
+                "status": todo.get("status", "unknown"),
+                "approval": "n/a",
+                "detail": todo.get("description", ""),
+            }
+        )
+    for hook in runtime_trace.get("hooks", []):
+        approval = hook.get("approval") or {}
+        rows.append(
+            {
+                "stage": "Hook",
+                "item": hook.get("hook", "unknown"),
+                "status": hook.get("status", hook.get("decision", "n/a")),
+                "approval": approval.get("decision", "n/a"),
+                "detail": _format_agent_trace_hook_detail(hook),
+            }
+        )
+    for recovery in runtime_trace.get("recoveries", []):
+        rows.append(
+            {
+                "stage": "Recovery",
+                "item": recovery.get("strategy", "unknown"),
+                "status": recovery.get("status", "unknown"),
+                "approval": "n/a",
+                "detail": _format_agent_trace_recovery_detail(recovery),
+            }
+        )
+    return rows
+
+
+def _format_agent_trace_hook_detail(hook: dict) -> str:
+    tool_name = hook.get("tool_name")
+    duration = hook.get("duration_ms")
+    error = hook.get("error")
+    pieces = []
+    if tool_name:
+        pieces.append(f"tool={tool_name}")
+    if duration is not None:
+        pieces.append(f"duration_ms={float(duration):.1f}")
+    if error:
+        pieces.append(f"error={error}")
+    return "; ".join(pieces) if pieces else "runtime hook"
+
+
+def _format_agent_trace_recovery_detail(recovery: dict) -> str:
+    pieces = []
+    for key in ["tool_name", "fallback_tool", "attempts", "error"]:
+        value = recovery.get(key)
+        if value:
+            pieces.append(f"{key}={value}")
+    changes = recovery.get("changes")
+    if changes:
+        pieces.append(f"changes={changes}")
+    rewritten_query = recovery.get("rewritten_query")
+    if rewritten_query:
+        pieces.append(f"rewritten_query={rewritten_query}")
+    return "; ".join(pieces) if pieces else "recovery event"
 
 
 def _planned_tools(item: dict) -> list[str]:
@@ -1096,6 +1166,27 @@ def _planned_tools(item: dict) -> list[str]:
         if tool:
             tools.append(str(tool))
     return tools
+
+
+def _react_tools(item: dict, observation: dict) -> list[str]:
+    step = item.get("step")
+    if isinstance(step, dict) and step.get("tool"):
+        return [str(step["tool"])]
+    tool_names = observation.get("tool_names")
+    if isinstance(tool_names, list):
+        return [str(tool) for tool in tool_names]
+    return []
+
+
+def _trace_route(item: dict, observation: dict, result: dict) -> str:
+    if item.get("route"):
+        return str(item["route"])
+    step = item.get("step")
+    if isinstance(step, dict) and step.get("route"):
+        return str(step["route"])
+    if observation.get("route"):
+        return str(observation["route"])
+    return str(result.get("route", "unknown"))
 
 
 def _format_audit_status(value: object) -> str:
@@ -1434,6 +1525,14 @@ def _render_result(result: dict) -> None:
                 "StateGraph nodes executed by the selected workflow, including route, tool, evidence, and audit state."
             )
             st.dataframe(pd.DataFrame(trace_rows), use_container_width=True)
+
+    agent_trace_rows = build_agent_trace_rows(result)
+    if agent_trace_rows:
+        with st.expander("Agent Runtime Trace", expanded=True):
+            st.caption(
+                "Todo state, tool hooks, approvals, and recovery attempts recorded during this run."
+            )
+            st.dataframe(pd.DataFrame(agent_trace_rows), use_container_width=True)
 
     audit = result.get("answer_audit")
     if audit:

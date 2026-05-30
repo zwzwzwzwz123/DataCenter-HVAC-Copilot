@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from collections.abc import Callable
+from typing import Any
 
 import pandas as pd
 
@@ -26,6 +28,7 @@ def build_demo_orchestrator(
     use_env_answer_generator: bool = True,
     use_dropt_policy: bool = False,
     use_persistent_knowledge: bool = True,
+    approval_handler: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
 ) -> BaselineOrchestrator:
     """Build a demo orchestrator from sample docs and mock trajectory data."""
 
@@ -45,6 +48,7 @@ def build_demo_orchestrator(
             else DeterministicAnswerGenerator()
         ),
         policy_runner=_build_policy_runner(project_root, use_dropt_policy=use_dropt_policy),
+        approval_handler=approval_handler,
     )
 
 

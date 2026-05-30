@@ -22,6 +22,7 @@ class BaselineOrchestrator:
         data_source: dict[str, str] | None = None,
         answer_generator: AnswerGenerator | None = None,
         policy_runner: Callable[[dict[str, Any]], PolicyResult] | None = None,
+        approval_handler: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
         task_executor: AgentTaskExecutor | None = None,
     ) -> None:
         if task_executor is None:
@@ -33,6 +34,7 @@ class BaselineOrchestrator:
                 data_source=data_source,
                 answer_generator=answer_generator,
                 policy_runner=policy_runner,
+                approval_handler=approval_handler,
             )
         self.task_executor = task_executor
         self.rag_pipeline = task_executor.rag_pipeline

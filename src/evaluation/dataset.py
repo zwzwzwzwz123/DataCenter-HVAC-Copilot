@@ -15,6 +15,15 @@ class EvalRecord(BaseModel):
     required_documents: list[str] = Field(default_factory=list)
     expected_keywords: list[str] = Field(default_factory=list)
     expected_steps: list[str] = Field(default_factory=list)
+    expected_tool_sequence: list[str] = Field(default_factory=list)
+    expected_recoveries: list[str] = Field(default_factory=list)
+    expected_runtime_events: list[str] = Field(default_factory=list)
+    runtime_scenario: str | None = None
+    difficulty: str | None = None
+    capability_tags: list[str] = Field(default_factory=list)
+    distractor_type: str | None = None
+    expected_failure_mode: str | None = None
+    grading_rubric: dict[str, float] = Field(default_factory=dict)
     must_include: list[str] = Field(default_factory=list)
     must_not_include: list[str] = Field(default_factory=list)
     expected_output_format: str

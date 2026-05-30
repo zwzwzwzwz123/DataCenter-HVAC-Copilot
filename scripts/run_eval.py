@@ -33,6 +33,7 @@ from src.retrieval.cross_encoder import SentenceTransformersCrossEncoderScorer
 from src.evaluation.runner import (
     run_baseline_comparison,
     run_baseline_eval,
+    run_runtime_guardrail_eval,
     save_predictions_jsonl,
 )
 
@@ -43,6 +44,9 @@ DEFAULT_REPORT_OUTPUT_PATH = Path("docs/experiment_report.md")
 DEFAULT_REVIEW_SAMPLE_PATH = Path("data/eval/human_review_sample.jsonl")
 DEFAULT_REVIEW_ANNOTATIONS_PATH = Path("data/eval/human_review_annotations.jsonl")
 DEFAULT_SAFETY_ADVERSARIAL_PATH = Path("data/eval/safety_adversarial.jsonl")
+DEFAULT_RUNTIME_EVAL_PATH = Path("data/eval/agent_runtime_eval.jsonl")
+DEFAULT_RUNTIME_OUTPUT_PATH = Path("data/eval/agent_runtime_predictions.jsonl")
+DEFAULT_RUNTIME_COMPARISON_OUTPUT_PATH = Path("data/eval/agent_runtime_comparison.json")
 
 
 def main() -> None:
@@ -153,6 +157,21 @@ def main() -> None:
         default=str(DEFAULT_SAFETY_ADVERSARIAL_PATH),
         help="Path to the adversarial Safety Audit JSONL dataset.",
     )
+    parser.add_argument(
+        "--runtime-eval-path",
+        default=str(DEFAULT_RUNTIME_EVAL_PATH),
+        help="Path to the Agent Runtime / Guardrail JSONL dataset.",
+    )
+    parser.add_argument(
+        "--runtime-output",
+        default=str(DEFAULT_RUNTIME_OUTPUT_PATH),
+        help="Path where Agent Runtime predictions should be written.",
+    )
+    parser.add_argument(
+        "--runtime-comparison-output",
+        default=str(DEFAULT_RUNTIME_COMPARISON_OUTPUT_PATH),
+        help="Path where Agent Runtime metrics JSON should be written.",
+    )
     args = parser.parse_args()
     eval_path = Path(args.eval_path)
     output_path = Path(args.output)
@@ -212,6 +231,12 @@ def main() -> None:
         Path(args.safety_adversarial_path)
     )
     dropt_summary = _load_optional_dropt_policy_summary(eval_path)
+    runtime_summary = _run_optional_runtime_guardrail_eval(
+        Path(args.runtime_eval_path),
+        Path(args.runtime_output),
+        Path(args.runtime_comparison_output),
+        orchestrator,
+    )
     comparison_path.parent.mkdir(parents=True, exist_ok=True)
     comparison_payload = {
         "summary": comparison["summary"],
@@ -221,6 +246,8 @@ def main() -> None:
         comparison_payload["safety_adversarial"] = safety_summary
     if dropt_summary is not None:
         comparison_payload["dropt_policy_benchmark"] = dropt_summary
+    if runtime_summary is not None:
+        comparison_payload["agent_runtime_guardrail"] = runtime_summary
     comparison_path.write_text(
         json.dumps(comparison_payload, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
@@ -240,6 +267,7 @@ def main() -> None:
         by_task_type=comparison["by_task_type"],
         human_calibration=human_summary,
         safety_adversarial=safety_summary,
+        agent_runtime_guardrail=runtime_summary,
         dropt_policy_benchmark=dropt_summary,
         dense_provider=args.dense_provider,
         dense_backend=args.dense_backend,
@@ -253,6 +281,9 @@ def main() -> None:
     print(f"Saved experiment report to {report_path}")
     print(f"Saved human review sample to {review_sample_path}")
     print(f"Human review annotations at {review_annotations_path}")
+    if runtime_summary is not None:
+        print(f"Saved Agent Runtime predictions to {args.runtime_output}")
+        print(f"Saved Agent Runtime comparison to {args.runtime_comparison_output}")
     print(result["metrics"])
 
 
@@ -317,6 +348,34 @@ def _load_optional_dropt_policy_summary(eval_path: Path) -> dict | None:
         return orchestrator.task_executor.latest_policy_state()
 
     return run_policy_benchmark(records, latest_state, orchestrator.policy_runner)
+
+
+def _run_optional_runtime_guardrail_eval(
+    eval_path: Path,
+    output_path: Path,
+    comparison_path: Path,
+    orchestrator,
+) -> dict | None:
+    if not eval_path.exists():
+        return None
+
+    result = run_runtime_guardrail_eval(eval_path, orchestrator)
+    save_predictions_jsonl(result["predictions"], output_path)
+    comparison_path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "summary": result["metrics"],
+        "by_task_type": result["by_task_type"],
+        "by_difficulty": result["by_difficulty"],
+    }
+    comparison_path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    return {
+        "summary": result["metrics"],
+        "by_task_type": result["by_task_type"],
+        "by_difficulty": result["by_difficulty"],
+    }
 
 
 if __name__ == "__main__":

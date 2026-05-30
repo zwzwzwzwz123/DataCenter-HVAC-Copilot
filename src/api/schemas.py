@@ -22,11 +22,13 @@ class AskResponse(BaseModel):
     retrieved_contexts: list[dict] = Field(default_factory=list)
     tool_results: list[dict] = Field(default_factory=list)
     tool_calls: list[dict] = Field(default_factory=list)
-    policy_result: dict = Field(default_factory=dict)
+    policy_result: dict | None = None
     route_reason: str | None = None
     data_source: dict[str, str] = Field(default_factory=dict)
     workflow_engine: str = "langgraph"
     workflow_trace: list[dict] = Field(default_factory=list)
+    todos: list[dict] = Field(default_factory=list)
+    runtime_trace: dict = Field(default_factory=dict)
     session_id: str | None = None
     turn_id: str | None = None
     memory_status: dict = Field(default_factory=dict)

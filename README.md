@@ -8,10 +8,13 @@
 ```mermaid
 flowchart TD
     A["/ask<br/>FastAPI / Streamlit"] --> B["Route Planner<br/>controlled schema, <=5 steps"]
-    B --> C["AgentTaskExecutor<br/>shared by LangGraph and baseline"]
+    B --> R["Bounded ReAct Controller<br/>continue / insert / replace / stop"]
+    B --> C["AgentTaskExecutor<br/>shared by LangGraph, ReAct and baseline"]
+    R --> C
     C --> D["RAG<br/>BM25 / dense / hybrid_rrf"]
     C --> E["Timeseries Tools<br/>query, quality, risk, hotspots, control audit"]
     C --> F["Policy Tool<br/>rule / replay / DROPT adapter"]
+    C --> T["Runtime Trace<br/>todo / hooks / approvals / recoveries"]
     D --> G["Evidence Aggregator"]
     E --> G
     F --> G
@@ -20,7 +23,7 @@ flowchart TD
     I --> J["Memory<br/>session context + status"]
 ```
 
-**核心亮点入口**：受控 LLM route planner、ToolSpec 工具协议、共享 executor 的可对照 workflow、`hybrid_rrf` 融合检索、FAISS 知识库原子索引、memory 失败降级与状态暴露。
+**核心亮点入口**：受控 LLM route planner、Bounded ReAct agent loop、ToolSpec 工具协议、runtime todo/hooks/approval/recovery trace、共享 executor 的可对照 workflow、`hybrid_rrf` 融合检索、FAISS 知识库原子索引、memory 失败降级与状态暴露。
 
 ## 项目亮点
 
@@ -32,6 +35,12 @@ Planner 只允许输出 `document_qa`、`timeseries_query`、`anomaly_diagnosis`
 
 **LangGraph Workflow 与 Deterministic Baseline 共享 Executor**  
 LangGraph 编排和 deterministic baseline 复用同一个 `AgentTaskExecutor`，底层 RAG、时序工具、policy runner、answer audit 不因 workflow 变化而漂移。这个设计让 LangGraph 可以展示多步 trace 和可选 LLM planner，同时 baseline 仍然能作为回归对照；当前 `rag_tool_agent` 与 `langgraph_tool_agent` 在核心 eval 指标上保持一致。代码位置：`src/agent/langgraph_workflow.py`、`src/agent/executor.py`。
+
+**Bounded ReAct Agent Loop**
+`bounded_react` 工作流在初始 plan 之后进入受控 ReAct 循环：controller 每轮只能选择 `continue_next_step`、`insert_step`、`replace_next_step`、`stop_and_answer` 或 `stop_blocked`。所有动作都会经过本地校验：route/tool 白名单、完整 pending sequence 校验、最大 5 步预算、非相邻重复工具调用拦截、executor-aware input signature 去重、policy 必需步骤保护和 policy deadline guard。对于策略建议任务，policy step 不能被删除、不能被额外 evidence 挤出预算，也不能因初始计划顺序自然耗尽预算；被跳过或重复的 step 会进入 todo trace 并标记 `blocked`。代码位置：`src/agent/bounded_react.py`、`src/agent/runtime.py`。
+
+**Agent Runtime Trace、Hook 与恢复机制**
+每次 LangGraph / Bounded ReAct run 都会返回 `todos` 和 `runtime_trace`。Runtime trace 包含 `pending/in_progress/completed/blocked` todo 状态流转、`PreToolUse/PostToolUse/RunComplete` hook、control boundary approval、以及 `tool_input_repair`、`tool_retry`、`query_rewrite_retry`、`policy_fallback`、`react_decision_fallback`、`react_policy_budget_guard` 等 recovery 事件。control boundary 工具支持注入 approval handler；审批拒绝不会写入有效 `policy_result`。代码位置：`src/agent/runtime.py`、`src/agent/executor.py`、`src/api/app.py`。
 
 **`hybrid_rrf`：BM25 + Dense 的 RRF 融合检索**  
 项目中严格区分两个名字相近的检索器：`rag_hybrid` 使用 `HybridRetriever`，实际是 BM25-style lexical retriever；`hybrid_rrf` 使用 `HybridRRFRetriever`，对 BM25 候选和 dense 候选做 Reciprocal Rank Fusion。这样可以在不把分数强行归一化的情况下融合 lexical precision 和 semantic recall，也能把 RRF 作为后续替换 embedding/reranker 的稳定实验入口。代码位置：`src/retrieval/retriever.py`、`src/evaluation/runner.py`。
@@ -49,8 +58,9 @@ LangGraph 编排和 deterministic baseline 复用同一个 `AgentTaskExecutor`�
 ```mermaid
 flowchart TD
     A["/ask<br/>FastAPI / Streamlit"] --> B["LangGraph Route Planner<br/>tool / metric_name / zone_id / time_window"]
-    B --> C["execute_plan_steps"]
+    B --> C["execute_plan_steps / bounded ReAct loop"]
     C --> D["collect_*_evidence<br/>RAG / timeseries / anomaly / policy"]
+    D --> E["runtime trace<br/>todo / hooks / approvals / recoveries"]
     D --> G["Merged Evidence"]
     G --> H[answer_generator]
     H --> I[answer_audit]
@@ -64,7 +74,7 @@ Planner 支持 `last_N_hours` 等结构化 `time_window`，非法 `time_window` 
 
 BEAR rollout 是 HVAC 仿真/导出数据，不是真实数据中心生产遥测，不能伪装成真实数据中心生产遥测。真实文档子集使用公开 PDF 和当前 BEAR rollout 做可复现评测，边界和来源见 `docs/data_card.md`；演示脚本和建议讲法见 `docs/demo_walkthrough.md`。
 
-确定性边界审计会用 small adversarial audit 检查“真实生产遥测”“LLM 直接控制”“未验证 policy action”等高风险表述，当前 hit rate 0.586，其中英文/翻译/paraphrase 泛化仍弱。session-scoped SQLite conversation memory 只增强多轮上下文，retrieved context loading 和工具 evidence 仍是当前回答主来源。
+确定性边界审计会用 small adversarial audit 检查“真实生产遥测”“LLM 直接控制”“未验证 policy action”等高风险表述，当前 hit rate 0.657；translation 类仍为 0.000，unverified_action 类为 1.000，说明英文/翻译表达泛化仍弱。session-scoped SQLite conversation memory 只增强多轮上下文，retrieved context loading 和工具 evidence 仍是当前回答主来源。
 
 ## LLM 后端配置
 
@@ -82,28 +92,30 @@ OLLAMA_MODEL=qwen2.5:7b
 
 ## LangGraph 工作流追踪演示
 
-LangGraph 现在使用受控 route planner + shared executor，而不是自由形式工具调用。Streamlit Copilot 可以切换 workflow engine 并查看 trace；每一步会显示 route、工具参数、evidence 和最终 answer audit。复合任务评测可通过 `scripts/generate_compound_eval.py` 生成，输出包括 `compound_task_llm_planner_eval.json` 和 `compound_task_llm_planner_eval.md`；当前 `planned_step_accuracy` = 0.780。
+LangGraph 现在使用受控 route planner + shared executor，而不是自由形式工具调用。Streamlit Copilot 可以切换 workflow engine：`deterministic`、`langgraph` 或 `bounded_react`。页面会展示 workflow trace 和 Agent Runtime Trace；前者显示 planner/controller/execute/observation/answer audit，后者显示 todo、hook、approval 和 recovery。
+
+`bounded_react` 是更接近成熟 Agent loop 的演示路径：它允许 LLM controller 在每轮 observation 后动态插入或替换步骤，但最终执行仍由本地 guard 裁决。当前离线 benchmark 中的 `bounded_react_guard_agent` 使用 deterministic guard controller，主要用于展示 runtime/guard 行为，不把它包装成真实 LLM-controller 指标。复合任务评测可通过 `scripts/generate_compound_eval.py` 生成，输出包括 `compound_task_llm_planner_eval.json` 和 `compound_task_llm_planner_eval.md`；当前 `planned_step_accuracy` = 0.780。
 
 ## Results
 
-当前主结果使用真实 embedding：`BAAI/bge-small-zh-v1.5` + FAISS。结果分为两组：108 条合成/样例评测集用于规模化回归，50 条真实手写子集用于验证真实公开文档知识库和工具链。真实子集刻意加入难度梯度、相似文档干扰、跨文档整合和文档外边界题，避免任何 baseline 轻松满分。
+当前结果分为四组：Retrieval Results、Agent Workflow Results、Runtime / Guardrail Results 和 Safety Boundary Results。108 条合成/样例评测集用于 RAG 与基础工具链规模化回归，50 条真实手写子集用于验证真实公开文档知识库和工具链；50 条 `agent_runtime_eval.jsonl` 专门评估 Agent runtime、Bounded ReAct guardrail、approval 和 recovery，不把旧 RAG 指标包装成当前 Agent runtime 能力。标注为 `reproducible` 的 108 条 demo-docs 结果来自本次命令 `python scripts/run_eval.py --disable-cross-encoder-rerank --disable-persistent-knowledge`；50 条 real/uploaded PDFs 结果是保留的真实 BGE/FAISS artifact。
 
 **检索 baseline**
 
 | Dataset | Mode | Citation / Context | Recall@1 | Recall@3 | Recall@5 | Recall@10 | MRR@10 | nDCG@10 |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 108 synthetic, demo docs | `rag_dense` | 0.800 | 0.546 | 0.762 | 0.800 | 0.800 | 0.654 | 0.689 |
-| 108 synthetic, demo docs | `rag_hybrid` BM25 lexical | 0.646 | 0.438 | 0.585 | 0.615 | 0.646 | 0.522 | 0.552 |
-| 108 synthetic, demo docs | `hybrid_rrf` BM25 + dense RRF | 0.815 | 0.608 | 0.754 | 0.800 | 0.815 | 0.687 | 0.719 |
+| 108 synthetic, demo docs reproducible | `rag_dense` | 0.677 | 0.408 | 0.569 | 0.631 | 0.677 | 0.501 | 0.544 |
+| 108 synthetic, demo docs reproducible | `rag_hybrid` BM25 lexical | 0.646 | 0.438 | 0.585 | 0.615 | 0.646 | 0.522 | 0.552 |
+| 108 synthetic, demo docs reproducible | `hybrid_rrf` BM25 + dense RRF | 0.708 | 0.454 | 0.615 | 0.677 | 0.708 | 0.545 | 0.585 |
 | 50 real, uploaded PDFs | `rag_dense` | 0.875 | 0.474 | 0.760 | 0.932 | 0.932 | 0.719 | 0.753 |
 | 50 real, uploaded PDFs | `rag_hybrid` BM25 lexical | 0.812 | 0.771 | 0.885 | 0.885 | 0.885 | 0.922 | 0.885 |
 | 50 real, uploaded PDFs | `hybrid_rrf` BM25 + dense RRF | 0.969 | 0.677 | 0.979 | 0.990 | 0.990 | 0.896 | 0.912 |
 
 | Dataset | Mode | Expected Keyword | Evidence | Hallucination Proxy |
 | --- | --- | ---: | ---: | ---: |
-| 108 synthetic, demo docs | `rag_dense` | 0.593 | 1.000 | 0.083 |
-| 108 synthetic, demo docs | `rag_hybrid` BM25 lexical | 0.362 | 0.620 | 0.056 |
-| 108 synthetic, demo docs | `hybrid_rrf` BM25 + dense RRF | 0.596 | 1.000 | 0.111 |
+| 108 synthetic, demo docs reproducible | `rag_dense` | 0.380 | 1.000 | 0.056 |
+| 108 synthetic, demo docs reproducible | `rag_hybrid` BM25 lexical | 0.362 | 0.620 | 0.056 |
+| 108 synthetic, demo docs reproducible | `hybrid_rrf` BM25 + dense RRF | 0.405 | 1.000 | 0.056 |
 | 50 real, uploaded PDFs | `rag_dense` | 0.451 | 1.000 | 0.000 |
 | 50 real, uploaded PDFs | `rag_hybrid` BM25 lexical | 0.484 | 0.760 | 0.000 |
 | 50 real, uploaded PDFs | `hybrid_rrf` BM25 + dense RRF | 0.513 | 1.000 | 0.000 |
@@ -114,14 +126,56 @@ LangGraph 现在使用受控 route planner + shared executor，而不是自由�
 
 | Dataset | Mode | Citation / Context | Recall@10 | MRR@10 | nDCG@10 | Expected Keyword | Tool Select | Tool Success | Evidence | Correctness Proxy | Faithfulness Proxy | Hallucination Proxy | Grounding |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 108 synthetic, demo docs | `rag_tool_agent` | 0.338 | 0.346 | 0.323 | 0.325 | 0.628 | 0.882 | 1.000 | 0.917 | 0.541 | 0.486 | 0.167 | 0.477 |
-| 108 synthetic, demo docs | `langgraph_tool_agent` | 0.338 | 0.346 | 0.323 | 0.325 | 0.628 | 0.882 | 1.000 | 0.917 | 0.541 | 0.486 | 0.167 | 0.477 |
-| 108 synthetic, demo docs | `react_agent` | 0.338 | 0.346 | 0.323 | 0.325 | 0.644 | 0.956 | 1.000 | 0.917 | 0.582 | 0.527 | 0.167 | 0.477 |
+| 108 synthetic, demo docs reproducible | `rag_tool_agent` | 0.354 | 0.362 | 0.331 | 0.335 | 0.625 | 0.838 | 1.000 | 1.000 | 0.546 | 0.492 | 0.167 | 0.615 |
+| 108 synthetic, demo docs reproducible | `langgraph_tool_agent` | 0.354 | 0.362 | 0.331 | 0.335 | 0.619 | 0.809 | 1.000 | 1.000 | 0.546 | 0.492 | 0.167 | 0.615 |
+| 108 synthetic, demo docs reproducible | `react_agent` | 0.354 | 0.362 | 0.331 | 0.335 | 0.640 | 0.912 | 1.000 | 1.000 | 0.587 | 0.533 | 0.167 | 0.615 |
+| 108 synthetic, demo docs reproducible | `bounded_react_guard_agent` | 0.354 | 0.362 | 0.331 | 0.335 | 0.619 | 0.809 | 1.000 | 1.000 | 0.546 | 0.492 | 0.167 | 0.615 |
 | 50 real, uploaded PDFs | `rag_tool_agent` | 0.562 | 0.667 | 0.651 | 0.622 | 0.643 | 0.850 | 1.000 | 1.000 | 0.703 | 0.690 | 0.042 | 0.938 |
 | 50 real, uploaded PDFs | `langgraph_tool_agent` | 0.562 | 0.667 | 0.651 | 0.622 | 0.665 | 1.000 | 1.000 | 1.000 | 0.727 | 0.713 | 0.042 | 0.938 |
 | 50 real, uploaded PDFs | `react_agent` | 0.562 | 0.667 | 0.651 | 0.622 | 0.648 | 0.900 | 1.000 | 1.000 | 0.713 | 0.700 | 0.042 | 0.938 |
 
-这组结果说明三件事。第一，重构后的 50 条真实子集不再是“系统能答对”的简单集：`hybrid_rrf` citation/context 为 0.969、Recall@10 为 0.990，没有把 answer proxy 拉成满分，但显著高于纯 dense 和 BM25 lexical，能体现 RRF 融合的召回增益。第二，在 108 条合成/样例集上，BGE dense 与 `hybrid_rrf` 的 Citation/Context 分别为 0.800 和 0.815，均高于 BM25 lexical 的 0.646；同时 `hybrid_rrf` 的 MRR@10 / nDCG@10 为 0.687 / 0.719，排序质量也优于单路。第三，真实子集里的时序、异常和策略题需要工具证据，`langgraph_tool_agent` 在真实子集上达到 1.000 tool selection、1.000 tool success、1.000 evidence coverage，整体 correctness proxy 为 0.727，边界违规率为 0.042。
+这组结果说明三件事。第一，重构后的 50 条真实子集不再是“系统能答对”的简单集：`hybrid_rrf` citation/context 为 0.969、Recall@10 为 0.990，没有把 answer proxy 拉成满分，但显著高于纯 dense 和 BM25 lexical，能体现 RRF 融合的召回增益。第二，在本次可复现 108 条 demo-docs 回归中，`hybrid_rrf` 的 Citation/Context 为 0.708，优于 BM25 lexical 的 0.646；`rag_dense` 为 0.677，用 deterministic hash embedding，不代表真实语义 embedding 能力。第三，真实子集里的时序、异常和策略题需要工具证据，保留 artifact 中 `langgraph_tool_agent` 在真实子集上达到 1.000 tool selection、1.000 tool success、1.000 evidence coverage，整体 correctness proxy 为 0.727，边界违规率为 0.042。
+
+`bounded_react_guard_agent` 已接入 evaluation runner，用于 runtime guard、todo、approval、recovery 和动态规划行为的回归验证；离线 benchmark 中它使用 deterministic guard controller，不是在线 LLM-controller 指标。端到端回答质量仍以 `rag_tool_agent`、`langgraph_tool_agent` 和 `react_agent` 表为主，runtime 能力单独见下表。
+
+**Runtime / Guardrail Results**
+
+数据集：`data/eval/agent_runtime_eval.jsonl`，50 条场景化样本，难度分布为 easy 10、medium 28、hard 12。它不是 retrieval benchmark，而是参考公开评测集常用的数据卡、显式难度分层、能力标签、干扰类型、失败模式和评分 rubric 做法，通过 deterministic runtime scenario harness 注入 controller 行为、approval handler、临时 policy 故障、persistent policy 故障和 query rewrite recovery，覆盖 multi-step planning、Bounded ReAct dynamic insert / replace / stop、policy deadline guard、duplicate tool guard、`data_quality_check`、`comfort_risk_assessment`、`zone_hotspot_rank`、`control_action_audit`、`cooling_efficiency_summary`、approval denied、tool retry、query rewrite retry 和 policy fallback。
+
+| Metric | Value |
+| --- | ---: |
+| required_step_recall | 0.990 |
+| tool_sequence_accuracy | 0.935 |
+| policy_obligation_success_rate | 0.941 |
+| approval_block_success_rate | 1.000 |
+| duplicate_guard_success_rate | 0.667 |
+| recovery_success_rate | 0.833 |
+| trace_completeness | 1.000 |
+| tool_success_rate | 1.000 |
+| average_tool_latency_seconds | 0.008 |
+
+| Difficulty | required_step_recall | tool_sequence_accuracy | recovery_success_rate | duplicate_guard_success_rate |
+| --- | ---: | ---: | ---: | ---: |
+| easy | 1.000 | 1.000 | 1.000 | 1.000 |
+| medium | 1.000 | 1.000 | 1.000 | 1.000 |
+| hard | 0.958 | 0.727 | 0.600 | 0.500 |
+
+这些数字来自 `data/eval/agent_runtime_comparison.json`。50 条新集刻意保留 hard 题中的失败信号，避免把 guardrail benchmark 做成全满分 smoke test；当前主要短板集中在重复工具拦截与 recovery trace 的 hard 场景。离线 `bounded_react_guard_agent` 使用 deterministic guard controller，不表示真实在线 LLM controller 在开放问题上的动态规划成功率。
+
+**Safety Boundary Results**
+
+| Dataset | Metric | Value |
+| --- | --- | ---: |
+| `safety_adversarial.jsonl` | sample_count | 35 |
+| `safety_adversarial.jsonl` | overall_hit_rate | 0.657 |
+| `safety_adversarial.jsonl` | paraphrase hit_rate | 1.000 |
+| `safety_adversarial.jsonl` | jailbreak hit_rate | 0.667 |
+| `safety_adversarial.jsonl` | mixed hit_rate | 0.600 |
+| `safety_adversarial.jsonl` | indirect hit_rate | 0.333 |
+| `safety_adversarial.jsonl` | translation hit_rate | 0.000 |
+| `safety_adversarial.jsonl` | unverified_action hit_rate | 1.000 |
+
+Safety audit 是确定性边界检查，用于暴露“真实生产遥测”“LLM 直接控制”“未验证 policy action”等高风险表述的召回情况。translation 类仍为 0.000，是当前安全泛化的明确短板，不能被 runtime guardrail 满分掩盖。
 
 主要 artifact：
 
@@ -129,6 +183,8 @@ LangGraph 现在使用受控 route planner + shared executor，而不是自由�
 | --- | --- |
 | `data/eval/real_bge_demo_docs/baseline_comparison.json` | 108 条合成/样例集，隔离真实知识库后使用 BGE + FAISS 跑 demo docs |
 | `data/eval/real_eval_bge/baseline_comparison.json` | 50 条真实手写子集，使用 7 篇上传公开 PDF、340 chunks、BGE + FAISS |
+| `data/eval/agent_runtime_eval.jsonl` | 50 条 Agent Runtime / Bounded ReAct guardrail 场景评测集，含 difficulty、capability tags、distractor、failure mode 和 rubric |
+| `data/eval/agent_runtime_comparison.json` | Runtime / Guardrail 指标汇总，含 by_task_type 和 by_difficulty |
 | `docs/data_card.md` | 真实公开文档来源、用途、评测边界和主要结果 |
 | `docs/real_eval_log.md` | 本轮真实数据评测的完整实验记录 |
 
@@ -137,8 +193,9 @@ LangGraph 现在使用受控 route planner + shared executor，而不是自由�
 | Artifact | Metric | Value |
 | --- | --- | ---: |
 | `intent_routing_comparison.json` | rule-based intent accuracy, 100-sample artifact | 0.640 |
-| `baseline_comparison.json` | safety adversarial overall hit rate | 0.586 |
+| `baseline_comparison.json` | safety adversarial overall hit rate | 0.657 |
 | `baseline_comparison.json` | safety translation hit rate | 0.000 |
+| `baseline_comparison.json` | safety unverified_action hit rate | 1.000 |
 | `baseline_comparison.json` | DROPT policy benchmark success | 28 / 28 |
 
 ## Quick Start
@@ -182,6 +239,23 @@ streamlit run app/streamlit_app.py
 curl -X POST http://localhost:8000/ask \
   -H "Content-Type: application/json" \
   -d "{\"question\":\"最近 zone_temperature 有没有异常？\",\"workflow_engine\":\"langgraph\"}"
+```
+
+运行 Bounded ReAct 工作流：
+
+```bash
+curl -X POST http://localhost:8000/ask \
+  -H "Content-Type: application/json" \
+  -d "{\"question\":\"先检查温度，再给出策略建议。\",\"workflow_engine\":\"bounded_react\"}"
+```
+
+返回中会包含：
+
+```text
+workflow_trace     planner/controller/execution/observation/audit
+todos              pending/in_progress/completed/blocked task states
+runtime_trace      hooks, approvals, recoveries, summary
+react_trace        executed ReAct observations
 ```
 
 运行默认完整评测（使用仓库默认配置；默认包含 `hybrid_rrf_cross_encoder`）：
@@ -237,7 +311,10 @@ Docker 一键启动支持 fresh clone，本地不要求预先创建 `.env`。Com
 系统允许 LLM 做 route planning 和 evidence-grounded answer generation，但不允许 LLM 直接写回控制动作。Planner 输出先经过 schema 校验，policy recommendation 由 policy tool 产生，answer generator 只解释 evidence 和 tool result。这个边界让 demo 更接近工程系统：可解释、可回退、可评测。
 
 **把 workflow 编排和工具执行解耦**  
-LangGraph 负责多步流程、trace 和 planner 接入；`AgentTaskExecutor` 负责实际工具行为。这样 workflow 可以迭代，评测仍能用 deterministic baseline 发现行为漂移，也便于把 agent 编排问题和工具正确性问题分开调试。
+LangGraph 负责多步流程、trace 和 planner 接入；Bounded ReAct 负责受控动态循环；`AgentTaskExecutor` 负责实际工具行为。这样 workflow 可以迭代，评测仍能用 deterministic baseline 发现行为漂移，也便于把 agent 编排问题和工具正确性问题分开调试。
+
+**把 Agent loop 做成有边界的自主性**
+`bounded_react` 不追求“无限自主执行”，而是把自主性限制在结构化动作、有限步数、任务义务和本地 guardrail 内。它可以动态补充证据，但不能绕过 ToolSpec、permission gate、approval gate、重复调用检测和 policy deadline guard。这个设计更接近 Claude Code / OpenDevin 一类成熟 Agent 的工程模式：LLM 提议动作，本地 runtime 做最终裁决、执行和审计。
 
 **把检索实验命名为可验证 baseline**  
 `rag_keyword`、`rag_hybrid`、`hybrid_rrf`、`rag_hybrid_rerank`、`hybrid_rrf_cross_encoder` 分别对应不同 retriever / wrapper，而不是把所有检索都写成“hybrid”。`hybrid_rrf_cross_encoder` 先用 BM25 + dense RRF 召回候选，再用 cross-encoder 对 query-document pair 做二阶段精排，并单独记录 latency，便于回答“排序质量提升是否值得额外推理成本”。这种命名降低了 README 和代码之间的语义风险，也让评测表能直接回答“哪个检索改动真的带来收益”。
@@ -254,14 +331,14 @@ Memory 用于多轮指代、历史解释和 evidence refs，但当前问题的�
 
 评测以 deterministic metrics 和 proxy metrics 为主，包含 citation/context、tool selection/execution、evidence coverage、keyword coverage、correctness/faithfulness proxy。项目预留 human review 文件和 LLM judge adapter，但当前主结果不声称来自人工评审。
 
-Safety audit 是关键词/规则审计，用于暴露“真实生产遥测”“LLM 直接控制”“未验证 policy action”等边界风险。当前 adversarial hit rate 为 0.586，其中 translation 类为 0.000，说明英文/翻译表达泛化弱；它是边界检查器，不是完整安全防护系统。
+Safety audit 是关键词/规则审计，用于暴露“真实生产遥测”“LLM 直接控制”“未验证 policy action”等边界风险。当前 adversarial hit rate 为 0.657，其中 translation 类为 0.000、unverified_action 类为 1.000，说明英文/翻译表达泛化弱；它是边界检查器，不是完整安全防护系统。
 
 真实文档子集当前绑定的是上传后生成的 `document_id`。这些 ID 由 UUID 生成，不是内容 hash；如果删除并重新上传同一批 PDF，`required_documents` 需要同步更新。后续更稳的做法是让 citation metric 支持按文件名或 file hash 匹配。
 
 ## Project Structure
 
 ```text
-src/agent/        planner, LangGraph workflow, shared executor, answer generator, audit
+src/agent/        planner, LangGraph workflow, bounded ReAct, runtime trace, shared executor, answer generator, audit
 src/api/          FastAPI app, schemas, demo factory
 src/retrieval/    keyword, BM25 lexical, dense, FAISS, RRF, rerank, query rewrite
 src/knowledge/    upload parsing, SQLite metadata, FAISS indexer/retriever/service
@@ -289,10 +366,26 @@ anomaly_diagnosis:    20
 policy_recommendation:28
 ```
 
+评测数据分工如下：
+
+| Eval file | 适合评估 | 不适合包装成 |
+| --- | --- | --- |
+| `data/eval/hvac_eval.jsonl` | legacy RAG、基础 tool selection、answer proxy 回归 | Bounded ReAct runtime guardrail 指标 |
+| `data/eval/real_eval.jsonl` | 真实公开 PDF 知识库、RAG ranking、基础 LangGraph/tool workflow | approval/retry/recovery/duplicate guard 覆盖率 |
+| `data/eval/persistent_knowledge_ranking_eval.jsonl` | persistent KB 的 document-level ranking、RRF/dense/BM25 对比 | agent planning 或工具执行能力 |
+| `data/eval/compound_task_eval.jsonl` | 多步 planner 的 required step / order / policy-final 评估 | runtime approval、tool retry、query rewrite retry |
+| `data/eval/agent_runtime_eval.jsonl` | Agent Runtime、Bounded ReAct guardrail、approval、recovery、trace 完整性 | retrieval ranking 或真实 LLM-controller 泛化能力 |
+
 默认完整评测：
 
 ```bash
 python scripts/run_eval.py
+```
+
+本次 README 中标注为 `reproducible` 的 108 条 demo-docs 指标来自以下可复现回归命令，它显式关闭 cross-encoder 下载和 persistent KB：
+
+```bash
+python scripts/run_eval.py --disable-cross-encoder-rerank --disable-persistent-knowledge
 ```
 
 该命令会生成：
@@ -300,24 +393,54 @@ python scripts/run_eval.py
 ```text
 data/eval/baseline_predictions.jsonl
 data/eval/baseline_comparison.json
+data/eval/agent_runtime_predictions.jsonl
+data/eval/agent_runtime_comparison.json
 docs/experiment_report.md
 data/eval/human_review_sample.jsonl
 data/eval/human_review_annotations.jsonl
 ```
 
-当前默认 artifact 的核心数字：
+本次 reproducible artifact 的核心数字：
 
 ```text
-tool_selection_accuracy        = 0.882
-evidence_coverage              = 0.917
-expected_keyword_coverage      = 0.628
-answer_correctness_proxy       = 0.541
-faithfulness_proxy             = 0.486
-langgraph_tool_agent tool_selection_accuracy      = 0.882
-langgraph_tool_agent evidence_coverage            = 0.917
+rag_tool_agent tool_selection_accuracy        = 0.838
+rag_tool_agent evidence_coverage              = 1.000
+rag_tool_agent expected_keyword_coverage      = 0.625
+rag_tool_agent answer_correctness_proxy       = 0.546
+rag_tool_agent faithfulness_proxy             = 0.492
+langgraph_tool_agent tool_selection_accuracy  = 0.809
+langgraph_tool_agent evidence_coverage        = 1.000
+safety adversarial overall_hit_rate           = 0.657
 ```
 
 Query Rewrite / HyDE baselines 也包含在 comparison artifact 中：`rag_rewrite` 使用 deterministic query expansion，`rag_hyde` 和 `rag_hyde_rerank` 用于检验假设性答案扩展和 rerank 的收益。
+
+Agent runtime 回归可重点运行：
+
+```bash
+pytest tests/test_agent_orchestrator.py tests/test_bounded_react_agent.py tests/test_api_app.py::test_ask_endpoint_can_run_bounded_react_workflow_trace -q
+```
+
+其中 `tests/test_bounded_react_agent.py` 覆盖 Bounded ReAct 的关键 guard：非法工具 fallback、approval denied、非相邻重复调用、默认参数等价重复、`data_quality_check` 重复拦截、policy stop guard、policy replace guard、policy budget starvation guard 和 pre-execution policy deadline guard。
+
+Agent Runtime / Guardrail benchmark 可单独运行：
+
+```bash
+python -c "from pathlib import Path; import json; from src.api.demo_factory import build_demo_orchestrator; from src.evaluation.runner import run_runtime_guardrail_eval, save_predictions_jsonl; res=run_runtime_guardrail_eval(Path('data/eval/agent_runtime_eval.jsonl'), build_demo_orchestrator(use_env_answer_generator=False)); save_predictions_jsonl(res['predictions'], 'data/eval/agent_runtime_predictions.jsonl'); Path('data/eval/agent_runtime_comparison.json').write_text(json.dumps({'summary': res['metrics'], 'by_task_type': res['by_task_type'], 'by_difficulty': res['by_difficulty']}, ensure_ascii=False, indent=2) + '\n', encoding='utf-8'); print(res['metrics'])"
+```
+
+如果需要同时验证 runner/report/runtime 接入但不下载 cross-encoder、也不读取 persistent KB，可运行可复现 smoke：
+
+```bash
+python scripts/run_eval.py --disable-cross-encoder-rerank --disable-persistent-knowledge \
+  --output data/eval/smoke_runtime_baseline_predictions.jsonl \
+  --comparison-output data/eval/smoke_runtime_baseline_comparison.json \
+  --report-output docs/smoke_runtime_experiment_report.md \
+  --human-review-sample-output data/eval/smoke_runtime_human_review_sample.jsonl \
+  --human-review-annotations-output data/eval/smoke_runtime_human_review_annotations.jsonl
+```
+
+本地最近一次 smoke 耗时约 6 分 25 秒，生成了 baseline comparison、experiment report 以及 Agent Runtime comparison。默认完整命令会评估更多 retrieval 变体和当前知识库，耗时可能明显更长。
 
 108 条合成/样例集的 BGE + FAISS 对照：
 
@@ -390,4 +513,4 @@ python scripts/export_bear_data.py --bear-root ../BEAR --num-steps 336 --scenari
 
 ## Resume One-Liner
 
-基于 BEAR HVAC 仿真和真实公开文档的 RAG + Tool Agent 系统；核心是 `hybrid_rrf`(BM25+dense RRF) 融合检索、受控 LLM route planner、共享 executor 的 baseline/LangGraph 可对照评测。真实文档子集含干扰/边界题，`hybrid_rrf` Citation/Context 0.969、Recall@10 0.990、MRR@10 0.896，优于单路 dense/BM25；`langgraph_tool_agent` 在真实子集上 tool selection 1.000、correctness proxy 0.727、hallucination proxy 0.042。
+基于 BEAR HVAC 仿真和真实公开文档的 RAG + Tool Agent 系统；核心是 `hybrid_rrf`(BM25+dense RRF) 融合检索、受控 LLM route planner、Bounded ReAct agent loop、ToolSpec/permission/approval/runtime trace 和共享 executor 的 baseline/LangGraph/ReAct 可对照评测。真实文档子集含干扰/边界题，`hybrid_rrf` Citation/Context 0.969、Recall@10 0.990、MRR@10 0.896，优于单路 dense/BM25；`langgraph_tool_agent` 在真实子集上 tool selection 1.000、correctness proxy 0.727、hallucination proxy 0.042；Bounded ReAct 覆盖动态插入/替换、重复工具拦截、policy deadline guard、approval denied 和 recovery trace。

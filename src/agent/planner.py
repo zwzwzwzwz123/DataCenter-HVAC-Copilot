@@ -494,6 +494,10 @@ def _validate_steps(steps: list[PlanStep]) -> list[PlanStep]:
     return validated
 
 
+def validate_plan_steps(steps: list[PlanStep]) -> list[PlanStep]:
+    return _validate_steps(steps)
+
+
 def _is_supported_time_window(value: str) -> bool:
     normalized = value.strip().lower().replace("-", "_")
     return bool(TIME_WINDOW_PATTERN.fullmatch(normalized))

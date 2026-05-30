@@ -16,6 +16,7 @@ from app.streamlit_app import (
     DEMO_WALKTHROUGHS,
     MOUSE_GLOW_SCRIPT,
     WORKFLOW_OPTIONS,
+    build_agent_trace_rows,
     build_sidebar_config_groups,
     build_workflow_trace_rows,
     get_dashboard_copy,
@@ -300,9 +301,10 @@ def test_demo_walkthroughs_cover_core_routes():
     assert all(case["why"] for case in DEMO_WALKTHROUGHS)
 
 
-def test_workflow_options_offer_baseline_and_langgraph():
+def test_workflow_options_offer_bounded_react_baseline_and_langgraph():
     assert list(WORKFLOW_OPTIONS.values())[0] == "langgraph"
     assert WORKFLOW_OPTIONS["LangGraph workflow"] == "langgraph"
+    assert WORKFLOW_OPTIONS["Bounded ReAct agent"] == "bounded_react"
     assert WORKFLOW_OPTIONS["Deterministic baseline"] == "deterministic"
 
 
@@ -443,6 +445,96 @@ def test_build_workflow_trace_rows_summarizes_langgraph_nodes():
             "audit": "passed",
         },
     ]
+
+
+def test_build_workflow_trace_rows_summarizes_bounded_react_decisions():
+    rows = build_workflow_trace_rows(
+        {
+            "workflow_engine": "bounded_react",
+            "workflow_trace": [
+                {
+                    "node": "react_controller",
+                    "action": "insert_step",
+                    "controller": "llm:deepseek:deepseek-chat",
+                    "fallback_used": False,
+                    "step": {
+                        "route": "anomaly_diagnosis",
+                        "tool": "comfort_risk_assessment",
+                    },
+                    "confidence": 0.84,
+                },
+                {
+                    "node": "react_observation",
+                    "observation": {
+                        "route": "anomaly_diagnosis",
+                        "tool_names": ["comfort_risk_assessment"],
+                        "citation_count": 0,
+                        "tool_result_count": 1,
+                    },
+                },
+            ],
+        }
+    )
+
+    assert rows[0]["node"] == "react_controller"
+    assert rows[0]["classifier"] == "llm:deepseek:deepseek-chat"
+    assert rows[0]["route"] == "anomaly_diagnosis"
+    assert rows[0]["tools"] == "comfort_risk_assessment"
+    assert rows[0]["fallback"] == "no"
+    assert rows[1]["node"] == "react_observation"
+    assert rows[1]["route"] == "anomaly_diagnosis"
+    assert rows[1]["tools"] == "comfort_risk_assessment"
+
+
+def test_build_agent_trace_rows_exposes_todos_hooks_approvals_and_recoveries():
+    rows = build_agent_trace_rows(
+        {
+            "runtime_trace": {
+                "todos": [
+                    {
+                        "id": "todo_001",
+                        "step_index": 1,
+                        "route": "policy_recommendation",
+                        "description": "Run bounded policy.",
+                        "status": "blocked",
+                    }
+                ],
+                "hooks": [
+                    {
+                        "hook": "PreToolUse",
+                        "tool_name": "policy_runner",
+                        "decision": "policy_boundary",
+                        "approval": {
+                            "required": True,
+                            "approved": False,
+                            "decision": "denied",
+                            "reason": "operator denied policy_runner",
+                        },
+                    },
+                    {
+                        "hook": "PostToolUse",
+                        "tool_name": "policy_runner",
+                        "status": "blocked",
+                        "duration_ms": 1.2,
+                    },
+                ],
+                "recoveries": [
+                    {
+                        "strategy": "policy_fallback",
+                        "status": "success",
+                        "tool_name": "policy_runner",
+                        "error": "DROPT checkpoint unavailable",
+                    }
+                ],
+            }
+        }
+    )
+
+    assert [row["stage"] for row in rows] == ["Todo", "Hook", "Hook", "Recovery"]
+    assert rows[0]["status"] == "blocked"
+    assert rows[1]["approval"] == "denied"
+    assert rows[3]["item"] == "policy_fallback"
+    assert "DROPT checkpoint unavailable" in rows[3]["detail"]
 
 
 def test_dashboard_copy_uses_control_console_positioning():

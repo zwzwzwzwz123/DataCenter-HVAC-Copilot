@@ -194,6 +194,115 @@ def policy_final_step_rate(records: list[EvalRecord], predictions: dict[str, dic
     return hits / len(policy_records)
 
 
+def tool_sequence_accuracy(records: list[EvalRecord], predictions: dict[str, dict]) -> float | None:
+    sequence_records = [record for record in records if record.expected_tool_sequence]
+    if not sequence_records:
+        return None
+
+    hits = 0
+    for record in sequence_records:
+        predicted = predictions.get(record.id, {})
+        if _executed_tool_sequence(predicted) == record.expected_tool_sequence:
+            hits += 1
+    return hits / len(sequence_records)
+
+
+def policy_obligation_success_rate(records: list[EvalRecord], predictions: dict[str, dict]) -> float | None:
+    policy_records = [
+        record
+        for record in records
+        if (
+            "policy_recommendation" in record.expected_steps
+            or "rule_based_policy" in record.required_tools
+        )
+        and "approval_denied" not in record.expected_runtime_events
+    ]
+    if not policy_records:
+        return None
+
+    hits = 0
+    for record in policy_records:
+        predicted = predictions.get(record.id, {})
+        if isinstance(predicted.get("policy_result"), dict) or "rule_based_policy" in predicted.get("tools", []):
+            hits += 1
+    return hits / len(policy_records)
+
+
+def approval_block_success_rate(records: list[EvalRecord], predictions: dict[str, dict]) -> float | None:
+    approval_records = [
+        record for record in records if "approval_denied" in record.expected_runtime_events
+    ]
+    if not approval_records:
+        return None
+
+    hits = 0
+    for record in approval_records:
+        predicted = predictions.get(record.id, {})
+        if any(call.get("status") == "blocked" for call in _tool_calls(predicted)):
+            hits += 1
+    return hits / len(approval_records)
+
+
+def duplicate_guard_success_rate(records: list[EvalRecord], predictions: dict[str, dict]) -> float | None:
+    duplicate_records = [
+        record for record in records if "duplicate_guard" in record.expected_runtime_events
+    ]
+    if not duplicate_records:
+        return None
+
+    hits = 0
+    for record in duplicate_records:
+        predicted = predictions.get(record.id, {})
+        recoveries = _runtime_recovery_strategies(predicted)
+        has_blocked_todo = any(todo.get("status") == "blocked" for todo in predicted.get("todos", []))
+        if has_blocked_todo and (
+            "react_duplicate_step_blocked" in recoveries
+            or "react_decision_fallback" in recoveries
+        ):
+            hits += 1
+    return hits / len(duplicate_records)
+
+
+def recovery_success_rate(records: list[EvalRecord], predictions: dict[str, dict]) -> float | None:
+    recovery_records = [record for record in records if record.expected_recoveries]
+    if not recovery_records:
+        return None
+
+    scores = []
+    for record in recovery_records:
+        predicted = predictions.get(record.id, {})
+        successful = _runtime_successful_recovery_strategies(predicted)
+        matches = [strategy for strategy in record.expected_recoveries if strategy in successful]
+        scores.append(len(matches) / len(record.expected_recoveries))
+    return sum(scores) / len(scores)
+
+
+def trace_completeness(records: list[EvalRecord], predictions: dict[str, dict]) -> float | None:
+    trace_records = [
+        record for record in records if "trace_complete" in record.expected_runtime_events
+    ]
+    if not trace_records:
+        return None
+
+    hits = 0
+    for record in trace_records:
+        predicted = predictions.get(record.id, {})
+        trace = predicted.get("runtime_trace", {})
+        hooks = trace.get("hooks", []) if isinstance(trace, dict) else []
+        summary = trace.get("summary", {}) if isinstance(trace, dict) else {}
+        hook_names = [hook.get("hook") for hook in hooks if isinstance(hook, dict)]
+        has_todos = bool(predicted.get("todos") or trace.get("todos"))
+        has_complete_hook = "RunComplete" in hook_names
+        has_pre = "PreToolUse" in hook_names
+        has_post = "PostToolUse" in hook_names
+        needs_tool_hooks = bool(record.expected_tool_sequence)
+        has_tool_trace = has_pre and has_post if needs_tool_hooks else True
+        has_summary = bool(summary)
+        if has_todos and has_complete_hook and has_tool_trace and has_summary:
+            hits += 1
+    return hits / len(trace_records)
+
+
 def lexical_answer_coverage(records: list[EvalRecord], predictions: dict[str, dict]) -> float:
     if not records:
         return 0.0
@@ -397,6 +506,59 @@ def _planned_routes(prediction: dict) -> list[str]:
         if route:
             routes.append(str(route))
     return routes
+
+
+def _executed_tool_sequence(prediction: dict) -> list[str]:
+    calls = _tool_calls(prediction)
+    if calls:
+        return [
+            _semantic_tool_name(call)
+            for call in calls
+            if call.get("tool_name")
+        ]
+    return [str(tool) for tool in prediction.get("tools", [])]
+
+
+def _tool_calls(prediction: dict) -> list[dict]:
+    return [
+        call for call in prediction.get("tool_calls", [])
+        if isinstance(call, dict)
+    ]
+
+
+def _semantic_tool_name(tool_call: dict) -> str:
+    tool_name = str(tool_call.get("tool_name"))
+    if tool_name != "policy_runner" or tool_call.get("status") != "success":
+        return tool_name
+    output = tool_call.get("output")
+    if not isinstance(output, dict):
+        return tool_name
+    policy_name = str(output.get("policy_name", ""))
+    if policy_name == "rule_based":
+        return "rule_based_policy"
+    return policy_name or tool_name
+
+
+def _runtime_recovery_strategies(prediction: dict) -> set[str]:
+    trace = prediction.get("runtime_trace", {})
+    recoveries = trace.get("recoveries", []) if isinstance(trace, dict) else []
+    return {
+        str(recovery.get("strategy"))
+        for recovery in recoveries
+        if isinstance(recovery, dict) and recovery.get("strategy")
+    }
+
+
+def _runtime_successful_recovery_strategies(prediction: dict) -> set[str]:
+    trace = prediction.get("runtime_trace", {})
+    recoveries = trace.get("recoveries", []) if isinstance(trace, dict) else []
+    return {
+        str(recovery.get("strategy"))
+        for recovery in recoveries
+        if isinstance(recovery, dict)
+        and recovery.get("strategy")
+        and recovery.get("status") == "success"
+    }
 
 
 def tool_execution_success_rate(records: list[EvalRecord], predictions: dict[str, dict]) -> float:

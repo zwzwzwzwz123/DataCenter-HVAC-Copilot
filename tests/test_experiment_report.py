@@ -389,6 +389,42 @@ def test_render_experiment_report_includes_safety_adversarial_section() -> None:
     assert "主要漏报样例：`adv_001`" in markdown
 
 
+def test_render_experiment_report_includes_agent_runtime_guardrail_section() -> None:
+    markdown = render_experiment_report(
+        {
+            "bounded_react_guard_agent": {
+                "citation_hit_rate": 0.5,
+                "context_recall": 0.5,
+                "expected_keyword_coverage": 0.5,
+                "lexical_answer_coverage": 0.5,
+                "tool_selection_accuracy": 1.0,
+                "tool_execution_success_rate": 1.0,
+                "evidence_coverage": 1.0,
+                "answer_correctness_proxy": 0.5,
+                "faithfulness_proxy": 0.5,
+            }
+        },
+        eval_record_count=3,
+        expected_keyword_record_count=1,
+        agent_runtime_guardrail={
+            "required_step_recall": 1.0,
+            "tool_sequence_accuracy": 1.0,
+            "policy_obligation_success_rate": 1.0,
+            "approval_block_success_rate": 1.0,
+            "duplicate_guard_success_rate": 1.0,
+            "recovery_success_rate": 1.0,
+            "trace_completeness": 1.0,
+            "tool_success_rate": 1.0,
+            "average_tool_latency_seconds": 0.009,
+        },
+    )
+
+    assert "## Agent Runtime / Guardrail Benchmark" in markdown
+    assert "deterministic guard controller" in markdown
+    assert "| tool_sequence_accuracy | 1.000 |" in markdown
+    assert "| average_tool_latency_seconds | 0.009 |" in markdown
+
+
 def test_render_experiment_report_mentions_grounded_rag() -> None:
     markdown = render_experiment_report(
         {

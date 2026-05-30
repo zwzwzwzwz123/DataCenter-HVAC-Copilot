@@ -3,15 +3,17 @@ from pathlib import Path
 import pandas as pd
 
 from src.agent.answer_generator import AnswerGeneratorInput, GeneratedAnswer
+import src.agent.executor as executor_module
 from src.agent.executor import AgentTaskExecutor
 from src.agent.langgraph_workflow import LangGraphOrchestrator
 from src.agent.orchestrator import BaselineOrchestrator
 from src.agent.planner import PlanDecision, PlanStep
 from src.agent.router import route_task
+from src.agent.runtime import AgentRuntimeTrace
 from src.policies.base import PolicyResult
 from src.retrieval.chunking import chunk_document
 from src.retrieval.loader import load_markdown_document
-from src.retrieval.rag import ExtractiveRAGPipeline
+from src.retrieval.rag import ExtractiveRAGPipeline, RAGAnswer
 from src.retrieval.retriever import KeywordRetriever
 
 
@@ -50,6 +52,33 @@ class SpyAnswerGenerator:
     def generate(self, payload: AnswerGeneratorInput) -> GeneratedAnswer:
         self.payloads.append(payload)
         return GeneratedAnswer(answer=f"generated:{payload.route}", generator="spy")
+
+
+class RewriteOnlyRAGPipeline:
+    def __init__(self) -> None:
+        self.queries: list[str] = []
+
+    def answer(self, question: str, top_k: int = 3) -> RAGAnswer:
+        self.queries.append(question)
+        if "data boundary" not in question:
+            return RAGAnswer(
+                question=question,
+                answer="未找到足够的检索证据，无法给出可靠回答。",
+                citations=[],
+                retrieved_contexts=[],
+            )
+        context = {
+            "text": "BEAR HVAC simulation evidence must preserve the data boundary.",
+            "source_id": "boundary_doc",
+            "title": "Boundary Guidance",
+            "citation": {"source_id": "boundary_doc", "title": "Boundary Guidance"},
+        }
+        return RAGAnswer(
+            question=question,
+            answer=context["text"],
+            citations=[context["citation"]],
+            retrieved_contexts=[context],
+        )
 
 
 class StaticRoutePlanner:
@@ -218,6 +247,22 @@ def test_orchestrator_selects_plot_metric_trend_for_trend_requests():
     assert result["tool_results"][0]["tool_name"] == "plot_metric_trend"
 
 
+def test_orchestrator_prioritizes_control_action_comparison_and_trend_over_audit():
+    orchestrator = BaselineOrchestrator(rag_pipeline=mock_rag(), trajectory=mock_trajectory())
+
+    comparison = orchestrator.run(
+        "请比较 control_action 在两个时间窗口中的变化。",
+        task_type="timeseries_query",
+    )
+    trend = orchestrator.run(
+        "请给出 control_action 的趋势序列。",
+        task_type="timeseries_query",
+    )
+
+    assert comparison["tools"] == ["compare_period"]
+    assert trend["tools"] == ["plot_metric_trend"]
+
+
 def test_orchestrator_selects_energy_breakdown_for_energy_breakdown_requests():
     orchestrator = BaselineOrchestrator(rag_pipeline=mock_rag(), trajectory=mock_trajectory())
 
@@ -334,6 +379,49 @@ def test_langgraph_orchestrator_preserves_baseline_result_and_adds_trace():
     assert result["workflow_trace"][0]["planned_steps"] == ["timeseries_query"]
     assert result["workflow_trace"][2]["tool_result_count"] == 1
     assert result["workflow_trace"][3]["answer_generator"] == "spy"
+
+
+def test_langgraph_runtime_trace_tracks_todos_and_hooks_for_tool_steps():
+    baseline = BaselineOrchestrator(
+        rag_pipeline=mock_rag(),
+        trajectory=mock_trajectory(),
+        answer_generator=SpyAnswerGenerator(),
+    )
+    orchestrator = LangGraphOrchestrator(
+        baseline,
+        route_planner=ToolStepPlanner(
+            [
+                PlanStep(
+                    route="timeseries_query",
+                    reason="Read the temperature metric.",
+                    tool="query_metric",
+                ),
+                PlanStep(
+                    route="anomaly_diagnosis",
+                    reason="Then detect anomalies.",
+                    tool="detect_anomaly",
+                ),
+            ]
+        ),
+    )
+
+    result = orchestrator.run("check temperature then diagnose anomaly")
+
+    assert [todo["status"] for todo in result["todos"]] == ["completed", "completed"]
+    assert result["todos"][0]["route"] == "timeseries_query"
+    assert result["runtime_trace"]["summary"]["todo_count"] == 2
+    assert result["runtime_trace"]["summary"]["completed_todo_count"] == 2
+    assert result["runtime_trace"]["summary"]["tool_call_count"] == 2
+    hook_events = result["runtime_trace"]["hooks"]
+    assert [event["hook"] for event in hook_events[:2]] == ["PreToolUse", "PostToolUse"]
+    assert hook_events[0]["tool_name"] == "query_metric"
+    assert hook_events[0]["decision"] == "allow"
+    assert hook_events[1]["status"] == "success"
+    assert hook_events[-1]["hook"] == "RunComplete"
+    assert hook_events[-1]["status"] == "completed"
+    todo_events = [event["event"] for event in result["runtime_trace"]["todo_events"]]
+    assert "todo.created" in todo_events
+    assert "todo.completed" in todo_events
 
 
 def test_langgraph_orchestrator_routes_document_qa_through_retrieval_node():
@@ -563,6 +651,216 @@ def test_executor_rejects_invalid_tool_input_before_execution():
     assert result["tool_results"][0]["status"] == "error"
     assert result["tool_calls"][0]["status"] == "error"
     assert "top_k" in result["tool_calls"][0]["error"]
+    assert result["todos"][0]["status"] == "blocked"
+    assert result["runtime_trace"]["summary"]["blocked_todo_count"] == 1
+    post_tool_events = [
+        event for event in result["runtime_trace"]["hooks"] if event["hook"] == "PostToolUse"
+    ]
+    assert post_tool_events[-1]["status"] == "error"
+    assert result["runtime_trace"]["hooks"][-1]["hook"] == "RunComplete"
+    assert result["runtime_trace"]["hooks"][-1]["status"] == "blocked"
+
+
+def test_executor_repairs_missing_tool_input_and_records_recovery():
+    baseline = BaselineOrchestrator(
+        rag_pipeline=mock_rag(),
+        trajectory=mock_trajectory(),
+        answer_generator=SpyAnswerGenerator(),
+    )
+    orchestrator = LangGraphOrchestrator(
+        baseline,
+        route_planner=ToolStepPlanner(
+            [
+                PlanStep(
+                    route="timeseries_query",
+                    reason="Rank hotspots with a planner-provided incomplete argument set.",
+                    tool="zone_hotspot_rank",
+                    metric_name="zone_temperature",
+                    time_window="full_demo_range",
+                )
+            ]
+        ),
+    )
+
+    baseline.task_executor.default_tool_inputs["zone_hotspot_rank"] = {"top_k": None}
+    result = orchestrator.run("rank hotspots")
+
+    assert result["tool_calls"][0]["status"] == "success"
+    assert result["tool_calls"][0]["input"]["top_k"] == 3
+    assert result["tool_calls"][0]["recovered"] is True
+    assert result["runtime_trace"]["summary"]["recovery_count"] == 1
+    assert result["runtime_trace"]["recoveries"][0]["strategy"] == "tool_input_repair"
+    assert result["runtime_trace"]["recoveries"][0]["status"] == "success"
+
+
+def test_executor_retries_transient_tool_failure_and_records_recovery(monkeypatch):
+    attempts = {"count": 0}
+    original_query_metric = executor_module.query_metric
+
+    def flaky_query_metric(*args, **kwargs):
+        attempts["count"] += 1
+        if attempts["count"] == 1:
+            raise RuntimeError("transient metric backend timeout")
+        return original_query_metric(*args, **kwargs)
+
+    monkeypatch.setattr(executor_module, "query_metric", flaky_query_metric)
+    baseline = BaselineOrchestrator(
+        rag_pipeline=mock_rag(),
+        trajectory=mock_trajectory(),
+        answer_generator=SpyAnswerGenerator(),
+    )
+    orchestrator = LangGraphOrchestrator(
+        baseline,
+        route_planner=ToolStepPlanner(
+            [PlanStep(route="timeseries_query", reason="Read metric.", tool="query_metric")]
+        ),
+    )
+
+    result = orchestrator.run("read temperature")
+
+    assert attempts["count"] == 2
+    assert result["tool_calls"][0]["status"] == "success"
+    assert result["tool_calls"][0]["attempts"] == 2
+    assert result["runtime_trace"]["recoveries"][0]["strategy"] == "tool_retry"
+    assert result["runtime_trace"]["recoveries"][0]["status"] == "success"
+
+
+def test_document_qa_rewrites_query_when_initial_retrieval_has_no_contexts():
+    rag = RewriteOnlyRAGPipeline()
+    baseline = BaselineOrchestrator(
+        rag_pipeline=rag,
+        trajectory=mock_trajectory(),
+        answer_generator=SpyAnswerGenerator(),
+    )
+    orchestrator = LangGraphOrchestrator(baseline)
+
+    result = orchestrator.run("为什么不能说是真实生产遥测？", task_type="document_qa")
+
+    assert len(rag.queries) == 2
+    assert "data boundary" in rag.queries[1]
+    assert result["citations"] == [{"source_id": "boundary_doc", "title": "Boundary Guidance"}]
+    assert result["retrieved_contexts"][0]["retrieval_recovery"] is True
+    assert result["runtime_trace"]["recoveries"][0]["strategy"] == "query_rewrite_retry"
+    assert result["runtime_trace"]["recoveries"][0]["status"] == "success"
+
+
+def test_policy_runner_falls_back_to_rule_based_policy_when_backend_is_unavailable():
+    def unavailable_policy_runner(state: dict) -> PolicyResult:
+        raise RuntimeError("DROPT checkpoint unavailable")
+
+    baseline = BaselineOrchestrator(
+        rag_pipeline=mock_rag(),
+        trajectory=mock_trajectory(),
+        answer_generator=SpyAnswerGenerator(),
+        policy_runner=unavailable_policy_runner,
+    )
+    orchestrator = LangGraphOrchestrator(baseline)
+
+    result = orchestrator.run("recommend a policy", task_type="policy_recommendation")
+
+    assert result["tool_calls"][0]["status"] == "success"
+    assert result["policy_result"]["policy_name"] == "rule_based"
+    assert result["policy_result"]["fallback_used"] is True
+    assert "DROPT checkpoint unavailable" in result["policy_result"]["fallback_error"]
+    assert [event["strategy"] for event in result["runtime_trace"]["recoveries"]] == [
+        "tool_retry",
+        "policy_fallback",
+    ]
+    assert result["runtime_trace"]["recoveries"][0]["status"] == "failed"
+    assert result["runtime_trace"]["recoveries"][1]["status"] == "success"
+
+
+def test_policy_runner_retries_backend_before_rule_based_fallback():
+    attempts = {"count": 0}
+
+    def flaky_policy_runner(state: dict) -> PolicyResult:
+        attempts["count"] += 1
+        if attempts["count"] == 1:
+            raise RuntimeError("transient policy backend timeout")
+        return PolicyResult(
+            policy_name="offline_policy_after_retry",
+            input_state_id=state["state_id"],
+            recommended_action=[-0.3],
+            notes="Recovered without fallback.",
+        )
+
+    baseline = BaselineOrchestrator(
+        rag_pipeline=mock_rag(),
+        trajectory=mock_trajectory(),
+        answer_generator=SpyAnswerGenerator(),
+        policy_runner=flaky_policy_runner,
+    )
+    orchestrator = LangGraphOrchestrator(baseline)
+
+    result = orchestrator.run("recommend a policy", task_type="policy_recommendation")
+
+    assert attempts["count"] == 2
+    assert result["tools"] == ["offline_policy_after_retry"]
+    assert result["policy_result"]["policy_name"] == "offline_policy_after_retry"
+    assert "fallback_used" not in result["policy_result"]
+    assert [event["strategy"] for event in result["runtime_trace"]["recoveries"]] == ["tool_retry"]
+
+
+def test_control_boundary_approval_handler_can_block_tool_execution():
+    def deny_control_boundary(request: dict) -> dict:
+        return {
+            "approved": False,
+            "decision": "denied",
+            "reason": f"operator denied {request['tool_name']}",
+        }
+
+    generator = SpyAnswerGenerator()
+    executor = AgentTaskExecutor(
+        rag_pipeline=mock_rag(),
+        trajectory=mock_trajectory(),
+        answer_generator=generator,
+        approval_handler=deny_control_boundary,
+    )
+    baseline = BaselineOrchestrator(task_executor=executor)
+    orchestrator = LangGraphOrchestrator(baseline)
+
+    result = orchestrator.run("recommend a policy", task_type="policy_recommendation")
+
+    assert result["tool_calls"][0]["status"] == "blocked"
+    assert result["tool_calls"][0]["approval"]["approved"] is False
+    assert result["tool_results"][0]["status"] == "blocked"
+    assert "policy_result" not in result
+    assert generator.payloads[0].policy_result is None
+    assert result["todos"][0]["status"] == "blocked"
+    assert result["runtime_trace"]["hooks"][0]["approval"]["decision"] == "denied"
+
+
+def test_blocked_tool_result_is_not_annotated_as_success():
+    def deny_control_boundary(request: dict) -> dict:
+        return {
+            "approved": False,
+            "decision": "denied",
+            "reason": "operator denied control action audit",
+        }
+
+    executor = AgentTaskExecutor(
+        rag_pipeline=mock_rag(),
+        trajectory=mock_trajectory(),
+        answer_generator=SpyAnswerGenerator(),
+        approval_handler=deny_control_boundary,
+    )
+
+    result, tool_call = executor._execute_tool_call(
+        "policy_runner",
+        {"state": executor.latest_policy_state()},
+        lambda _: {"policy_name": "should_not_run", "recommended_action": [1.0]},
+    )
+
+    assert result["status"] == "blocked"
+    assert tool_call["status"] == "blocked"
+    assert "time_window_applied" not in result
+
+
+def test_runtime_trace_run_id_is_stable_across_serialization():
+    trace = AgentRuntimeTrace()
+    trace.create_todos([PlanStep(route="timeseries_query", reason="Read metric.")])
+
+    assert trace.to_dict()["run_id"] == trace.to_dict()["run_id"]
 
 
 def test_control_boundary_tool_call_requires_policy_boundary_permission():
@@ -581,6 +879,8 @@ def test_control_boundary_tool_call_requires_policy_boundary_permission():
     assert evidence["tool_calls"][0]["risk_level"] == "control_boundary"
     assert evidence["tool_calls"][0]["permission_decision"] == "policy_boundary"
     assert evidence["tool_calls"][0]["status"] == "success"
+    assert evidence["tool_calls"][0]["approval"]["required"] is True
+    assert evidence["tool_calls"][0]["approval"]["decision"] == "policy_boundary"
 
 
 def test_baseline_and_langgraph_can_share_agent_task_executor():

@@ -8,9 +8,14 @@ import tempfile
 import uuid
 from pathlib import Path
 from typing import Annotated, Any
+from collections.abc import Callable
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 
+from src.agent.bounded_react import (
+    BoundedReActOrchestrator,
+    build_react_controller_from_env,
+)
 from src.agent.langgraph_workflow import LangGraphOrchestrator
 from src.api.demo_factory import build_demo_orchestrator
 from src.agent.planner import DeterministicRoutePlanner, build_route_planner_from_env
@@ -36,11 +41,15 @@ def create_app(
     use_env_answer_generator: bool = True,
     use_env_intent_classifier: bool = True,
     use_dropt_policy: bool = True,
+    use_persistent_knowledge: bool = True,
+    approval_handler: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
 ) -> FastAPI:
     app = FastAPI(title="DataCenter-HVAC Copilot", version="0.1.0")
     orchestrator = build_demo_orchestrator(
         use_env_answer_generator=use_env_answer_generator,
         use_dropt_policy=use_dropt_policy,
+        use_persistent_knowledge=use_persistent_knowledge,
+        approval_handler=approval_handler,
     )
     langgraph_orchestrator = LangGraphOrchestrator(
         orchestrator,
@@ -48,6 +57,19 @@ def create_app(
             build_route_planner_from_env()
             if use_env_intent_classifier
             else DeterministicRoutePlanner()
+        ),
+    )
+    bounded_react_orchestrator = BoundedReActOrchestrator(
+        orchestrator,
+        route_planner=(
+            build_route_planner_from_env()
+            if use_env_intent_classifier
+            else DeterministicRoutePlanner()
+        ),
+        controller=(
+            build_react_controller_from_env()
+            if use_env_intent_classifier
+            else None
         ),
     )
     context_manager: ContextManager | None = None
@@ -188,10 +210,16 @@ def create_app(
                 task_type=request.task_type,
                 conversation_context=conversation_context or None,
             )
+        elif request.workflow_engine == "bounded_react":
+            result = bounded_react_orchestrator.run(
+                request.question,
+                task_type=request.task_type,
+                conversation_context=conversation_context or None,
+            )
         else:
             raise HTTPException(
                 status_code=400,
-                detail="workflow_engine must be one of: deterministic, langgraph",
+                detail="workflow_engine must be one of: deterministic, langgraph, bounded_react",
             )
 
         workflow_trace = [*memory_trace, *result.get("workflow_trace", [])]
@@ -286,6 +314,7 @@ def create_app(
         eval_orchestrator = build_demo_orchestrator(
             use_env_answer_generator=False,
             use_dropt_policy=False,
+            use_persistent_knowledge=use_persistent_knowledge,
         )
         return run_baseline_eval(request.eval_path, eval_orchestrator)
 
@@ -364,10 +393,11 @@ def create_app(
         return knowledge_service
 
     def _refresh_orchestrators() -> None:
-        nonlocal orchestrator, langgraph_orchestrator
+        nonlocal orchestrator, langgraph_orchestrator, bounded_react_orchestrator
         new_orchestrator = build_demo_orchestrator(
             use_env_answer_generator=use_env_answer_generator,
             use_dropt_policy=use_dropt_policy,
+            approval_handler=approval_handler,
         )
         new_langgraph_orchestrator = LangGraphOrchestrator(
             new_orchestrator,
@@ -379,6 +409,19 @@ def create_app(
         )
         orchestrator = new_orchestrator
         langgraph_orchestrator = new_langgraph_orchestrator
+        bounded_react_orchestrator = BoundedReActOrchestrator(
+            new_orchestrator,
+            route_planner=(
+                build_route_planner_from_env()
+                if use_env_intent_classifier
+                else DeterministicRoutePlanner()
+            ),
+            controller=(
+                build_react_controller_from_env()
+                if use_env_intent_classifier
+                else None
+            ),
+        )
 
     def _mark_knowledge_refresh_dirty() -> None:
         nonlocal knowledge_refresh_dirty, last_refresh_error

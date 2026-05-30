@@ -28,6 +28,18 @@ OPTIONAL_METRIC_COLUMNS = [
     "llm_judge_faithfulness",
 ]
 
+RUNTIME_METRIC_COLUMNS = [
+    "required_step_recall",
+    "tool_sequence_accuracy",
+    "policy_obligation_success_rate",
+    "approval_block_success_rate",
+    "duplicate_guard_success_rate",
+    "recovery_success_rate",
+    "trace_completeness",
+    "tool_success_rate",
+    "average_tool_latency_seconds",
+]
+
 
 def render_experiment_report(
     comparison_summary: dict[str, dict[str, float]],
@@ -37,6 +49,7 @@ def render_experiment_report(
     by_task_type: dict[str, dict[str, dict[str, float]]] | None = None,
     human_calibration: dict[str, object] | None = None,
     safety_adversarial: dict[str, object] | None = None,
+    agent_runtime_guardrail: dict[str, object] | None = None,
     dropt_policy_benchmark: dict[str, object] | None = None,
     dense_provider: str = "deterministic",
     dense_backend: str = "memory",
@@ -95,6 +108,9 @@ def render_experiment_report(
 
     if safety_adversarial:
         lines.extend(_safety_adversarial_section(safety_adversarial))
+
+    if agent_runtime_guardrail:
+        lines.extend(_agent_runtime_guardrail_section(agent_runtime_guardrail))
 
     if dropt_policy_benchmark:
         lines.extend(_dropt_policy_benchmark_section(dropt_policy_benchmark))
@@ -322,6 +338,7 @@ def save_experiment_report(
     by_task_type: dict[str, dict[str, dict[str, float]]] | None = None,
     human_calibration: dict[str, object] | None = None,
     safety_adversarial: dict[str, object] | None = None,
+    agent_runtime_guardrail: dict[str, object] | None = None,
     dropt_policy_benchmark: dict[str, object] | None = None,
     dense_provider: str = "deterministic",
     dense_backend: str = "memory",
@@ -338,6 +355,7 @@ def save_experiment_report(
             by_task_type=by_task_type,
             human_calibration=human_calibration,
             safety_adversarial=safety_adversarial,
+            agent_runtime_guardrail=agent_runtime_guardrail,
             dropt_policy_benchmark=dropt_policy_benchmark,
             dense_provider=dense_provider,
             dense_backend=dense_backend,
@@ -410,6 +428,42 @@ def _safety_adversarial_section(summary: dict[str, object]) -> list[str]:
     if missed_ids:
         formatted = ", ".join(f"`{missed_id}`" for missed_id in list(missed_ids)[:10])
         lines.extend(["", f"主要漏报样例：{formatted}"])
+    return lines
+
+
+def _agent_runtime_guardrail_section(summary: dict[str, object]) -> list[str]:
+    metrics = summary.get("summary", summary)
+    by_difficulty = summary.get("by_difficulty", {})
+    lines = [
+        "",
+        "## Agent Runtime / Guardrail Benchmark",
+        "",
+        (
+            "该测试使用专门的 runtime scenario eval；`bounded_react_guard_agent` "
+            "在离线 benchmark 中使用 deterministic guard controller，不代表在线 LLM controller 指标。"
+        ),
+        "",
+        "| metric | value |",
+        "| --- | ---: |",
+    ]
+    for metric in RUNTIME_METRIC_COLUMNS:
+        if metric in metrics:
+            lines.append(f"| {metric} | {_format_metric(float(metrics[metric]))} |")
+    if by_difficulty:
+        lines.extend(
+            [
+                "",
+                "| difficulty | tool_sequence_accuracy | recovery_success_rate | duplicate_guard_success_rate |",
+                "| --- | ---: | ---: | ---: |",
+            ]
+        )
+        for difficulty, difficulty_metrics in by_difficulty.items():
+            lines.append(
+                f"| {difficulty} | "
+                f"{_format_metric(float(difficulty_metrics.get('tool_sequence_accuracy', 0.0)))} | "
+                f"{_format_metric(float(difficulty_metrics.get('recovery_success_rate', 0.0)))} | "
+                f"{_format_metric(float(difficulty_metrics.get('duplicate_guard_success_rate', 0.0)))} |"
+            )
     return lines
 
 

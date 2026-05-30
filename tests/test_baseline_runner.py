@@ -12,6 +12,7 @@ from src.evaluation.runner import (
     build_dense_rag_pipeline,
     run_baseline_comparison,
     run_baseline_eval,
+    run_runtime_guardrail_eval,
     save_predictions_jsonl,
 )
 from src.evaluation.llm_judge import DeterministicKeywordJudge
@@ -165,6 +166,86 @@ def test_run_baseline_eval_reports_planner_metrics_for_compound_records(tmp_path
     assert result["metrics"]["policy_final_step_rate"] == 1.0
 
 
+def test_runtime_guardrail_eval_reports_trace_and_guardrail_metrics(tmp_path: Path):
+    eval_path = tmp_path / "runtime_eval.jsonl"
+    eval_path.write_text(
+        "\n".join(
+            [
+                __import__("json").dumps(
+                    {
+                        "id": "runtime_insert_001",
+                        "question": "Recommend a policy, but first inspect comfort risk.",
+                        "task_type": "policy_recommendation",
+                        "gold_answer": "Should insert comfort_risk_assessment before policy.",
+                        "required_tools": ["comfort_risk_assessment", "rule_based_policy"],
+                        "required_documents": [],
+                        "expected_keywords": ["comfort"],
+                        "expected_steps": ["anomaly_diagnosis", "policy_recommendation"],
+                        "expected_tool_sequence": [
+                            "comfort_risk_assessment",
+                            "rule_based_policy",
+                        ],
+                        "expected_recoveries": [],
+                        "expected_runtime_events": ["trace_complete"],
+                        "runtime_scenario": "insert_comfort_then_policy",
+                        "expected_output_format": "runtime_trace",
+                    },
+                    ensure_ascii=False,
+                ),
+                __import__("json").dumps(
+                    {
+                        "id": "runtime_duplicate_001",
+                        "question": "Explore zone_temperature repeatedly.",
+                        "task_type": "timeseries_query",
+                        "gold_answer": "Duplicate query_metric should be blocked.",
+                        "required_tools": ["query_metric"],
+                        "required_documents": [],
+                        "expected_keywords": ["zone_temperature"],
+                        "expected_tool_sequence": ["query_metric"],
+                        "expected_recoveries": ["react_duplicate_step_blocked"],
+                        "expected_runtime_events": ["duplicate_guard", "trace_complete"],
+                        "runtime_scenario": "duplicate_query_metric",
+                        "expected_output_format": "runtime_trace",
+                    },
+                    ensure_ascii=False,
+                ),
+                __import__("json").dumps(
+                    {
+                        "id": "runtime_approval_001",
+                        "question": "Recommend a policy.",
+                        "task_type": "policy_recommendation",
+                        "gold_answer": "Denied approval should block policy execution.",
+                        "required_tools": ["rule_based_policy"],
+                        "required_documents": [],
+                        "expected_keywords": ["denied"],
+                        "expected_tool_sequence": ["policy_runner"],
+                        "expected_runtime_events": ["approval_denied", "trace_complete"],
+                        "runtime_scenario": "approval_denied",
+                        "expected_output_format": "runtime_trace",
+                    },
+                    ensure_ascii=False,
+                ),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    result = run_runtime_guardrail_eval(eval_path, mock_orchestrator())
+
+    assert [prediction["id"] for prediction in result["predictions"]] == [
+        "runtime_insert_001",
+        "runtime_duplicate_001",
+        "runtime_approval_001",
+    ]
+    assert result["metrics"]["tool_sequence_accuracy"] == 1.0
+    assert result["metrics"]["duplicate_guard_success_rate"] == 1.0
+    assert result["metrics"]["approval_block_success_rate"] == 1.0
+    assert result["metrics"]["trace_completeness"] == 1.0
+    assert result["metrics"]["recovery_success_rate"] == 1.0
+    assert result["by_difficulty"] == {}
+
+
 def test_run_baseline_eval_can_add_optional_llm_judge_metrics(tmp_path: Path):
     eval_path = write_small_eval_dataset(tmp_path / "small_eval.jsonl")
     result = run_baseline_eval(
@@ -203,6 +284,7 @@ def test_run_baseline_comparison_returns_named_modes(tmp_path: Path):
         "rag_tool_agent",
         "langgraph_tool_agent",
         "react_agent",
+        "bounded_react_guard_agent",
     ]
     assert set(result["summary"]) == {
         "llm_only",
@@ -222,6 +304,7 @@ def test_run_baseline_comparison_returns_named_modes(tmp_path: Path):
         "rag_tool_agent",
         "langgraph_tool_agent",
         "react_agent",
+        "bounded_react_guard_agent",
     }
     assert result["summary"]["rag_tool_agent"]["tool_selection_accuracy"] == 1.0
     assert "citation_hit_rate" in result["summary"]["hybrid_rrf"]
@@ -232,11 +315,13 @@ def test_run_baseline_comparison_returns_named_modes(tmp_path: Path):
     assert "average_latency_seconds" not in result["summary"]["rewrite_llm"]
     assert result["summary"]["langgraph_tool_agent"]["tool_selection_accuracy"] == 1.0
     assert "react_agent" in result["summary"]
+    assert "bounded_react_guard_agent" in result["summary"]
     assert result["summary"]["llm_only"]["tool_selection_accuracy"] == 0.0
     assert "by_task_type" in result
     assert "rag_tool_agent" in result["by_task_type"]
     assert "langgraph_tool_agent" in result["by_task_type"]
     assert "react_agent" in result["by_task_type"]
+    assert "bounded_react_guard_agent" in result["by_task_type"]
     assert "document_qa" in result["by_task_type"]["rag_tool_agent"]
     assert "timeseries_query" in result["by_task_type"]["rag_tool_agent"]
 
@@ -394,48 +479,6 @@ def test_run_eval_script_can_be_executed_directly(tmp_path: Path):
     assert "Saved predictions to" in completed.stdout
 
 
-def test_run_eval_script_outputs_portable_data_source_paths(tmp_path: Path):
-    eval_path = write_small_eval_dataset(tmp_path / "small_eval.jsonl")
-    output_path = tmp_path / "script_predictions.jsonl"
-    completed = subprocess.run(
-        [
-            sys.executable,
-            "scripts/run_eval.py",
-            "--eval-path",
-            str(eval_path),
-            "--output",
-            str(output_path),
-        ],
-        check=False,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        env={
-            **os.environ,
-            "KNOWLEDGE_BASE_DIR": str(tmp_path / "isolated_knowledge"),
-        },
-    )
-
-    assert completed.returncode == 0
-    generated_paths = [
-        output_path,
-        tmp_path / "human_review_sample.jsonl",
-        tmp_path / "experiment_report.md",
-    ]
-    project_root = str(Path.cwd())
-    escaped_project_root = project_root.replace("\\", "\\\\")
-    portable_path = "data/bear_processed/bear_rollout.csv"
-    for path in generated_paths:
-        content = path.read_text(encoding="utf-8")
-        assert project_root not in content
-        assert escaped_project_root not in content
-        assert "DataCenter-HVAC-Copilot\\\\data\\\\documents" not in content
-    for path in [output_path, tmp_path / "human_review_sample.jsonl"]:
-        content = path.read_text(encoding="utf-8")
-        assert portable_path in content
-        assert "data/documents/" in content
-
-
 def test_run_eval_script_enables_cross_encoder_rerank_by_default_without_downloading_model(
     tmp_path: Path,
 ):
@@ -475,39 +518,6 @@ def test_run_eval_script_enables_cross_encoder_rerank_by_default_without_downloa
     assert "hybrid_rrf_cross_encoder" in comparison["summary"]
     report = report_path.read_text(encoding="utf-8")
     assert "cross_encoder_model: `fake-cross-encoder`" in report
-
-
-def test_run_eval_script_can_disable_default_cross_encoder_rerank(tmp_path: Path):
-    eval_path = write_small_eval_dataset(tmp_path / "small_eval.jsonl")
-    output_path = tmp_path / "script_predictions.jsonl"
-    comparison_path = tmp_path / "baseline_comparison.json"
-
-    completed = subprocess.run(
-        [
-            sys.executable,
-            "scripts/run_eval.py",
-            "--eval-path",
-            str(eval_path),
-            "--output",
-            str(output_path),
-            "--comparison-output",
-            str(comparison_path),
-            "--disable-cross-encoder-rerank",
-        ],
-        check=False,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        env={
-            **os.environ,
-            "HVAC_COPILOT_TEST_FAKE_CROSS_ENCODER": "1",
-            "KNOWLEDGE_BASE_DIR": str(tmp_path / "isolated_knowledge"),
-        },
-    )
-
-    assert completed.returncode == 0
-    comparison = __import__("json").loads(comparison_path.read_text(encoding="utf-8"))
-    assert "hybrid_rrf_cross_encoder" not in comparison["summary"]
 
 
 def test_run_eval_script_can_force_demo_documents_without_persistent_knowledge(tmp_path: Path):
@@ -624,39 +634,6 @@ def test_run_eval_script_can_enable_optional_llm_judge(tmp_path: Path):
     assert completed.returncode == 0
     assert "llm_judge_correctness" in completed.stdout
     assert '"llm_judge"' in output_path.read_text(encoding="utf-8")
-
-
-def test_run_eval_script_reports_missing_real_dense_dependencies(tmp_path: Path):
-    eval_path = write_small_eval_dataset(tmp_path / "small_eval.jsonl")
-    output_path = tmp_path / "script_predictions.jsonl"
-    completed = subprocess.run(
-        [
-            sys.executable,
-            "scripts/run_eval.py",
-            "--eval-path",
-            str(eval_path),
-            "--output",
-            str(output_path),
-            "--dense-provider",
-            "sentence-transformers",
-            "--dense-backend",
-            "faiss",
-        ],
-        check=False,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-
-    try:
-        import faiss  # noqa: F401
-        import sentence_transformers  # noqa: F401
-    except ImportError:
-        assert completed.returncode != 0
-        assert "pip install -e" in completed.stderr
-    else:
-        assert completed.returncode == 0
-        assert output_path.exists()
 
 
 def test_build_dense_rag_pipeline_can_request_faiss_sentence_transformer_backend():

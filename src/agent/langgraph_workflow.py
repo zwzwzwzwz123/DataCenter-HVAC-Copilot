@@ -8,6 +8,7 @@ from src.agent.executor import AgentTaskExecutor
 from src.agent.intent_classifier import IntentClassifier
 from src.agent.orchestrator import BaselineOrchestrator
 from src.agent.planner import DeterministicRoutePlanner, PlanDecision, PlanStep, RoutePlanner
+from src.agent.runtime import AgentRuntimeTrace
 
 
 class WorkflowState(TypedDict, total=False):
@@ -19,6 +20,7 @@ class WorkflowState(TypedDict, total=False):
     result: dict[str, Any]
     step_results: list[dict[str, Any]]
     workflow_trace: list[dict[str, Any]]
+    runtime_trace: AgentRuntimeTrace
 
 
 class LangGraphOrchestrator:
@@ -49,11 +51,15 @@ class LangGraphOrchestrator:
                 "conversation_context": conversation_context,
                 "workflow_trace": [],
                 "step_results": [],
+                "runtime_trace": AgentRuntimeTrace(),
             }
         )
         result = dict(state["result"])
         result["workflow_engine"] = "langgraph"
         result["workflow_trace"] = state["workflow_trace"]
+        runtime_trace = state["runtime_trace"].to_dict()
+        result["todos"] = runtime_trace["todos"]
+        result["runtime_trace"] = runtime_trace
         return result
 
     def _build_graph(self):
@@ -101,6 +107,7 @@ class LangGraphOrchestrator:
                 ),
             },
         )
+        state["runtime_trace"].create_todos(decision.steps)
         return {
             **state,
             "plan": decision,
@@ -110,23 +117,33 @@ class LangGraphOrchestrator:
     def _execute_plan_steps(self, state: WorkflowState) -> WorkflowState:
         step_results: list[dict[str, Any]] = []
         trace = state.get("workflow_trace", [])
-        for index, step in enumerate(state["plan"].steps, start=1):
-            result = self._execute_step(state["question"], step)
-            step_results.append(result)
-            trace = [
-                *trace,
-                {
-                    "node": "execute_plan_step",
-                    "step_index": index,
-                    "route": step.route,
-                    "reason": step.reason,
-                    "tools": result.get("tools", []),
-                    "citation_count": len(result.get("citations", [])),
-                    "context_count": len(result.get("retrieved_contexts", [])),
-                    "tool_result_count": len(result.get("tool_results", [])),
-                    "has_policy_result": "policy_result" in result,
-                },
-            ]
+        previous_runtime_trace = self.task_executor.runtime_trace
+        self.task_executor.runtime_trace = state["runtime_trace"]
+        try:
+            for index, step in enumerate(state["plan"].steps, start=1):
+                state["runtime_trace"].mark_todo(index, "in_progress")
+                result = self._execute_step(state["question"], step)
+                step_results.append(result)
+                if any(call.get("status") in {"error", "blocked"} for call in result.get("tool_calls", [])):
+                    state["runtime_trace"].mark_todo(index, "blocked")
+                else:
+                    state["runtime_trace"].mark_todo(index, "completed")
+                trace = [
+                    *trace,
+                    {
+                        "node": "execute_plan_step",
+                        "step_index": index,
+                        "route": step.route,
+                        "reason": step.reason,
+                        "tools": result.get("tools", []),
+                        "citation_count": len(result.get("citations", [])),
+                        "context_count": len(result.get("retrieved_contexts", [])),
+                        "tool_result_count": len(result.get("tool_results", [])),
+                        "has_policy_result": "policy_result" in result,
+                    },
+                ]
+        finally:
+            self.task_executor.runtime_trace = previous_runtime_trace
         return {
             **state,
             "step_results": step_results,

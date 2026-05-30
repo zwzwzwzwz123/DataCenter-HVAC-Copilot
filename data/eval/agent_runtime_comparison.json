@@ -1,0 +1,83 @@
+{
+  "summary": {
+    "required_step_recall": 0.99,
+    "tool_sequence_accuracy": 0.9347826086956522,
+    "policy_obligation_success_rate": 0.9411764705882353,
+    "approval_block_success_rate": 1.0,
+    "duplicate_guard_success_rate": 0.6666666666666666,
+    "recovery_success_rate": 0.8333333333333334,
+    "trace_completeness": 1.0,
+    "tool_success_rate": 1.0,
+    "average_tool_latency_seconds": 0.007825124528350881
+  },
+  "by_task_type": {
+    "anomaly_diagnosis": {
+      "required_step_recall": 1.0,
+      "tool_sequence_accuracy": 1.0,
+      "trace_completeness": 1.0,
+      "tool_success_rate": 1.0,
+      "average_tool_latency_seconds": 0.007825124528350881
+    },
+    "document_qa": {
+      "required_step_recall": 1.0,
+      "recovery_success_rate": 1.0,
+      "trace_completeness": 1.0,
+      "tool_success_rate": 0.0,
+      "average_tool_latency_seconds": 0.007825124528350881
+    },
+    "policy_recommendation": {
+      "required_step_recall": 0.9761904761904762,
+      "tool_sequence_accuracy": 0.9523809523809523,
+      "policy_obligation_success_rate": 0.9411764705882353,
+      "approval_block_success_rate": 1.0,
+      "recovery_success_rate": 0.8571428571428571,
+      "trace_completeness": 1.0,
+      "tool_success_rate": 1.0,
+      "average_tool_latency_seconds": 0.007825124528350881
+    },
+    "timeseries_query": {
+      "required_step_recall": 1.0,
+      "tool_sequence_accuracy": 0.9090909090909091,
+      "duplicate_guard_success_rate": 0.6666666666666666,
+      "recovery_success_rate": 0.6666666666666666,
+      "trace_completeness": 1.0,
+      "tool_success_rate": 1.0,
+      "average_tool_latency_seconds": 0.007825124528350881
+    }
+  },
+  "by_difficulty": {
+    "easy": {
+      "required_step_recall": 1.0,
+      "tool_sequence_accuracy": 1.0,
+      "policy_obligation_success_rate": 1.0,
+      "approval_block_success_rate": 1.0,
+      "duplicate_guard_success_rate": 1.0,
+      "recovery_success_rate": 1.0,
+      "trace_completeness": 1.0,
+      "tool_success_rate": 1.0,
+      "average_tool_latency_seconds": 0.007825124528350881
+    },
+    "hard": {
+      "required_step_recall": 0.9583333333333334,
+      "tool_sequence_accuracy": 0.7272727272727273,
+      "policy_obligation_success_rate": 0.8333333333333334,
+      "approval_block_success_rate": 1.0,
+      "duplicate_guard_success_rate": 0.5,
+      "recovery_success_rate": 0.6,
+      "trace_completeness": 1.0,
+      "tool_success_rate": 1.0,
+      "average_tool_latency_seconds": 0.007825124528350881
+    },
+    "medium": {
+      "required_step_recall": 1.0,
+      "tool_sequence_accuracy": 1.0,
+      "policy_obligation_success_rate": 1.0,
+      "approval_block_success_rate": 1.0,
+      "duplicate_guard_success_rate": 1.0,
+      "recovery_success_rate": 1.0,
+      "trace_completeness": 1.0,
+      "tool_success_rate": 1.0,
+      "average_tool_latency_seconds": 0.007825124528350881
+    }
+  }
+}

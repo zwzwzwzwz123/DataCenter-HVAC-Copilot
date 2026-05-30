@@ -15,6 +15,7 @@ from src.agent.answer_generator import (
 )
 from src.policies.base import PolicyResult
 from src.policies.rule_based import run_rule_based_policy
+from src.retrieval.query_rewrite import RuleBasedHVACQueryRewriter
 from src.retrieval.rag import ExtractiveRAGPipeline
 from src.tools.timeseries import (
     comfort_risk_assessment,
@@ -29,6 +30,7 @@ from src.tools.timeseries import (
     zone_hotspot_rank,
 )
 from src.tools.registry import TOOL_REGISTRY, validate_tool_input
+from src.agent.runtime import AgentRuntimeTrace
 
 
 class AgentTaskExecutor:
@@ -41,12 +43,15 @@ class AgentTaskExecutor:
         data_source: dict[str, str] | None = None,
         answer_generator: AnswerGenerator | None = None,
         policy_runner: Callable[[dict[str, Any]], PolicyResult] | None = None,
+        approval_handler: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
     ) -> None:
         self.rag_pipeline = rag_pipeline
         self.trajectory = trajectory
         self.answer_generator = answer_generator or DeterministicAnswerGenerator()
         self.policy_runner = policy_runner or run_rule_based_policy
+        self.approval_handler = approval_handler
         self.default_tool_inputs: dict[str, dict[str, Any]] = {}
+        self.runtime_trace: AgentRuntimeTrace | None = None
         self.data_source = data_source or trajectory.attrs.get(
             "data_source",
             {
@@ -66,6 +71,30 @@ class AgentTaskExecutor:
         step_spec: Any | None = None,
     ) -> dict[str, Any]:
         rag_answer = self.rag_pipeline.answer(question, top_k=3)
+        if not rag_answer.retrieved_contexts:
+            rewritten = RuleBasedHVACQueryRewriter().rewrite(question, task_type="document_qa")
+            retried_answer = self.rag_pipeline.answer(rewritten.rewritten_query, top_k=3)
+            status = "success" if retried_answer.retrieved_contexts else "failed"
+            self._record_recovery(
+                {
+                    "strategy": "query_rewrite_retry",
+                    "status": status,
+                    "original_query": question,
+                    "rewritten_query": rewritten.rewritten_query,
+                    "added_terms": rewritten.added_terms,
+                }
+            )
+            if retried_answer.retrieved_contexts:
+                rag_answer = retried_answer
+                rag_answer.retrieved_contexts = [
+                    {
+                        **context,
+                        "retrieval_recovery": True,
+                        "retrieval_query": rewritten.rewritten_query,
+                        "retrieval_strategy": rewritten.strategy,
+                    }
+                    for context in rag_answer.retrieved_contexts
+                ]
         return {
             "question": question,
             "route": "document_qa",
@@ -124,7 +153,7 @@ class AgentTaskExecutor:
             "tool_calls": [tool_call],
             "data_source": self.data_source,
         }
-        if result.get("status") != "error":
+        if result.get("status") not in {"error", "blocked"}:
             _annotate_time_window_result(result, time_window_metadata)
         return evidence
 
@@ -273,10 +302,11 @@ class AgentTaskExecutor:
             "policy_runner",
             {"state": state},
             lambda _: self.policy_runner(state).model_dump(),
+            fallback_runner=lambda _: self._run_rule_based_policy_fallback(state),
         )
         policy_dump = policy_result
         tool_name = _policy_tool_name_from_dump(policy_dump)
-        return {
+        evidence = {
             "question": question,
             "route": "policy_recommendation",
             "route_reason": reason,
@@ -285,9 +315,11 @@ class AgentTaskExecutor:
             "tools": [tool_name],
             "tool_results": [policy_dump],
             "tool_calls": [tool_call],
-            "policy_result": policy_dump,
             "data_source": self.data_source,
         }
+        if _is_successful_policy_result(policy_dump, tool_call):
+            evidence["policy_result"] = policy_dump
+        return evidence
 
     def generate_answer_from_evidence(self, evidence: dict[str, Any]) -> dict[str, Any]:
         policy_result = (
@@ -373,11 +405,22 @@ class AgentTaskExecutor:
         defaults.update(self.default_tool_inputs.get(tool_name, {}))
         return defaults
 
+    def _run_rule_based_policy_fallback(self, state: dict[str, Any]) -> dict[str, Any]:
+        fallback = run_rule_based_policy(state).model_dump()
+        fallback.update(
+            {
+                "fallback_used": True,
+                "fallback_from": "policy_runner",
+            }
+        )
+        return fallback
+
     def _execute_tool_call(
         self,
         tool_name: str,
         raw_input: dict[str, Any],
         runner: Callable[[dict[str, Any]], dict[str, Any]],
+        fallback_runner: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
     ) -> tuple[dict[str, Any], dict[str, Any]]:
         started = perf_counter()
         permission = _permission_decision(tool_name)
@@ -392,10 +435,50 @@ class AgentTaskExecutor:
             "duration_ms": 0.0,
             "error": None,
         }
+        tool_call["approval"] = _approval_decision(tool_name, permission)
+        tool_call["approval"] = self._resolve_approval(tool_name, raw_input, tool_call["approval"])
+        self._record_hook(
+            {
+                "hook": "PreToolUse",
+                "tool_name": tool_name,
+                "decision": permission,
+                "risk_level": TOOL_REGISTRY[tool_name].risk_level,
+                "approval": tool_call["approval"],
+            }
+        )
+        if tool_call["approval"].get("required") and not tool_call["approval"].get("approved", True):
+            result = {
+                "tool_name": tool_name,
+                "status": "blocked",
+                "error": tool_call["approval"].get("reason", "approval denied"),
+            }
+            tool_call["status"] = "blocked"
+            tool_call["error"] = result["error"]
+            tool_call["output"] = result
+            tool_call["duration_ms"] = max(0.0, (perf_counter() - started) * 1000.0)
+            self._record_hook(
+                {
+                    "hook": "PostToolUse",
+                    "tool_name": tool_name,
+                    "status": tool_call["status"],
+                    "duration_ms": tool_call["duration_ms"],
+                    "error": tool_call.get("error"),
+                }
+            )
+            return result, tool_call
         try:
-            validated_input = validate_tool_input(tool_name, raw_input)
+            validated_input, repaired = self._validate_or_repair_tool_input(tool_name, raw_input)
             tool_call["input"] = validated_input
-            result = runner(validated_input)
+            if repaired:
+                tool_call["recovered"] = True
+                tool_call["recovery_strategy"] = "tool_input_repair"
+            result, attempts = self._run_tool_with_retry(
+                tool_name,
+                validated_input,
+                runner,
+                fallback_runner=fallback_runner,
+            )
+            tool_call["attempts"] = attempts
             tool_call["output"] = result
             return result, tool_call
         except Exception as exc:
@@ -410,6 +493,146 @@ class AgentTaskExecutor:
             return result, tool_call
         finally:
             tool_call["duration_ms"] = max(0.0, (perf_counter() - started) * 1000.0)
+            self._record_hook(
+                {
+                    "hook": "PostToolUse",
+                    "tool_name": tool_name,
+                    "status": tool_call["status"],
+                    "duration_ms": tool_call["duration_ms"],
+                    "error": tool_call.get("error"),
+                }
+            )
+
+    def _resolve_approval(
+        self,
+        tool_name: str,
+        raw_input: dict[str, Any],
+        approval: dict[str, Any],
+    ) -> dict[str, Any]:
+        if not approval.get("required"):
+            return {**approval, "approved": True, "mode": "automatic"}
+        request = {
+            "tool_name": tool_name,
+            "risk_level": TOOL_REGISTRY[tool_name].risk_level,
+            "requires_policy_boundary": TOOL_REGISTRY[tool_name].requires_policy_boundary,
+            "input": raw_input,
+        }
+        if self.approval_handler is None:
+            return {
+                **approval,
+                "approved": True,
+                "mode": "policy_boundary",
+                "interactive": False,
+            }
+        decision = self.approval_handler(request)
+        return {
+            **approval,
+            "approved": bool(decision.get("approved", False)),
+            "decision": str(decision.get("decision", approval.get("decision", "approval_required"))),
+            "reason": str(decision.get("reason", approval.get("reason", ""))),
+            "mode": str(decision.get("mode", "human_in_loop")),
+            "interactive": True,
+        }
+
+    def _validate_or_repair_tool_input(
+        self,
+        tool_name: str,
+        raw_input: dict[str, Any],
+    ) -> tuple[dict[str, Any], bool]:
+        try:
+            return validate_tool_input(tool_name, raw_input), False
+        except Exception as exc:
+            repaired = self._repair_tool_input(tool_name, raw_input)
+            if repaired == raw_input:
+                raise
+            try:
+                validated = validate_tool_input(tool_name, repaired)
+            except Exception:
+                self._record_recovery(
+                    {
+                        "strategy": "tool_input_repair",
+                        "status": "failed",
+                        "tool_name": tool_name,
+                        "error": str(exc),
+                    }
+                )
+                raise
+            self._record_recovery(
+                {
+                    "strategy": "tool_input_repair",
+                    "status": "success",
+                    "tool_name": tool_name,
+                    "error": str(exc),
+                    "changes": _input_changes(raw_input, repaired),
+                }
+            )
+            return validated, True
+
+    def _repair_tool_input(self, tool_name: str, raw_input: dict[str, Any]) -> dict[str, Any]:
+        repaired = dict(raw_input)
+        if tool_name in {"zone_hotspot_rank", "rag_retrieval"} and repaired.get("top_k") is None:
+            repaired["top_k"] = 3
+        if tool_name in {"query_metric", "compare_period", "plot_metric_trend", "detect_anomaly"}:
+            if not repaired.get("metric_name"):
+                repaired["metric_name"] = _select_metric_name("", self.trajectory, None)
+        if tool_name == "data_quality_check" and not repaired.get("required_fields"):
+            repaired["required_fields"] = _required_trajectory_fields(self.trajectory)
+        return repaired
+
+    def _run_tool_with_retry(
+        self,
+        tool_name: str,
+        validated_input: dict[str, Any],
+        runner: Callable[[dict[str, Any]], dict[str, Any]],
+        fallback_runner: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
+    ) -> tuple[dict[str, Any], int]:
+        try:
+            return runner(validated_input), 1
+        except Exception as first_exc:
+            try:
+                result = runner(validated_input)
+            except Exception as second_exc:
+                self._record_recovery(
+                    {
+                        "strategy": "tool_retry",
+                        "status": "failed",
+                        "tool_name": tool_name,
+                        "attempts": 2,
+                        "error": str(second_exc),
+                    }
+                )
+                if fallback_runner is not None:
+                    result = fallback_runner(validated_input)
+                    result["fallback_error"] = str(second_exc)
+                    self._record_recovery(
+                        {
+                            "strategy": "policy_fallback",
+                            "status": "success",
+                            "tool_name": tool_name,
+                            "fallback_tool": "rule_based_policy",
+                            "error": str(second_exc),
+                        }
+                    )
+                    return result, 2
+                raise first_exc from second_exc
+            self._record_recovery(
+                {
+                    "strategy": "tool_retry",
+                    "status": "success",
+                    "tool_name": tool_name,
+                    "attempts": 2,
+                    "error": str(first_exc),
+                }
+            )
+            return result, 2
+
+    def _record_hook(self, event: dict[str, Any]) -> None:
+        if self.runtime_trace is not None:
+            self.runtime_trace.record_hook(event)
+
+    def _record_recovery(self, event: dict[str, Any]) -> None:
+        if self.runtime_trace is not None:
+            self.runtime_trace.record_recovery(event)
 
 
 def _trajectory_bounds(trajectory: pd.DataFrame) -> tuple[pd.Timestamp, pd.Timestamp]:
@@ -521,11 +744,36 @@ def _policy_tool_name_from_dump(policy_result: dict[str, Any]) -> str:
     return policy_name
 
 
+def _is_successful_policy_result(
+    policy_result: dict[str, Any],
+    tool_call: dict[str, Any],
+) -> bool:
+    return (
+        tool_call.get("status") == "success"
+        and "policy_name" in policy_result
+        and "recommended_action" in policy_result
+    )
+
+
 def _permission_decision(tool_name: str) -> str:
     spec = TOOL_REGISTRY[tool_name]
     if spec.risk_level == "control_boundary" or spec.requires_policy_boundary:
         return "policy_boundary"
     return "allow"
+
+
+def _approval_decision(tool_name: str, permission: str) -> dict[str, Any]:
+    spec = TOOL_REGISTRY[tool_name]
+    required = spec.risk_level == "control_boundary" or spec.requires_policy_boundary
+    return {
+        "required": required,
+        "decision": permission if required else "not_required",
+        "reason": (
+            "control_boundary tool must pass policy boundary approval"
+            if required
+            else "read_only/advisory tool auto-approved"
+        ),
+    }
 
 
 def _latest_bear_state_vector(trajectory: pd.DataFrame) -> list[float] | None:
@@ -601,6 +849,10 @@ def _select_timeseries_tool(question: str, step_spec: Any | None = None) -> str:
     }:
         return planned_tool
     normalized = question.lower()
+    if any(token in normalized for token in ["趋势", "trend", "折线图", "序列", "画"]):
+        return "plot_metric_trend"
+    if any(token in normalized for token in ["比较", "对比", "前后", "变化", "compare"]):
+        return "compare_period"
     if _is_data_quality_request(normalized):
         return "data_quality_check"
     if _is_hotspot_request(normalized):
@@ -611,10 +863,6 @@ def _select_timeseries_tool(question: str, step_spec: Any | None = None) -> str:
         return "cooling_efficiency_summary"
     if any(token in normalized for token in ["构成", "breakdown", "能耗字段", "能耗"]):
         return "compute_energy_breakdown"
-    if any(token in normalized for token in ["趋势", "trend", "折线图", "序列", "画"]):
-        return "plot_metric_trend"
-    if any(token in normalized for token in ["比较", "对比", "前后", "变化", "compare"]):
-        return "compare_period"
     return "query_metric"
 
 
@@ -648,7 +896,7 @@ def _is_hotspot_request(normalized: str) -> bool:
 def _is_control_action_audit_request(normalized: str) -> bool:
     has_control_action = any(token in normalized for token in ["控制动作", "control_action", "control action"])
     has_audit_intent = any(token in normalized for token in ["震荡", "抖动", "oscillat", "audit", "changing too fast"])
-    return has_control_action or (has_audit_intent and "action" in normalized)
+    return has_audit_intent and (has_control_action or "action" in normalized)
 
 
 def _is_cooling_efficiency_request(normalized: str) -> bool:
@@ -711,6 +959,14 @@ def _select_zone_id(trajectory: pd.DataFrame, step_spec: Any | None = None) -> s
     if planned_zone:
         return planned_zone
     return _first_zone(trajectory)
+
+
+def _input_changes(before: dict[str, Any], after: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    changes = {}
+    for key in sorted(set(before) | set(after)):
+        if before.get(key) != after.get(key):
+            changes[key] = {"before": before.get(key), "after": after.get(key)}
+    return changes
 
 
 def _step_attr(step_spec: Any | None, key: str) -> Any:

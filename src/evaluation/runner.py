@@ -8,6 +8,8 @@ from typing import Any
 from src.agent.orchestrator import BaselineOrchestrator
 from src.agent.react_agent import ReActOrchestrator
 from src.agent.langgraph_workflow import LangGraphOrchestrator
+from src.agent.bounded_react import BoundedReActOrchestrator, ReActDecision
+from src.agent.planner import PlanStep
 from src.evaluation.dataset import load_eval_dataset
 from src.evaluation.dataset import EvalRecord
 from src.evaluation.llm_judge import LLMJudge
@@ -23,11 +25,17 @@ from src.evaluation.metrics import (
     lexical_answer_coverage,
     planned_step_accuracy,
     planned_step_order_accuracy,
+    approval_block_success_rate,
+    duplicate_guard_success_rate,
+    policy_obligation_success_rate,
     policy_final_step_rate,
+    recovery_success_rate,
     retrieval_mrr_at_k,
     retrieval_ndcg_at_k,
     retrieval_recall_at_k,
     required_step_recall,
+    tool_sequence_accuracy,
+    trace_completeness,
     tool_execution_success_rate,
     tool_selection_accuracy,
 )
@@ -83,6 +91,8 @@ def run_baseline_eval(
                 "retrieved_contexts": output.get("retrieved_contexts", []),
                 "tool_results": output.get("tool_results", []),
                 "tool_calls": output.get("tool_calls", []),
+                "todos": output.get("todos", []),
+                "runtime_trace": output.get("runtime_trace", {}),
                 "planned_steps": output.get("planned_steps", [{"route": output.get("route")}]),
                 "answer_audit": output.get("answer_audit", {}),
             }
@@ -271,10 +281,40 @@ def run_baseline_comparison(
             "by_task_type": react_run["by_task_type"],
         }
     )
+    bounded_react_run = run_baseline_eval(
+        eval_path,
+        BoundedReActOrchestrator(orchestrator),
+    )
+    runs.append(
+        {
+            "mode": "bounded_react_guard_agent",
+            "predictions": bounded_react_run["predictions"],
+            "metrics": bounded_react_run["metrics"],
+            "by_task_type": bounded_react_run["by_task_type"],
+        }
+    )
     return {
         "runs": runs,
         "summary": {run["mode"]: run["metrics"] for run in runs},
         "by_task_type": {run["mode"]: run["by_task_type"] for run in runs},
+    }
+
+
+def run_runtime_guardrail_eval(
+    eval_path: str | Path,
+    orchestrator: BaselineOrchestrator,
+) -> dict[str, Any]:
+    records = load_eval_dataset(eval_path)
+    predictions = [
+        _runtime_prediction(record, orchestrator)
+        for record in records
+    ]
+    prediction_map = {prediction["id"]: prediction for prediction in predictions}
+    return {
+        "predictions": predictions,
+        "metrics": _compute_runtime_metrics(records, prediction_map),
+        "by_task_type": _compute_runtime_metrics_by_task_type(records, prediction_map),
+        "by_difficulty": _compute_runtime_metrics_by_difficulty(records, prediction_map),
     }
 
 
@@ -296,6 +336,288 @@ def _run_llm_only(records: list[EvalRecord]) -> list[dict[str, Any]]:
             }
         )
     return predictions
+
+
+def _runtime_prediction(record: EvalRecord, orchestrator: BaselineOrchestrator) -> dict[str, Any]:
+    scenario = record.runtime_scenario or "deterministic_guard"
+    runtime_orchestrator = _runtime_orchestrator_for_scenario(
+        scenario,
+        orchestrator,
+    )
+    output = runtime_orchestrator.run(
+        record.question,
+        task_type=_runtime_task_type(record),
+    )
+    return {
+        "id": record.id,
+        "question": record.question,
+        "task_type": record.task_type,
+        "answer": output.get("answer"),
+        "route": output.get("route"),
+        "tools": output.get("tools", []),
+        "citations": output.get("citations", []),
+        "retrieved_contexts": output.get("retrieved_contexts", []),
+        "tool_results": output.get("tool_results", []),
+        "tool_calls": output.get("tool_calls", []),
+        "policy_result": output.get("policy_result"),
+        "todos": output.get("todos", []),
+        "runtime_trace": output.get("runtime_trace", {}),
+        "react_trace": output.get("react_trace", []),
+        "workflow_trace": output.get("workflow_trace", []),
+        "planned_steps": output.get("planned_steps", [{"route": output.get("route")}]),
+        "runtime_scenario": scenario,
+    }
+
+
+def _runtime_task_type(record: EvalRecord) -> str | None:
+    if record.runtime_scenario in {"stop_before_policy", "policy_deadline_guard"}:
+        return None
+    return record.task_type
+
+
+def _runtime_orchestrator_for_scenario(
+    scenario: str,
+    orchestrator: BaselineOrchestrator,
+) -> BoundedReActOrchestrator:
+    baseline = orchestrator
+    if scenario == "approval_denied":
+        baseline = _clone_baseline(
+            orchestrator,
+            approval_handler=lambda request: {
+                "approved": False,
+                "decision": "denied",
+                "reason": f"runtime eval denied {request['tool_name']}",
+            },
+        )
+    if scenario == "tool_retry_success":
+        baseline = _clone_baseline(
+            orchestrator,
+            policy_runner=_FlakyPolicyRunner(failures_before_success=1),
+        )
+    if scenario == "policy_fallback":
+        baseline = _clone_baseline(
+            orchestrator,
+            policy_runner=_FlakyPolicyRunner(failures_before_success=99),
+        )
+    if scenario == "query_rewrite_retry":
+        baseline = _clone_baseline(
+            orchestrator,
+            rag_pipeline=ExtractiveRAGPipeline(_RewriteRecoveryRetriever()),
+        )
+    return BoundedReActOrchestrator(
+        baseline,
+        controller=_runtime_controller_for_scenario(scenario),
+        max_steps=_runtime_max_steps(scenario),
+    )
+
+
+def _clone_baseline(
+    orchestrator: BaselineOrchestrator,
+    *,
+    rag_pipeline=None,
+    policy_runner=None,
+    approval_handler=None,
+) -> BaselineOrchestrator:
+    return BaselineOrchestrator(
+        rag_pipeline=rag_pipeline or orchestrator.rag_pipeline,
+        trajectory=orchestrator.trajectory,
+        data_source=orchestrator.data_source,
+        answer_generator=orchestrator.answer_generator,
+        policy_runner=policy_runner or orchestrator.policy_runner,
+        approval_handler=approval_handler,
+    )
+
+
+def _runtime_controller_for_scenario(scenario: str):
+    if scenario == "insert_comfort_then_policy":
+        return _InsertComfortThenPolicyController()
+    if scenario == "replace_with_data_quality":
+        return _ReplaceWithDataQualityController()
+    if scenario == "stop_before_policy":
+        return _StopBeforePolicyController()
+    if scenario == "duplicate_query_metric":
+        return _DuplicateQueryMetricController()
+    if scenario == "policy_budget_guard":
+        return _StarvePolicyController()
+    if scenario == "data_quality_duplicate":
+        return _RepeatDataQualityController()
+    return None
+
+
+def _runtime_max_steps(scenario: str) -> int:
+    if scenario in {"policy_deadline_guard", "policy_budget_guard"}:
+        return 1 if scenario == "policy_deadline_guard" else 2
+    return 5
+
+
+class _InsertComfortThenPolicyController:
+    def decide(self, **kwargs: Any) -> ReActDecision:
+        if not kwargs["observations"]:
+            return ReActDecision(
+                action="insert_step",
+                reason="Runtime eval inserts comfort risk evidence before policy.",
+                step=PlanStep(
+                    route="anomaly_diagnosis",
+                    reason="Assess comfort risk before policy.",
+                    tool="comfort_risk_assessment",
+                    metric_name="zone_temperature",
+                    time_window="full_demo_range",
+                ),
+                confidence=1.0,
+                controller="runtime_eval",
+            )
+        if len(kwargs["observations"]) == 1:
+            return ReActDecision(
+                action="continue_next_step",
+                reason="Continue to required policy step.",
+                confidence=1.0,
+                controller="runtime_eval",
+            )
+        return ReActDecision(
+            action="stop_and_answer",
+            reason="Runtime eval has enough evidence.",
+            confidence=1.0,
+            controller="runtime_eval",
+        )
+
+
+class _ReplaceWithDataQualityController:
+    def decide(self, **kwargs: Any) -> ReActDecision:
+        if not kwargs["observations"]:
+            return ReActDecision(
+                action="replace_next_step",
+                reason="Runtime eval replaces the next evidence step with data quality.",
+                step=PlanStep(
+                    route="timeseries_query",
+                    reason="Check data quality before downstream analysis.",
+                    tool="data_quality_check",
+                    time_window="full_demo_range",
+                ),
+                confidence=1.0,
+                controller="runtime_eval",
+            )
+        return ReActDecision(
+            action="stop_and_answer",
+            reason="Runtime eval replacement observed.",
+            confidence=1.0,
+            controller="runtime_eval",
+        )
+
+
+class _StopBeforePolicyController:
+    def decide(self, **kwargs: Any) -> ReActDecision:
+        if kwargs["observations"]:
+            return ReActDecision(
+                action="stop_and_answer",
+                reason="Runtime eval tries to stop before policy.",
+                confidence=1.0,
+                controller="runtime_eval",
+            )
+        return ReActDecision(
+            action="continue_next_step",
+            reason="Collect first evidence step.",
+            confidence=1.0,
+            controller="runtime_eval",
+        )
+
+
+class _DuplicateQueryMetricController:
+    def decide(self, **kwargs: Any) -> ReActDecision:
+        if not kwargs["observations"]:
+            return ReActDecision(
+                action="insert_step",
+                reason="Runtime eval executes query_metric once.",
+                step=PlanStep(
+                    route="timeseries_query",
+                    reason="Query zone temperature.",
+                    tool="query_metric",
+                    metric_name="zone_temperature",
+                    time_window="full_demo_range",
+                ),
+                confidence=1.0,
+                controller="runtime_eval",
+            )
+        return ReActDecision(
+            action="insert_step",
+            reason="Runtime eval repeats the same query.",
+            step=PlanStep(
+                route="timeseries_query",
+                reason="Repeat zone temperature query.",
+                tool="query_metric",
+                metric_name="zone_temperature",
+                time_window="full_demo_range",
+            ),
+            confidence=1.0,
+            controller="runtime_eval",
+        )
+
+
+class _StarvePolicyController:
+    def decide(self, **kwargs: Any) -> ReActDecision:
+        return ReActDecision(
+            action="insert_step",
+            reason="Runtime eval attempts to starve required policy budget.",
+            step=PlanStep(
+                route="timeseries_query",
+                reason="Collect non-policy evidence.",
+                tool="data_quality_check",
+                time_window="full_demo_range",
+            ),
+            confidence=1.0,
+            controller="runtime_eval",
+        )
+
+
+class _RepeatDataQualityController:
+    def decide(self, **kwargs: Any) -> ReActDecision:
+        return ReActDecision(
+            action="insert_step",
+            reason="Runtime eval repeats data quality check.",
+            step=PlanStep(
+                route="timeseries_query",
+                reason="Check trajectory data quality.",
+                tool="data_quality_check",
+                time_window="full_demo_range",
+            ),
+            confidence=1.0,
+            controller="runtime_eval",
+        )
+
+
+class _FlakyPolicyRunner:
+    def __init__(self, failures_before_success: int) -> None:
+        self.failures_before_success = failures_before_success
+        self.calls = 0
+
+    def __call__(self, state: dict[str, Any]):
+        self.calls += 1
+        if self.calls <= self.failures_before_success:
+            raise RuntimeError("runtime eval injected policy failure")
+        from src.policies.rule_based import run_rule_based_policy
+
+        return run_rule_based_policy(state)
+
+
+class _RewriteRecoveryRetriever:
+    chunks: list[Any] = []
+
+    def search(self, query: str, top_k: int = 5) -> list[dict[str, Any]]:
+        normalized = query.lower()
+        if "hvac" not in normalized and "ashrae" not in normalized:
+            return []
+        return [
+            {
+                "text": (
+                    "ASHRAE thermal guidance and HVAC efficiency notes provide "
+                    "retrieval evidence after deterministic query rewrite."
+                ),
+                "citation": {
+                    "source_id": "runtime_rewrite_doc",
+                    "title": "Runtime Query Rewrite Recovery Note",
+                },
+                "retrieval_mode": "runtime_rewrite_recovery",
+            }
+        ][:top_k]
 
 
 def build_dense_rag_pipeline(
@@ -502,6 +824,32 @@ def _compute_metrics(records: list[EvalRecord], prediction_map: dict[str, dict])
     }
 
 
+def _compute_runtime_metrics(records: list[EvalRecord], prediction_map: dict[str, dict]) -> dict[str, float]:
+    metrics = {
+        "required_step_recall": required_step_recall(records, prediction_map),
+        "tool_sequence_accuracy": tool_sequence_accuracy(records, prediction_map),
+        "policy_obligation_success_rate": policy_obligation_success_rate(records, prediction_map),
+        "approval_block_success_rate": approval_block_success_rate(records, prediction_map),
+        "duplicate_guard_success_rate": duplicate_guard_success_rate(records, prediction_map),
+        "recovery_success_rate": recovery_success_rate(records, prediction_map),
+        "trace_completeness": trace_completeness(records, prediction_map),
+        "tool_success_rate": _runtime_tool_success_rate(records, prediction_map),
+    }
+    latencies = [
+        float(call.get("duration_ms", 0.0)) / 1000.0
+        for prediction in prediction_map.values()
+        for call in prediction.get("tool_calls", [])
+        if isinstance(call, dict) and call.get("duration_ms") is not None
+    ]
+    if latencies:
+        metrics["average_tool_latency_seconds"] = sum(latencies) / len(latencies)
+    return {
+        name: value
+        for name, value in metrics.items()
+        if value is not None
+    }
+
+
 def _compute_llm_judge_metrics(predictions: list[dict[str, Any]]) -> dict[str, float]:
     judged = [prediction["llm_judge"] for prediction in predictions if "llm_judge" in prediction]
     if not judged:
@@ -533,6 +881,55 @@ def _compute_metrics_by_task_type(
         )
         for task_type in task_types
     }
+
+
+def _compute_runtime_metrics_by_task_type(
+    records: list[EvalRecord],
+    prediction_map: dict[str, dict],
+) -> dict[str, dict[str, float]]:
+    task_types = sorted({record.task_type for record in records})
+    return {
+        task_type: _compute_runtime_metrics(
+            [record for record in records if record.task_type == task_type],
+            prediction_map,
+        )
+        for task_type in task_types
+    }
+
+
+def _compute_runtime_metrics_by_difficulty(
+    records: list[EvalRecord],
+    prediction_map: dict[str, dict],
+) -> dict[str, dict[str, float]]:
+    difficulties = sorted({record.difficulty for record in records if record.difficulty})
+    return {
+        difficulty: _compute_runtime_metrics(
+            [record for record in records if record.difficulty == difficulty],
+            prediction_map,
+        )
+        for difficulty in difficulties
+    }
+
+
+def _runtime_tool_success_rate(records: list[EvalRecord], prediction_map: dict[str, dict]) -> float:
+    tool_records = [
+        record
+        for record in records
+        if record.expected_tool_sequence
+        and "approval_denied" not in record.expected_runtime_events
+    ]
+    if not tool_records:
+        return 0.0
+
+    hits = 0
+    for record in tool_records:
+        calls = [
+            call for call in prediction_map.get(record.id, {}).get("tool_calls", [])
+            if isinstance(call, dict)
+        ]
+        if calls and all(call.get("status") == "success" for call in calls):
+            hits += 1
+    return hits / len(tool_records)
 
 
 def save_predictions_jsonl(predictions: list[dict], output_path: str | Path) -> None:
