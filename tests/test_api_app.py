@@ -120,6 +120,47 @@ def test_ask_endpoint_can_run_bounded_react_workflow_trace():
     assert body["tools"] == ["rule_based_policy"]
 
 
+def test_ask_endpoint_can_run_bounded_react_guard_workflow_trace():
+    client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
+
+    response = client.post(
+        "/ask",
+        json={
+            "question": "Recommend a policy.",
+            "task_type": "policy_recommendation",
+            "workflow_engine": "bounded_react_guard",
+        },
+    )
+
+    body = response.json()
+    assert response.status_code == 200
+    assert body["workflow_engine"] == "bounded_react"
+    controller_nodes = [
+        step for step in _core_workflow_trace(body) if step["node"] == "react_controller"
+    ]
+    assert controller_nodes[0]["controller"] == "deterministic_react_guard"
+    assert body["tools"] == ["rule_based_policy"]
+
+
+def test_ask_endpoint_can_run_bounded_react_batch_workflow_trace():
+    client = TestClient(create_app(use_env_answer_generator=False, use_dropt_policy=False))
+
+    response = client.post(
+        "/ask",
+        json={
+            "question": "Check temperature then answer.",
+            "task_type": "timeseries_query",
+            "workflow_engine": "bounded_react_batch",
+        },
+    )
+
+    body = response.json()
+    assert response.status_code == 200
+    assert body["workflow_engine"] == "bounded_react_batch"
+    assert any(step["node"] == "batch_controller" for step in _core_workflow_trace(body))
+    assert body["tools"] == ["query_metric"]
+
+
 def test_create_app_can_inject_approval_handler_for_control_boundary_tools():
     def deny_control_boundary(request: dict) -> dict:
         return {
@@ -279,7 +320,7 @@ def test_ask_endpoint_rejects_unknown_workflow_engine():
     )
 
     assert response.status_code == 400
-    assert "bounded_react" in response.json()["detail"]
+    assert "bounded_react_guard" in response.json()["detail"]
 
 
 def test_eval_run_endpoint_returns_metrics():

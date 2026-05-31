@@ -97,6 +97,31 @@ def main() -> None:
         help="Enable optional LLM judge metrics. Disabled by default for reproducibility.",
     )
     parser.add_argument(
+        "--enable-env-answer-generator",
+        action="store_true",
+        help=(
+            "Use the configured answer generator from .env/environment. This may call a real "
+            "LLM API such as DeepSeek or a local Ollama server. Disabled by default for "
+            "reproducibility."
+        ),
+    )
+    parser.add_argument(
+        "--enable-env-planner",
+        action="store_true",
+        help=(
+            "Use the configured LangGraph/Bounded ReAct route planner from .env/environment for "
+            "agent workflow comparison. This may call a real LLM API. Disabled by default."
+        ),
+    )
+    parser.add_argument(
+        "--enable-env-batch-controller",
+        action="store_true",
+        help=(
+            "Include bounded_react_llm_batch_agent and use the configured batch ReAct "
+            "controller from .env/environment. This may call a real LLM API. Disabled by default."
+        ),
+    )
+    parser.add_argument(
         "--llm-judge-provider",
         default="deterministic",
         choices=["deterministic"],
@@ -205,7 +230,7 @@ def main() -> None:
     )
 
     orchestrator = build_demo_orchestrator(
-        use_env_answer_generator=False,
+        use_env_answer_generator=args.enable_env_answer_generator,
         use_persistent_knowledge=not args.disable_persistent_knowledge,
     )
     llm_judge = _build_llm_judge(args.llm_judge_provider) if args.enable_llm_judge else None
@@ -221,6 +246,8 @@ def main() -> None:
         dense_provider=args.dense_provider,
         dense_backend=args.dense_backend,
         dense_model=args.dense_model,
+        use_env_planner=args.enable_env_planner,
+        use_env_batch_controller=args.enable_env_batch_controller,
         cross_encoder_scorer=(
             _build_cross_encoder_scorer(args.cross_encoder_model)
             if not args.disable_cross_encoder_rerank
@@ -241,6 +268,10 @@ def main() -> None:
     comparison_payload = {
         "summary": comparison["summary"],
         "by_task_type": comparison["by_task_type"],
+        "model_audit": {
+            "baseline_predictions": _model_audit_for_predictions(result["predictions"]),
+            "comparison_runs": _model_audit_for_runs(comparison["runs"]),
+        },
     }
     if safety_summary is not None:
         comparison_payload["safety_adversarial"] = safety_summary
@@ -306,6 +337,67 @@ def _build_llm_judge(provider: str):
     if provider == "deterministic":
         return DeterministicKeywordJudge()
     raise ValueError(f"Unsupported LLM judge provider: {provider}")
+
+
+def _model_audit_for_runs(runs: list[dict]) -> dict[str, dict]:
+    return {
+        str(run.get("mode")): _model_audit_for_predictions(run.get("predictions", []))
+        for run in runs
+    }
+
+
+def _model_audit_for_predictions(predictions: list[dict]) -> dict:
+    answer_generators: dict[str, int] = {}
+    workflow_engines: dict[str, int] = {}
+    planners: dict[str, int] = {}
+    controllers: dict[str, int] = {}
+    planner_fallbacks = 0
+    controller_fallbacks = 0
+    prediction_count_with_planner_fallback = 0
+    prediction_count_with_controller_fallback = 0
+    prediction_count = 0
+    for prediction in predictions:
+        prediction_count += 1
+        prediction_planner_fallback = False
+        prediction_controller_fallback = False
+        _increment_counter(answer_generators, prediction.get("answer_generator"))
+        _increment_counter(workflow_engines, prediction.get("workflow_engine"))
+        workflow_trace = prediction.get("workflow_trace") or []
+        for event in workflow_trace:
+            if not isinstance(event, dict):
+                continue
+            if event.get("node") == "planner":
+                _increment_counter(planners, event.get("planner"))
+                if event.get("fallback_used"):
+                    planner_fallbacks += 1
+                    prediction_planner_fallback = True
+            if event.get("node") in {"react_controller", "batch_controller"}:
+                _increment_counter(controllers, event.get("controller"))
+                if event.get("fallback_used"):
+                    controller_fallbacks += 1
+                    prediction_controller_fallback = True
+        if prediction_planner_fallback:
+            prediction_count_with_planner_fallback += 1
+        if prediction_controller_fallback:
+            prediction_count_with_controller_fallback += 1
+    return {
+        "prediction_count": prediction_count,
+        "answer_generators": answer_generators,
+        "workflow_engines": workflow_engines,
+        "planners": planners,
+        "controllers": controllers,
+        "planner_fallbacks": planner_fallbacks,
+        "controller_fallbacks": controller_fallbacks,
+        "prediction_count_with_planner_fallback": prediction_count_with_planner_fallback,
+        "prediction_count_with_controller_fallback": prediction_count_with_controller_fallback,
+    }
+
+
+def _increment_counter(counter: dict[str, int], value: object) -> None:
+    if value is None:
+        return
+    key = str(value)
+    counter[key] = counter.get(key, 0) + 1
 
 
 class _DeterministicTestCrossEncoderScorer:

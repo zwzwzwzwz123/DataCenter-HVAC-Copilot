@@ -129,6 +129,8 @@ def test_run_baseline_eval_returns_predictions_and_metrics(tmp_path: Path):
     )
 
     assert len(result["predictions"]) == 3
+    assert result["predictions"][0]["answer_generator"]
+    assert "workflow_trace" in result["predictions"][0]
     assert result["predictions"][0]["answer_audit"]["passed"] is True
     assert "citation_hit_rate" in result["metrics"]
     assert "context_recall" in result["metrics"]
@@ -634,6 +636,88 @@ def test_run_eval_script_can_enable_optional_llm_judge(tmp_path: Path):
     assert completed.returncode == 0
     assert "llm_judge_correctness" in completed.stdout
     assert '"llm_judge"' in output_path.read_text(encoding="utf-8")
+
+
+def test_run_eval_script_accepts_explicit_env_model_flags(tmp_path: Path):
+    eval_path = write_small_eval_dataset(tmp_path / "small_eval.jsonl")
+    output_path = tmp_path / "script_predictions.jsonl"
+    comparison_path = tmp_path / "baseline_comparison.json"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "scripts/run_eval.py",
+            "--eval-path",
+            str(eval_path),
+            "--output",
+            str(output_path),
+            "--comparison-output",
+            str(comparison_path),
+            "--disable-cross-encoder-rerank",
+            "--disable-persistent-knowledge",
+            "--enable-env-answer-generator",
+            "--enable-env-planner",
+            "--enable-env-batch-controller",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env={
+            **os.environ,
+            "LLM_PROVIDER": "deterministic",
+            "LANGGRAPH_PLANNER_PROVIDER": "deterministic",
+            "KNOWLEDGE_BASE_DIR": str(tmp_path / "isolated_knowledge"),
+        },
+    )
+
+    assert completed.returncode == 0
+    assert output_path.exists()
+    comparison = __import__("json").loads(comparison_path.read_text(encoding="utf-8"))
+    assert "bounded_react_llm_batch_agent" in comparison["summary"]
+    batch_audit = comparison["model_audit"]["comparison_runs"]["bounded_react_llm_batch_agent"]
+    assert "prediction_count_with_controller_fallback" in batch_audit
+
+
+def test_baseline_comparison_adds_batch_bounded_react_when_batch_controller_enabled(
+    tmp_path: Path,
+    monkeypatch,
+):
+    monkeypatch.setenv("LLM_PROVIDER", "deterministic")
+    monkeypatch.setenv("LANGGRAPH_PLANNER_PROVIDER", "deterministic")
+    monkeypatch.setenv("BOUNDED_REACT_CONTROLLER_PROVIDER", "deterministic")
+    monkeypatch.setenv("KNOWLEDGE_BASE_DIR", str(tmp_path / "isolated_knowledge"))
+    eval_path = write_small_eval_dataset(tmp_path / "small_eval.jsonl")
+
+    result = run_baseline_comparison(
+        eval_path=eval_path,
+        orchestrator=mock_orchestrator(),
+        use_env_planner=True,
+        use_env_batch_controller=True,
+    )
+
+    assert "bounded_react_llm_batch_agent" in result["summary"]
+    batch_run = next(
+        run for run in result["runs"] if run["mode"] == "bounded_react_llm_batch_agent"
+    )
+    assert batch_run["predictions"][0]["workflow_engine"] == "bounded_react_batch"
+
+
+def test_baseline_comparison_does_not_add_batch_agent_for_planner_only(
+    tmp_path: Path,
+    monkeypatch,
+):
+    monkeypatch.setenv("LANGGRAPH_PLANNER_PROVIDER", "deterministic")
+    monkeypatch.setenv("BOUNDED_REACT_CONTROLLER_PROVIDER", "deterministic")
+    eval_path = write_small_eval_dataset(tmp_path / "small_eval.jsonl")
+
+    result = run_baseline_comparison(
+        eval_path=eval_path,
+        orchestrator=mock_orchestrator(),
+        use_env_planner=True,
+        use_env_batch_controller=False,
+    )
+
+    assert "bounded_react_llm_batch_agent" not in result["summary"]
 
 
 def test_build_dense_rag_pipeline_can_request_faiss_sentence_transformer_backend():

@@ -6,7 +6,12 @@ from typing import Any
 import pandas as pd
 
 from src.agent.answer_generator import AnswerGeneratorInput, GeneratedAnswer
-from src.agent.bounded_react import BoundedReActOrchestrator, ReActDecision
+from src.agent.bounded_react import (
+    BatchBoundedReActOrchestrator,
+    BoundedReActOrchestrator,
+    ReActBatchDecision,
+    ReActDecision,
+)
 from src.agent.orchestrator import BaselineOrchestrator
 from src.agent.planner import PlanStep
 from src.retrieval.chunking import chunk_document
@@ -315,6 +320,148 @@ class RepeatDataQualityController:
         )
 
 
+class BatchThenReflectController:
+    def __init__(self) -> None:
+        self.observation_counts: list[int] = []
+
+    def decide_batch(self, **kwargs: Any) -> ReActBatchDecision:
+        observations = kwargs["observations"]
+        self.observation_counts.append(len(observations))
+        if not observations:
+            return ReActBatchDecision(
+                action="plan_batch",
+                reason="Collect temperature and comfort evidence together.",
+                steps=[
+                    PlanStep(
+                        route="timeseries_query",
+                        reason="Query the temperature series.",
+                        tool="query_metric",
+                        metric_name="zone_temperature",
+                        time_window="full_demo_range",
+                    ),
+                    PlanStep(
+                        route="anomaly_diagnosis",
+                        reason="Assess comfort risk from the same interval.",
+                        tool="comfort_risk_assessment",
+                        metric_name="zone_temperature",
+                        time_window="full_demo_range",
+                    ),
+                ],
+                confidence=0.9,
+                controller="fake_batch_llm",
+            )
+        return ReActBatchDecision(
+            action="stop_and_answer",
+            reason="The combined evidence is enough.",
+            confidence=0.86,
+            controller="fake_batch_llm",
+        )
+
+
+class TwoRoundBatchController:
+    def decide_batch(self, **kwargs: Any) -> ReActBatchDecision:
+        observations = kwargs["observations"]
+        if not observations:
+            return ReActBatchDecision(
+                action="plan_batch",
+                reason="Start with the raw temperature metric.",
+                steps=[
+                    PlanStep(
+                        route="timeseries_query",
+                        reason="Query temperature first.",
+                        tool="query_metric",
+                        metric_name="zone_temperature",
+                        time_window="full_demo_range",
+                    )
+                ],
+                confidence=0.84,
+                controller="fake_batch_llm",
+            )
+        if len(observations) == 1:
+            return ReActBatchDecision(
+                action="plan_batch",
+                reason="Need an efficiency summary before answering.",
+                steps=[
+                    PlanStep(
+                        route="timeseries_query",
+                        reason="Summarize cooling efficiency.",
+                        tool="cooling_efficiency_summary",
+                        time_window="full_demo_range",
+                    )
+                ],
+                confidence=0.8,
+                controller="fake_batch_llm",
+            )
+        return ReActBatchDecision(
+            action="stop_and_answer",
+            reason="Metric and efficiency evidence are now enough.",
+            confidence=0.88,
+            controller="fake_batch_llm",
+        )
+
+
+class BatchEvidenceThenStopBeforePolicyController:
+    def decide_batch(self, **kwargs: Any) -> ReActBatchDecision:
+        observations = kwargs["observations"]
+        if not observations:
+            return ReActBatchDecision(
+                action="plan_batch",
+                reason="Collect evidence before the required policy.",
+                steps=[
+                    PlanStep(
+                        route="timeseries_query",
+                        reason="Query temperature before policy.",
+                        tool="query_metric",
+                        metric_name="zone_temperature",
+                        time_window="full_demo_range",
+                    )
+                ],
+                confidence=0.9,
+                controller="fake_batch_llm",
+            )
+        return ReActBatchDecision(
+            action="stop_and_answer",
+            reason="Incorrectly tries to stop before policy.",
+            confidence=0.9,
+            controller="fake_batch_llm",
+        )
+
+
+class BatchEvidenceStarvesPolicyController:
+    def decide_batch(self, **kwargs: Any) -> ReActBatchDecision:
+        observations = kwargs["observations"]
+        if not observations:
+            return ReActBatchDecision(
+                action="plan_batch",
+                reason="Collect the first evidence step.",
+                steps=[
+                    PlanStep(
+                        route="timeseries_query",
+                        reason="Query temperature before policy.",
+                        tool="query_metric",
+                        metric_name="zone_temperature",
+                        time_window="full_demo_range",
+                    )
+                ],
+                confidence=0.9,
+                controller="fake_batch_llm",
+            )
+        return ReActBatchDecision(
+            action="plan_batch",
+            reason="Incorrectly spends the last step on non-policy evidence.",
+            steps=[
+                PlanStep(
+                    route="timeseries_query",
+                    reason="Check data quality instead of policy.",
+                    tool="data_quality_check",
+                    time_window="full_demo_range",
+                )
+            ],
+            confidence=0.9,
+            controller="fake_batch_llm",
+        )
+
+
 def _baseline(approval_handler=None) -> BaselineOrchestrator:
     document = load_markdown_document(
         Path("data/documents/sample_hvac_guidance.md"),
@@ -343,6 +490,98 @@ def _baseline(approval_handler=None) -> BaselineOrchestrator:
         trajectory=trajectory,
         answer_generator=SpyAnswerGenerator(),
         approval_handler=approval_handler,
+    )
+
+
+def test_batch_bounded_react_executes_a_tool_batch_before_reflection() -> None:
+    controller = BatchThenReflectController()
+    orchestrator = BatchBoundedReActOrchestrator(
+        _baseline(),
+        controller=controller,
+        max_steps=5,
+    )
+
+    result = orchestrator.run(
+        "Check the zone temperature and comfort risk before answering.",
+        task_type="timeseries_query",
+    )
+
+    assert result["workflow_engine"] == "bounded_react_batch"
+    assert result["tools"] == ["query_metric", "comfort_risk_assessment"]
+    assert controller.observation_counts == [0, 2]
+    trace_nodes = [node["node"] for node in result["workflow_trace"]]
+    first_reflect = trace_nodes.index("batch_reflection")
+    executed_before_reflect = trace_nodes[:first_reflect].count("execute_react_step")
+    assert executed_before_reflect == 2
+    assert result["workflow_trace"][first_reflect]["observation_count"] == 2
+
+
+def test_batch_bounded_react_can_plan_a_second_batch_after_reflection() -> None:
+    orchestrator = BatchBoundedReActOrchestrator(
+        _baseline(),
+        controller=TwoRoundBatchController(),
+        max_steps=5,
+    )
+
+    result = orchestrator.run(
+        "Check temperature, then decide whether efficiency evidence is enough.",
+        task_type="timeseries_query",
+    )
+
+    assert result["workflow_engine"] == "bounded_react_batch"
+    assert result["tools"] == ["query_metric", "cooling_efficiency_summary"]
+    batch_nodes = [
+        node for node in result["workflow_trace"] if node["node"] == "batch_controller"
+    ]
+    assert [node["action"] for node in batch_nodes] == [
+        "plan_batch",
+        "plan_batch",
+        "stop_and_answer",
+    ]
+    assert result["react_trace"][-1]["observation"]["tool_names"] == [
+        "cooling_efficiency_summary"
+    ]
+
+
+def test_batch_bounded_react_promotes_policy_when_controller_stops_after_evidence() -> None:
+    orchestrator = BatchBoundedReActOrchestrator(
+        _baseline(),
+        controller=BatchEvidenceThenStopBeforePolicyController(),
+        max_steps=2,
+    )
+
+    result = orchestrator.run(
+        "Check temperature then recommend a policy.",
+        task_type=None,
+    )
+
+    assert result["tools"] == ["query_metric", "rule_based_policy"]
+    assert result["route"] == "policy_recommendation"
+    assert any(
+        recovery["strategy"] == "react_policy_budget_guard"
+        for recovery in result["runtime_trace"]["recoveries"]
+    )
+    assert [todo["status"] for todo in result["todos"]] == ["completed", "completed"]
+
+
+def test_batch_bounded_react_promotes_policy_when_batch_would_starve_budget() -> None:
+    orchestrator = BatchBoundedReActOrchestrator(
+        _baseline(),
+        controller=BatchEvidenceStarvesPolicyController(),
+        max_steps=2,
+    )
+
+    result = orchestrator.run(
+        "Check temperature then recommend a policy.",
+        task_type=None,
+    )
+
+    assert result["tools"] == ["query_metric", "rule_based_policy"]
+    assert result["route"] == "policy_recommendation"
+    assert all(tool != "data_quality_check" for tool in result["tools"])
+    assert any(
+        recovery["strategy"] == "react_policy_budget_guard"
+        for recovery in result["runtime_trace"]["recoveries"]
     )
 
 

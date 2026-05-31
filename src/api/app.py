@@ -13,7 +13,9 @@ from collections.abc import Callable
 from fastapi import FastAPI, File, HTTPException, UploadFile
 
 from src.agent.bounded_react import (
+    BatchBoundedReActOrchestrator,
     BoundedReActOrchestrator,
+    build_batch_react_controller_from_env,
     build_react_controller_from_env,
 )
 from src.agent.langgraph_workflow import LangGraphOrchestrator
@@ -68,6 +70,24 @@ def create_app(
         ),
         controller=(
             build_react_controller_from_env()
+            if use_env_intent_classifier
+            else None
+        ),
+    )
+    bounded_react_guard_orchestrator = BoundedReActOrchestrator(
+        orchestrator,
+        route_planner=DeterministicRoutePlanner(),
+        controller=None,
+    )
+    batch_bounded_react_orchestrator = BatchBoundedReActOrchestrator(
+        orchestrator,
+        route_planner=(
+            build_route_planner_from_env()
+            if use_env_intent_classifier
+            else DeterministicRoutePlanner()
+        ),
+        controller=(
+            build_batch_react_controller_from_env()
             if use_env_intent_classifier
             else None
         ),
@@ -210,8 +230,20 @@ def create_app(
                 task_type=request.task_type,
                 conversation_context=conversation_context or None,
             )
+        elif request.workflow_engine == "bounded_react_guard":
+            result = bounded_react_guard_orchestrator.run(
+                request.question,
+                task_type=request.task_type,
+                conversation_context=conversation_context or None,
+            )
         elif request.workflow_engine == "bounded_react":
             result = bounded_react_orchestrator.run(
+                request.question,
+                task_type=request.task_type,
+                conversation_context=conversation_context or None,
+            )
+        elif request.workflow_engine == "bounded_react_batch":
+            result = batch_bounded_react_orchestrator.run(
                 request.question,
                 task_type=request.task_type,
                 conversation_context=conversation_context or None,
@@ -219,7 +251,10 @@ def create_app(
         else:
             raise HTTPException(
                 status_code=400,
-                detail="workflow_engine must be one of: deterministic, langgraph, bounded_react",
+                detail=(
+                    "workflow_engine must be one of: deterministic, langgraph, "
+                    "bounded_react_guard, bounded_react, bounded_react_batch"
+                ),
             )
 
         workflow_trace = [*memory_trace, *result.get("workflow_trace", [])]
@@ -394,6 +429,8 @@ def create_app(
 
     def _refresh_orchestrators() -> None:
         nonlocal orchestrator, langgraph_orchestrator, bounded_react_orchestrator
+        nonlocal bounded_react_guard_orchestrator
+        nonlocal batch_bounded_react_orchestrator
         new_orchestrator = build_demo_orchestrator(
             use_env_answer_generator=use_env_answer_generator,
             use_dropt_policy=use_dropt_policy,
@@ -418,6 +455,24 @@ def create_app(
             ),
             controller=(
                 build_react_controller_from_env()
+                if use_env_intent_classifier
+                else None
+            ),
+        )
+        bounded_react_guard_orchestrator = BoundedReActOrchestrator(
+            new_orchestrator,
+            route_planner=DeterministicRoutePlanner(),
+            controller=None,
+        )
+        batch_bounded_react_orchestrator = BatchBoundedReActOrchestrator(
+            new_orchestrator,
+            route_planner=(
+                build_route_planner_from_env()
+                if use_env_intent_classifier
+                else DeterministicRoutePlanner()
+            ),
+            controller=(
+                build_batch_react_controller_from_env()
                 if use_env_intent_classifier
                 else None
             ),

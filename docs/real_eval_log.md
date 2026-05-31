@@ -230,7 +230,7 @@ AttributeError: '_LazyKnowledgeRetriever' object has no attribute 'chunks'
 1 passed
 ```
 
-完整真实子集 eval 第一次因 HuggingFace 可选配置文件网络请求超时失败。模型权重本地缓存可用，使用离线模式后正常运行：
+完整真实子集 eval 第一次因 HuggingFace 可选配置文件网络请求超时失败。模型权重本地缓存可用，使用离线模式后正常运行；当前正式产物同时启用 BGE reranker、DeepSeek answer generator、env planner 和 batch controller：
 
 ```powershell
 $env:KNOWLEDGE_EMBEDDING_PROVIDER='sentence-transformers'
@@ -240,55 +240,63 @@ $env:TRANSFORMERS_OFFLINE='1'
 Remove-Item Env:KNOWLEDGE_BASE_DIR -ErrorAction SilentlyContinue
 python scripts/run_eval.py `
   --eval-path data/eval/real_eval.jsonl `
-  --output data/eval/real_eval_bge/baseline_predictions.jsonl `
-  --comparison-output data/eval/real_eval_bge/baseline_comparison.json `
-  --report-output data/eval/real_eval_bge/experiment_report.md `
-  --human-review-sample-output data/eval/real_eval_bge/human_review_sample.jsonl `
-  --human-review-annotations-output data/eval/real_eval_bge/human_review_annotations.jsonl `
+  --output data/eval/real_eval_true_model_full/baseline_predictions.jsonl `
+  --comparison-output data/eval/real_eval_true_model_full/baseline_comparison.json `
+  --report-output data/eval/real_eval_true_model_full/experiment_report.md `
+  --human-review-sample-output data/eval/real_eval_true_model_full/human_review_sample.jsonl `
+  --human-review-annotations-output data/eval/real_eval_true_model_full/human_review_annotations.jsonl `
+  --runtime-eval-path data/eval/no_runtime_eval.jsonl `
   --dense-provider sentence-transformers `
   --dense-backend faiss `
-  --dense-model BAAI/bge-small-zh-v1.5
+  --dense-model BAAI/bge-small-zh-v1.5 `
+  --cross-encoder-model BAAI/bge-reranker-base `
+  --enable-env-answer-generator `
+  --enable-env-planner `
+  --enable-env-batch-controller
 ```
 
 输出产物：
 
-- `data/eval/real_eval_bge/baseline_predictions.jsonl`
-- `data/eval/real_eval_bge/baseline_comparison.json`
-- `data/eval/real_eval_bge/experiment_report.md`
-- `data/eval/real_eval_bge/human_review_sample.jsonl`
-- `data/eval/real_eval_bge/human_review_annotations.jsonl`
+- `data/eval/real_eval_true_model_full/baseline_predictions.jsonl`
+- `data/eval/real_eval_true_model_full/baseline_comparison.json`
+- `data/eval/real_eval_true_model_full/experiment_report.md`
+- `data/eval/real_eval_true_model_full/human_review_sample.jsonl`
+- `data/eval/real_eval_true_model_full/human_review_annotations.jsonl`
 
 ## 9. 真实子集结果
 
-真实公开文档 + 50 条真实手写子集，BGE-small-zh + FAISS：
+真实公开文档 + 50 条真实手写子集，BGE-small-zh + FAISS + BGE reranker + DeepSeek answer generator/env planner/batch controller：
 
 | Mode | Citation / Context | Recall@10 | MRR@10 | nDCG@10 | Expected Keyword | Tool Select | Tool Success | Evidence | Correctness | Faithfulness | Hallucination Proxy | Grounding |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `rag_dense` | 0.875 | 0.932 | 0.719 | 0.753 | 0.451 | 0.000 | 0.000 | 1.000 | 0.210 | 0.210 | 0.000 | 0.000 |
-| `rag_hybrid` BM25 | 0.812 | 0.885 | 0.922 | 0.885 | 0.484 | 0.000 | 0.000 | 0.760 | 0.222 | 0.222 | 0.000 | 0.000 |
-| `hybrid_rrf` | 0.969 | 0.990 | 0.896 | 0.912 | 0.513 | 0.000 | 0.000 | 1.000 | 0.232 | 0.232 | 0.000 | 0.000 |
-| `rag_tool_agent` | 0.562 | 0.667 | 0.651 | 0.622 | 0.643 | 0.850 | 1.000 | 1.000 | 0.703 | 0.690 | 0.042 | 0.938 |
-| `langgraph_tool_agent` | 0.562 | 0.667 | 0.651 | 0.622 | 0.665 | 1.000 | 1.000 | 1.000 | 0.727 | 0.713 | 0.042 | 0.938 |
-| `react_agent` | 0.562 | 0.667 | 0.651 | 0.622 | 0.648 | 0.900 | 1.000 | 1.000 | 0.713 | 0.700 | 0.042 | 0.938 |
+| `rag_dense` | 0.531 | 0.635 | 0.491 | 0.496 | 0.363 | 0.000 | 0.000 | 1.000 | 0.175 | 0.175 | 0.000 | 0.000 |
+| `rag_hybrid` BM25 | 0.688 | 0.766 | 0.760 | 0.722 | 0.455 | 0.000 | 0.000 | 0.760 | 0.215 | 0.215 | 0.000 | 0.000 |
+| `hybrid_rrf` | 0.719 | 0.786 | 0.701 | 0.694 | 0.476 | 0.000 | 0.000 | 1.000 | 0.225 | 0.225 | 0.000 | 0.000 |
+| `hybrid_rrf_cross_encoder` | 0.781 | 0.854 | 0.797 | 0.791 | 0.474 | 0.000 | 0.000 | 1.000 | 0.218 | 0.218 | 0.000 | 0.000 |
+| `rag_tool_agent` | 0.344 | 0.417 | 0.438 | 0.403 | 0.585 | 0.800 | 1.000 | 1.000 | 0.707 | 0.693 | 0.042 | 0.000 |
+| `langgraph_tool_agent` | 0.344 | 0.417 | 0.438 | 0.403 | 0.571 | 0.800 | 0.950 | 1.000 | 0.658 | 0.638 | 0.042 | 0.000 |
+| `react_agent` | 0.344 | 0.417 | 0.438 | 0.403 | 0.584 | 0.850 | 1.000 | 1.000 | 0.674 | 0.661 | 0.042 | 0.000 |
+| `bounded_react_guard_agent` | 0.344 | 0.417 | 0.438 | 0.403 | 0.588 | 0.800 | 0.950 | 1.000 | 0.658 | 0.645 | 0.042 | 0.000 |
+| `bounded_react_llm_batch_agent` | 0.344 | 0.417 | 0.438 | 0.403 | 0.582 | 0.750 | 0.950 | 1.000 | 0.672 | 0.659 | 0.042 | 0.000 |
 
 关键观察：
 
-- `hybrid_rrf` 在重构后真实文档子集上 Citation / Context 为 0.969、Recall@10 为 0.990，说明融合检索能覆盖绝大多数 required documents；
-- `hybrid_rrf` 的 MRR@10 / nDCG@10 为 0.896 / 0.912，排序质量也高于纯 dense 的 0.719 / 0.753；
+- `hybrid_rrf_cross_encoder` 在真实文档子集上 Citation / Context 为 0.781、Recall@10 为 0.854，优于 `hybrid_rrf` 的 0.719 / 0.786，但不是满分；
+- `hybrid_rrf_cross_encoder` 的 MRR@10 / nDCG@10 为 0.797 / 0.791，排序质量也高于 `hybrid_rrf` 的 0.701 / 0.694；
 - BM25 在真实文档问答上仍较强，说明不少题目保留了术语线索；dense 单路在相似文档干扰和多文档命中上明显不足；
 - 真实子集里的时序、异常和策略题需要结构化工具证据，纯 RAG correctness proxy 明显偏低；
-- `langgraph_tool_agent` 的 tool selection、tool success、evidence coverage 均为 1.000，整体 correctness proxy 为 0.727。
+- `react_agent` 的 tool selection 为 0.850、tool success 为 1.000，整体 correctness proxy 为 0.674；`bounded_react_llm_batch_agent` 的 correctness proxy 为 0.672，已进入 50 条正式 true-model 主表。
 
 ## 10. 合成 108 vs 真实 50
 
 | Mode | 合成 citation/context | 真实 citation/context | 合成 tool select | 真实 tool select | 合成 correctness | 真实 correctness |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| `rag_dense` | 0.800 | 0.875 | 0.000 | 0.000 | 0.582 | 0.210 |
-| `rag_hybrid` BM25 | 0.646 | 0.812 | 0.000 | 0.000 | 0.413 | 0.222 |
-| `hybrid_rrf` | 0.815 | 0.969 | 0.000 | 0.000 | 0.601 | 0.232 |
-| `rag_tool_agent` | 0.338 | 0.562 | 0.882 | 0.850 | 0.541 | 0.703 |
-| `langgraph_tool_agent` | 0.338 | 0.562 | 0.882 | 1.000 | 0.541 | 0.727 |
-| `react_agent` | 0.338 | 0.562 | 0.956 | 0.900 | 0.582 | 0.713 |
+| `rag_dense` | 0.800 | 0.531 | 0.000 | 0.000 | 0.582 | 0.175 |
+| `rag_hybrid` BM25 | 0.646 | 0.688 | 0.000 | 0.000 | 0.413 | 0.215 |
+| `hybrid_rrf` | 0.815 | 0.719 | 0.000 | 0.000 | 0.601 | 0.225 |
+| `rag_tool_agent` | 0.338 | 0.344 | 0.882 | 0.800 | 0.541 | 0.707 |
+| `langgraph_tool_agent` | 0.338 | 0.344 | 0.882 | 0.800 | 0.541 | 0.658 |
+| `react_agent` | 0.338 | 0.344 | 0.956 | 0.850 | 0.582 | 0.674 |
 
 阶段结论：
 

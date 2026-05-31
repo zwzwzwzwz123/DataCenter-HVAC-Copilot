@@ -855,3 +855,231 @@ Runtime / Guardrail：
 ### 结论
 
 核心评测集已具备自动质量门，README 指标已刷新到本次可复现 benchmark artifact。当前仍需注意：完整测试套件在本机串行运行时间过长，适合后续拆分 slow/integration 标记或并行化；这不影响本次已分文件验证通过的结论。
+
+## 2026-05-30 真实 LLM API / Embedding 全量评测与 README 指标校准
+
+### 优化目标
+
+按真实模型口径重跑 50 条 `real_eval.jsonl`：真实 sentence-transformers embedding、FAISS、BGE cross-encoder reranker、DeepSeek answer generator，并开启 env planner。目标是拿到可审计的真实指标，而不是 deterministic fallback 指标或旧 artifact 指标。
+
+### 实施过程
+
+- 审查 `scripts/run_eval.py` 和 `src/evaluation/runner.py` 后发现，旧 runner 默认固定 `use_env_answer_generator=False`，且 `LangGraphOrchestrator` / `BoundedReActOrchestrator` 没有接入 env planner。因此即使环境里配置了 DeepSeek，也不会在 benchmark 主路径中调用真实 LLM。
+- 给 `scripts/run_eval.py` 增加 `--enable-env-answer-generator` 和 `--enable-env-planner`，并把 `run_baseline_comparison()` 扩展为可注入 `build_route_planner_from_env()`。
+- 给 baseline predictions 增加 `answer_generator`、`workflow_engine`、`workflow_trace`、`react_trace`、`route_reason` 和 `policy_result` 字段，便于从 JSONL 审计真实模型调用和 workflow trace。
+- 给 `baseline_comparison.json` 增加 `model_audit`，汇总各 comparison run 的 answer generator、workflow engine、planner 和 planner fallback 次数。
+- 先运行 DeepSeek API 探针，确认 `.env` 中配置可用：`DeepSeekAnswerGenerator` 返回 `deepseek:deepseek-v4-flash`，没有落入 deterministic fallback。
+- 执行真实模型全量命令：
+  - `python scripts/run_eval.py --eval-path data/eval/real_eval.jsonl --output data/eval/real_eval_true_model_full/baseline_predictions.jsonl --comparison-output data/eval/real_eval_true_model_full/baseline_comparison.json --report-output data/eval/real_eval_true_model_full/experiment_report.md --human-review-sample-output data/eval/real_eval_true_model_full/human_review_sample.jsonl --human-review-annotations-output data/eval/real_eval_true_model_full/human_review_annotations.jsonl --runtime-eval-path data/eval/no_runtime_eval.jsonl --dense-provider sentence-transformers --dense-backend faiss --dense-model BAAI/bge-small-zh-v1.5 --cross-encoder-model BAAI/bge-reranker-base --enable-env-answer-generator --enable-env-planner`
+- 运行完成，用时约 2022.5 秒。随后解析 `model_audit`，并用新 artifact 更新 README 的 Retrieval Results、Agent Workflow Results、artifact 表、复现命令和 Resume One-Liner。
+
+### 遇到的问题
+
+- 第一次直接尝试 50 条真实 LLM 全量 run 在 30 分钟窗口内超时，且当时 predictions 缺少 `answer_generator` / planner trace 字段，无法证明真实 API 是否参与。根因不是 API 不通，而是产物审计字段不足、runtime eval 额外消耗 LLM 调用，以及旧 runner 默认不启用 env model。
+- `DeepSeekAnswerGenerator` 本身会在 API 异常时回退到 deterministic generator，所以仅看命令参数不够；必须看 `answer_generator` 和 `model_audit`。
+- `run_baseline_comparison()` 的 retrieval-only baseline 不调用 answer generator，因此 `model_audit` 里这些 run 没有 answer generator 是预期行为，不代表 embedding/reranker 没运行。
+- LangGraph / Bounded ReAct planner 只有部分题触发 LLM planner，且存在 fallback event。README 已明确区分“DeepSeek answer generation 全量参与”和“planner 部分 LLM / 部分 deterministic / 有 fallback”。
+- DeepSeek 自然语言回答没有稳定触发原本模板化的 `grounding_rate` proxy，因此 true-model run 的 agent `grounding_rate` 为 0.000。README 已说明这不是人工语义 grounding 判断。
+
+### 指标对比
+
+50 条真实文档 true-model retrieval 指标（`data/eval/real_eval_true_model_full/baseline_comparison.json`）：
+
+- `rag_dense`：Citation/Context 0.531、Recall@10 0.635、MRR@10 0.491、nDCG@10 0.496。
+- `hybrid_rrf`：Citation/Context 0.719、Recall@10 0.786、MRR@10 0.701、nDCG@10 0.694。
+- `hybrid_rrf_cross_encoder`：Citation/Context 0.781、Recall@10 0.854、MRR@10 0.797、nDCG@10 0.791、retrieval average latency 0.162s。
+
+50 条真实文档 true-model agent workflow 指标：
+
+- `rag_tool_agent`：tool selection 0.800、tool success 1.000、evidence coverage 1.000、correctness proxy 0.680、faithfulness proxy 0.667、hallucination proxy 0.042。
+- `langgraph_tool_agent`：tool selection 0.800、tool success 0.950、evidence coverage 1.000、correctness proxy 0.642、faithfulness proxy 0.628、hallucination proxy 0.042。
+- `react_agent`：tool selection 0.850、tool success 1.000、evidence coverage 1.000、correctness proxy 0.717、faithfulness proxy 0.704、hallucination proxy 0.042。
+- `bounded_react_guard_agent`：tool selection 0.800、tool success 0.950、evidence coverage 1.000、correctness proxy 0.668、faithfulness proxy 0.655、hallucination proxy 0.042。
+
+模型审计：
+
+- baseline predictions：50/50 `deepseek:deepseek-v4-flash`。
+- `rag_tool_agent`：50/50 `deepseek:deepseek-v4-flash`。
+- `langgraph_tool_agent`：49/50 `deepseek:deepseek-v4-flash`，1/50 `deterministic_grounded`；planner 为 4 条 `llm:deepseek:deepseek-v4-flash`、46 条 deterministic，planner fallback event 为 2。
+- `react_agent`：50/50 `deepseek:deepseek-v4-flash`。
+- `bounded_react_guard_agent`：50/50 `deepseek:deepseek-v4-flash`；planner 为 2 条 `llm:deepseek:deepseek-v4-flash`、48 条 deterministic，planner fallback event 为 4。
+
+验证命令：
+
+- `pytest tests/test_baseline_runner.py::test_run_baseline_eval_returns_predictions_and_metrics tests/test_baseline_runner.py::test_run_eval_script_accepts_explicit_env_model_flags -q`：2 passed。
+- DeepSeek API probe：`result_generator=deepseek:deepseek-v4-flash`。
+- 真实模型全量 run：exit 0，写出 `data/eval/real_eval_true_model_full/baseline_predictions.jsonl` 和 `baseline_comparison.json`。
+
+### 结论
+
+README 现在报告的是可审计的最新 true-model artifact，而不是旧 BGE/FAISS artifact 或 deterministic fallback 指标。真实 answer generation 已全量走 DeepSeek；planner 指标必须谨慎表述为“部分 LLM planner + deterministic fallback”，不能包装成 50/50 在线 LLM planner 指标。Runtime / Guardrail benchmark 继续保持 deterministic scenario harness 口径，用于评估 guardrail 和 recovery，不与真实 LLM answer-generation 指标混淆。
+
+## 2026-05-30 Bounded ReAct Batch LLM Controller
+
+### 优化目标
+
+把 Bounded ReAct 从“每步后询问 controller”扩展为更接近 Claude Code 的有限轮 plan-execute-reflect：LLM controller 先规划一批证据工具，本地 guard 校验并执行整批工具，然后把 merged evidence 交给 LLM 判断证据是否足够；如果不足，再规划下一批，直到停止、阻断或达到步数预算。
+
+### 实施过程
+
+- 新增 `ReActBatchDecision` 和 `BatchReActController`，支持 `plan_batch`、`stop_and_answer`、`stop_blocked` 三类批量动作。
+- 新增 `DeterministicBatchReActController` 作为可复现 fallback。
+- 新增 `LLMBatchBoundedReActController`，通过 DeepSeek/Ollama 风格 chat completions 输出结构化 JSON：`action`、`reason`、`steps`、`confidence`。LLM 看到的问题包括用户问题、初始 plan、pending steps、历史 observations、remaining steps 和压缩后的 evidence bundle。
+- 新增 `BatchBoundedReActOrchestrator`，继承现有 Bounded ReAct 的执行、observation、duplicate guard、policy guard 和 answer generation 逻辑，但循环改为：
+  - controller 规划一批 steps；
+  - 本地 validate batch；
+  - 批量执行工具；
+  - 合并 evidence；
+  - 生成 `batch_reflection` trace；
+  - controller 再判断继续补证据或停止回答。
+- `run_baseline_comparison()` 在 `--enable-env-planner` 时新增 `bounded_react_llm_batch_agent` 模式。
+- `scripts/run_eval.py` 的 `model_audit` 增加 controller / controller fallback 计数。
+- FastAPI 新增 `workflow_engine="bounded_react_batch"` 路径。
+
+### 遇到的问题
+
+- 旧 `bounded_react_guard_agent` 不能直接改成 batch LLM controller，否则会破坏已有 deterministic runtime/guardrail benchmark 的可复现口径。因此新增独立模式 `bounded_react_llm_batch_agent`，保留旧 guard 模式。
+- DeepSeek batch controller 在 smoke 中会在已有 document evidence 后继续请求同类检索，本地 duplicate guard 会拦截并 fallback 到 deterministic stop。已把 controller 内部 fallback 也写入 runtime recovery trace，方便逐条审计。
+- document QA 工具在 `tools` 中为空，但 step signature 仍能区分 `document_qa/rag_retrieval` 或默认 document step；duplicate guard 对重复检索生效。
+
+### 指标对比
+
+新增测试覆盖：
+
+- `test_batch_bounded_react_executes_a_tool_batch_before_reflection`：确认 controller 第一次看到 0 个 observation，批量执行 2 个工具后才再次反思，第二次看到 2 个 observations。
+- `test_batch_bounded_react_can_plan_a_second_batch_after_reflection`：确认第一批证据不足时，controller 可以在第二轮追加 `cooling_efficiency_summary`，然后停止回答。
+- `test_baseline_comparison_adds_batch_bounded_react_when_env_planner_enabled`：确认 runner 在 env planner 模式下输出 `bounded_react_llm_batch_agent`。
+
+10 条真实 API smoke（`data/eval/batch_llm_smoke/baseline_comparison.json`）：
+
+- `bounded_react_llm_batch_agent` answer generator：10/10 `deepseek:deepseek-v4-flash`。
+- controller audit：17 次 `llm_batch:deepseek:deepseek-v4-flash` 决策，9 次 `deterministic_batch_react_guard` fallback。
+- tool selection accuracy：0.714；tool success：1.000；evidence coverage：1.000；correctness proxy：0.525；faithfulness proxy：0.525。
+
+验证命令：
+
+- `pytest tests/test_bounded_react_agent.py::test_batch_bounded_react_executes_a_tool_batch_before_reflection tests/test_bounded_react_agent.py::test_batch_bounded_react_can_plan_a_second_batch_after_reflection tests/test_baseline_runner.py::test_baseline_comparison_adds_batch_bounded_react_when_env_planner_enabled -q`：3 passed。
+- `python scripts/run_eval.py --eval-path data/eval/real_eval_llm_smoke.jsonl --output data/eval/batch_llm_smoke/baseline_predictions.jsonl --comparison-output data/eval/batch_llm_smoke/baseline_comparison.json --report-output data/eval/batch_llm_smoke/experiment_report.md --human-review-sample-output data/eval/batch_llm_smoke/human_review_sample.jsonl --human-review-annotations-output data/eval/batch_llm_smoke/human_review_annotations.jsonl --runtime-eval-path data/eval/no_runtime_eval.jsonl --disable-cross-encoder-rerank --disable-persistent-knowledge --enable-env-answer-generator --enable-env-planner`：exit 0，用时约 555.1 秒。
+
+### 结论
+
+项目现在同时具备两条清晰路径：`bounded_react_guard_agent` 用 deterministic controller 评估 guardrail/runtime；`bounded_react_llm_batch_agent` 用真实 LLM controller 做有限轮批量计划、批量执行和证据反思，更符合“用户指令 -> LLM 规划多工具 -> 本地执行 -> LLM 判断证据是否足够 -> 回答/补证据”的目标。当前只完成 10 条 API smoke，完整 50 条 LLM batch controller benchmark 仍需单独长跑并更新主表。
+
+## 2026-05-30 Batch Bounded ReAct Policy Budget Guard 修复
+
+### 优化目标
+
+修复 batch plan-execute-reflect 模式中 policy 必需步骤可能被 LLM 的非 policy evidence batch 挤出步数预算的问题。目标是和旧单步 Bounded ReAct 一样：只要初始计划包含 `policy_recommendation`，LLM controller 就不能通过持续补证据或提前 stop 绕过 policy step。
+
+### 实施过程
+
+- 新增回归测试 `test_batch_bounded_react_promotes_policy_when_controller_stops_after_evidence`，覆盖 LLM 在执行 evidence 后尝试 `stop_and_answer` 的场景。
+- 新增回归测试 `test_batch_bounded_react_promotes_policy_when_batch_would_starve_budget`，覆盖 LLM 在剩余最后一步时继续规划非 policy evidence batch 的场景。
+- 调整 `BatchBoundedReActOrchestrator`：
+  - premature `stop_and_answer` 且仍有 pending policy 时，记录 `react_policy_budget_guard`，并强制把 policy step 转成下一批执行。
+  - 将“非 policy batch 是否挤占 policy 预算”的处理从 `_validated_batch_steps()` 移到 `_promote_policy_inside_batch_if_needed()`，避免直接判空停止。
+  - `_promote_policy_inside_batch_if_needed()` 现在会在 `len(batch_steps) + 1 > remaining_steps` 时，把 batch 末尾替换为 pending policy step，并记录 `react_policy_budget_guard`。
+
+### 遇到的问题
+
+- 第一版修复只处理了正常进入 promotion 的路径；但 `_validated_batch_steps()` 先把 starvation 场景判成无效 batch，导致 loop 直接 `no_valid_batch_steps` 停止，policy 仍未执行。通过 trace 复现后，将 starvation 交给 promotion guard 处理。
+- premature stop 场景实际会执行 policy，但 recovery trace 只记录 `react_decision_fallback`，不利于审计 policy budget guard 是否生效。已补充 `react_policy_budget_guard` recovery。
+
+### 指标对比
+
+修复前：
+
+- `test_batch_bounded_react_promotes_policy_when_batch_would_starve_budget` 复现结果为 `tools=['query_metric']`，最终 route 为 `timeseries_query`，policy 未执行。
+- premature stop 场景虽然执行了 `rule_based_policy`，但 recovery trace 没有 `react_policy_budget_guard`。
+
+修复后：
+
+- 两个场景均得到 `tools=['query_metric', 'rule_based_policy']`，最终 route 为 `policy_recommendation`。
+- recovery trace 包含 `react_policy_budget_guard`，可审计 policy step 被提升。
+
+验证命令：
+
+- `pytest tests/test_bounded_react_agent.py::test_batch_bounded_react_promotes_policy_when_controller_stops_after_evidence tests/test_bounded_react_agent.py::test_batch_bounded_react_promotes_policy_when_batch_would_starve_budget -q`：2 passed。
+- `pytest tests/test_bounded_react_agent.py -q`：18 passed。
+
+### 结论
+
+Batch Bounded ReAct 现在保留了 Claude Code 式批量规划/反思能力，同时恢复了 policy required-step / budget guard 的硬边界：LLM 可以决定证据够不够，但不能用补证据或提前停止绕过必需 policy step。
+
+## 2026-05-30 Batch Controller 开关、审计统计与 API 口径修复
+
+### 优化目标
+
+修复 code review 中剩余的三类口径问题：`bounded_react_llm_batch_agent` 不应由 `--enable-env-planner` 隐式开启；`model_audit` 需要同时提供节点级和样本级 fallback 统计；API 中 deterministic guard、单步 env controller 和批量 env controller 要有清晰 workflow engine 名称。
+
+### 实施过程
+
+- `run_baseline_comparison()` 新增 `use_env_batch_controller` 参数。`use_env_planner` 只控制 route planner；`use_env_batch_controller` 才会纳入 `bounded_react_llm_batch_agent`。
+- `scripts/run_eval.py` 新增 `--enable-env-batch-controller`，并把原 `--enable-env-planner` help 文案收窄为 route planner。
+- `model_audit` 保留节点级 `planner_fallbacks` / `controller_fallbacks`，同时新增 `prediction_count_with_planner_fallback` 和 `prediction_count_with_controller_fallback`，避免把 fallback trace 节点数误读为样本数。
+- FastAPI 新增 `workflow_engine="bounded_react_guard"`，强制 deterministic guard controller；保留 `bounded_react` 作为 `.env` single-step controller 路径；保留 `bounded_react_batch` 作为 `.env` batch controller 路径。
+- 更新 README，将 API 和 benchmark 命令中的三种 bounded route 口径拆开说明。
+
+### 遇到的问题
+
+- 原测试只检查 `--enable-env-planner` 可以触发 batch agent，反而固化了错误语义。已改成 `--enable-env-batch-controller` 才触发 batch agent，并补充 planner-only 不触发 batch agent 的测试。
+- API 返回的 `workflow_engine` 对 `bounded_react_guard` 仍是底层 orchestrator 的 `bounded_react`，因此测试改为检查 controller node 为 `deterministic_react_guard`，用于确认实际执行口径。
+
+### 指标对比
+
+修复前：
+
+- `--enable-env-planner` 同时打开 planner 和 batch controller。
+- `controller_fallbacks` 只有节点级统计，无法知道多少条 prediction 发生 fallback。
+- API 只有 `bounded_react` 和 `bounded_react_batch`，`bounded_react` 在 env 开启时可能是 LLM controller，和 README 中 guard benchmark 容易混淆。
+
+修复后：
+
+- `--enable-env-planner`：只启用 env route planner。
+- `--enable-env-batch-controller`：额外纳入 `bounded_react_llm_batch_agent` 并启用 env batch controller。
+- `model_audit` 同时输出 `controller_fallbacks` 和 `prediction_count_with_controller_fallback`。
+- API 支持 `bounded_react_guard`、`bounded_react`、`bounded_react_batch` 三种明确路径。
+
+验证命令：
+
+- `pytest tests/test_baseline_runner.py::test_baseline_comparison_adds_batch_bounded_react_when_batch_controller_enabled tests/test_baseline_runner.py::test_baseline_comparison_does_not_add_batch_agent_for_planner_only tests/test_api_app.py::test_ask_endpoint_can_run_bounded_react_guard_workflow_trace tests/test_api_app.py::test_ask_endpoint_can_run_bounded_react_batch_workflow_trace -q`：4 passed。
+- `pytest tests/test_baseline_runner.py::test_run_eval_script_accepts_explicit_env_model_flags -q`：1 passed。
+
+### 结论
+
+剩余口径问题已收口：planner、batch controller、guard benchmark 和 API workflow engine 现在可单独解释；README 不再把 planner 开关、LLM controller 开关和 deterministic guard 指标混在一起。
+
+## 2026-05-30 Batch Controller 50 条真实全量 benchmark
+
+### 优化目标
+
+补齐 `bounded_react_llm_batch_agent` 的 50 条真实文档 true-model 全量指标，避免 README 只停留在 10 条 API smoke 口径。
+
+### 实施过程
+
+- 使用 `data/eval/real_eval.jsonl` 的 50 条真实手写子集，沿用 BGE-small-zh + FAISS、BGE reranker、DeepSeek answer generator 和 env planner。
+- 在正式命令中加入 `--enable-env-batch-controller`，使 `run_baseline_comparison()` 纳入 `bounded_react_llm_batch_agent`。
+- 更新 `data/eval/real_eval_true_model_full/baseline_comparison.json`、`baseline_predictions.jsonl`、`experiment_report.md` 和 README 主表。
+
+### 遇到的问题
+
+- 第一次长跑在 HuggingFace metadata 请求 `adapter_config.json` 时遇到远端断连，报错为 `RuntimeError: Cannot send a request, as the client has been closed.`。
+- 本地缓存已经包含 `BAAI/bge-small-zh-v1.5` 和 `BAAI/bge-reranker-base`，用 `HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1` 最小加载验证通过后，改用离线模型加载重跑。
+- PowerShell 捕获了 sentence-transformers 的 stderr 进度输出并返回 NativeCommandError，但日志显示脚本已完成写出，JSON 结构和 `bounded_react_llm_batch_agent` 指标已单独验证。
+
+### 指标对比
+
+50 条 true-model 主表新增：
+
+- `bounded_react_llm_batch_agent`：citation/context 0.344、Recall@10 0.417、MRR@10 0.438、nDCG@10 0.403。
+- `bounded_react_llm_batch_agent`：tool selection 0.750、tool success 0.950、evidence coverage 1.000、correctness proxy 0.672、faithfulness proxy 0.659、hallucination proxy 0.042。
+- `model_audit`：answer generation 为 49/50 `deepseek:deepseek-v4-flash`、1/50 `deterministic_grounded`；batch controller trace 中 59 次 `llm_batch:deepseek:deepseek-v4-flash`、51 次 `deterministic_batch_react_guard`；`prediction_count_with_controller_fallback` 为 40/50。
+
+验证命令：
+
+- `HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 python scripts/run_eval.py --eval-path data/eval/real_eval.jsonl --output data/eval/real_eval_true_model_full/baseline_predictions.jsonl --comparison-output data/eval/real_eval_true_model_full/baseline_comparison.json --report-output data/eval/real_eval_true_model_full/experiment_report.md --human-review-sample-output data/eval/real_eval_true_model_full/human_review_sample.jsonl --human-review-annotations-output data/eval/real_eval_true_model_full/human_review_annotations.jsonl --runtime-eval-path data/eval/no_runtime_eval.jsonl --dense-provider sentence-transformers --dense-backend faiss --dense-model BAAI/bge-small-zh-v1.5 --cross-encoder-model BAAI/bge-reranker-base --enable-env-answer-generator --enable-env-planner --enable-env-batch-controller`：写出正式产物。
+- 结构验证脚本确认 `baseline_comparison.json` 包含 `bounded_react_llm_batch_agent`，且该 run 的 `prediction_count` 为 50。
+
+### 结论
+
+`bounded_react_llm_batch_agent` 已从 10 条 smoke 升级为 50 条真实文档 full benchmark；README 现在把 deterministic guard benchmark 和 online LLM batch controller benchmark 分开呈现。

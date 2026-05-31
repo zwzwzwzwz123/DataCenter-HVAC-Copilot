@@ -73,18 +73,20 @@ data/bear_processed/bear_rollout.csv
 
 ## 主要实验结果
 
-真实公开文档 + 50 条真实手写子集，BGE-small-zh + FAISS：
+真实公开文档 + 50 条真实手写子集，BGE-small-zh + FAISS + BGE reranker + DeepSeek answer generator/env planner/batch controller：
 
 | Mode | Citation / Context | Recall@10 | MRR@10 | nDCG@10 | Tool Select | Evidence | Correctness Proxy | Hallucination Proxy |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `rag_dense` | 0.875 | 0.932 | 0.719 | 0.753 | 0.000 | 1.000 | 0.210 | 0.000 |
-| `rag_hybrid` BM25 | 0.812 | 0.885 | 0.922 | 0.885 | 0.000 | 0.760 | 0.222 | 0.000 |
-| `hybrid_rrf` | 0.969 | 0.990 | 0.896 | 0.912 | 0.000 | 1.000 | 0.232 | 0.000 |
-| `rag_tool_agent` | 0.562 | 0.667 | 0.651 | 0.622 | 0.850 | 1.000 | 0.703 | 0.042 |
-| `langgraph_tool_agent` | 0.562 | 0.667 | 0.651 | 0.622 | 1.000 | 1.000 | 0.727 | 0.042 |
-| `react_agent` | 0.562 | 0.667 | 0.651 | 0.622 | 0.900 | 1.000 | 0.713 | 0.042 |
+| `rag_dense` | 0.531 | 0.635 | 0.491 | 0.496 | 0.000 | 1.000 | 0.175 | 0.000 |
+| `rag_hybrid` BM25 | 0.688 | 0.766 | 0.760 | 0.722 | 0.000 | 0.760 | 0.215 | 0.000 |
+| `hybrid_rrf` | 0.719 | 0.786 | 0.701 | 0.694 | 0.000 | 1.000 | 0.225 | 0.000 |
+| `hybrid_rrf_cross_encoder` | 0.781 | 0.854 | 0.797 | 0.791 | 0.000 | 1.000 | 0.218 | 0.000 |
+| `rag_tool_agent` | 0.344 | 0.417 | 0.438 | 0.403 | 0.800 | 1.000 | 0.707 | 0.042 |
+| `langgraph_tool_agent` | 0.344 | 0.417 | 0.438 | 0.403 | 0.800 | 1.000 | 0.658 | 0.042 |
+| `react_agent` | 0.344 | 0.417 | 0.438 | 0.403 | 0.850 | 1.000 | 0.674 | 0.042 |
+| `bounded_react_llm_batch_agent` | 0.344 | 0.417 | 0.438 | 0.403 | 0.750 | 1.000 | 0.672 | 0.042 |
 
-重构后的真实子集不是为了让系统拿满分，而是为了暴露边界：`hybrid_rrf` 保持最高检索召回，Citation / Context 为 0.969、Recall@10 为 0.990；但端到端 correctness proxy 没有满分，说明工具题、边界题和回答生成仍能拉开区分度。
+重构后的真实子集不是为了让系统拿满分，而是为了暴露边界：`hybrid_rrf_cross_encoder` 当前 Citation / Context 为 0.781、Recall@10 为 0.854，优于 `hybrid_rrf` 但不是满分；端到端 correctness proxy 也没有满分，说明工具题、边界题、LLM answer generation 和 batch controller 仍能拉开区分度。
 
 合成/样例 108 条，BGE-small-zh + FAISS，隔离真实知识库后在 demo 文档上运行：
 

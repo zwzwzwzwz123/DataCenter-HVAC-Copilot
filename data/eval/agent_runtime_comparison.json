@@ -8,7 +8,7 @@
     "recovery_success_rate": 0.8333333333333334,
     "trace_completeness": 1.0,
     "tool_success_rate": 1.0,
-    "average_tool_latency_seconds": 0.007825124528350881
+    "average_tool_latency_seconds": 0.006855307547221804
   },
   "by_task_type": {
     "anomaly_diagnosis": {
@@ -16,14 +16,14 @@
       "tool_sequence_accuracy": 1.0,
       "trace_completeness": 1.0,
       "tool_success_rate": 1.0,
-      "average_tool_latency_seconds": 0.007825124528350881
+      "average_tool_latency_seconds": 0.006855307547221804
     },
     "document_qa": {
       "required_step_recall": 1.0,
       "recovery_success_rate": 1.0,
       "trace_completeness": 1.0,
       "tool_success_rate": 0.0,
-      "average_tool_latency_seconds": 0.007825124528350881
+      "average_tool_latency_seconds": 0.006855307547221804
     },
     "policy_recommendation": {
       "required_step_recall": 0.9761904761904762,
@@ -33,7 +33,7 @@
       "recovery_success_rate": 0.8571428571428571,
       "trace_completeness": 1.0,
       "tool_success_rate": 1.0,
-      "average_tool_latency_seconds": 0.007825124528350881
+      "average_tool_latency_seconds": 0.006855307547221804
     },
     "timeseries_query": {
       "required_step_recall": 1.0,
@@ -42,7 +42,7 @@
       "recovery_success_rate": 0.6666666666666666,
       "trace_completeness": 1.0,
       "tool_success_rate": 1.0,
-      "average_tool_latency_seconds": 0.007825124528350881
+      "average_tool_latency_seconds": 0.006855307547221804
     }
   },
   "by_difficulty": {
@@ -55,7 +55,7 @@
       "recovery_success_rate": 1.0,
       "trace_completeness": 1.0,
       "tool_success_rate": 1.0,
-      "average_tool_latency_seconds": 0.007825124528350881
+      "average_tool_latency_seconds": 0.006855307547221804
     },
     "hard": {
       "required_step_recall": 0.9583333333333334,
@@ -66,7 +66,7 @@
       "recovery_success_rate": 0.6,
       "trace_completeness": 1.0,
       "tool_success_rate": 1.0,
-      "average_tool_latency_seconds": 0.007825124528350881
+      "average_tool_latency_seconds": 0.006855307547221804
     },
     "medium": {
       "required_step_recall": 1.0,
@@ -77,7 +77,7 @@
       "recovery_success_rate": 1.0,
       "trace_completeness": 1.0,
       "tool_success_rate": 1.0,
-      "average_tool_latency_seconds": 0.007825124528350881
+      "average_tool_latency_seconds": 0.006855307547221804
     }
   }
 }

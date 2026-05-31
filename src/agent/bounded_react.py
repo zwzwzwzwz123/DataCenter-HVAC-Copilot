@@ -33,6 +33,7 @@ ReActAction = Literal[
     "stop_and_answer",
     "stop_blocked",
 ]
+ReActBatchAction = Literal["plan_batch", "stop_and_answer", "stop_blocked"]
 
 
 @dataclass(frozen=True)
@@ -85,6 +86,26 @@ class ReActDecision:
         }
 
 
+@dataclass(frozen=True)
+class ReActBatchDecision:
+    action: ReActBatchAction
+    reason: str
+    steps: list[PlanStep] | None = None
+    confidence: float = 0.5
+    controller: str = "deterministic_batch"
+    fallback_used: bool = False
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "action": self.action,
+            "reason": self.reason,
+            "confidence": self.confidence,
+            "controller": self.controller,
+            "fallback_used": self.fallback_used,
+            "steps": [_plan_step_to_dict(step) for step in self.steps or []],
+        }
+
+
 class ReActController(Protocol):
     def decide(
         self,
@@ -98,6 +119,22 @@ class ReActController(Protocol):
         conversation_context: dict[str, Any] | None = None,
     ) -> ReActDecision:
         """Choose the next bounded ReAct action."""
+
+
+class BatchReActController(Protocol):
+    def decide_batch(
+        self,
+        *,
+        question: str,
+        task_type: str | None,
+        original_plan: list[PlanStep],
+        pending_steps: list[PlanStep],
+        observations: list[AgentObservation],
+        remaining_steps: int,
+        evidence_bundle: dict[str, Any],
+        conversation_context: dict[str, Any] | None = None,
+    ) -> ReActBatchDecision:
+        """Choose the next bounded plan-execute-reflect batch action."""
 
 
 class DeterministicReActController:
@@ -146,6 +183,44 @@ class DeterministicReActController:
             action="stop_and_answer",
             reason="No pending validated plan steps remain.",
             confidence=0.9,
+            controller=self.name,
+        )
+
+
+class DeterministicBatchReActController:
+    name = "deterministic_batch_react_guard"
+
+    def decide_batch(
+        self,
+        *,
+        question: str,
+        task_type: str | None,
+        original_plan: list[PlanStep],
+        pending_steps: list[PlanStep],
+        observations: list[AgentObservation],
+        remaining_steps: int,
+        evidence_bundle: dict[str, Any],
+        conversation_context: dict[str, Any] | None = None,
+    ) -> ReActBatchDecision:
+        if any(observation.blocked for observation in observations):
+            return ReActBatchDecision(
+                action="stop_blocked",
+                reason="A tool call was blocked by approval or policy boundary.",
+                confidence=1.0,
+                controller=self.name,
+            )
+        if observations or not pending_steps or remaining_steps <= 0:
+            return ReActBatchDecision(
+                action="stop_and_answer",
+                reason="No additional evidence batch is required.",
+                confidence=0.9,
+                controller=self.name,
+            )
+        return ReActBatchDecision(
+            action="plan_batch",
+            reason="Execute the validated initial plan as one evidence batch.",
+            steps=pending_steps[:remaining_steps],
+            confidence=0.8,
             controller=self.name,
         )
 
@@ -242,6 +317,107 @@ class LLMBoundedReActController:
                 action=fallback.action,
                 reason=f"LLM ReAct decision failed ({exc}); {fallback.reason}",
                 step=fallback.step,
+                confidence=fallback.confidence,
+                controller=fallback.controller,
+                fallback_used=True,
+            )
+
+
+class LLMBatchBoundedReActController:
+    """LLM controller that plans evidence batches, then reflects on the merged bundle."""
+
+    def __init__(
+        self,
+        provider: str,
+        api_key: str,
+        base_url: str,
+        model: str,
+        timeout_seconds: float = 20.0,
+        fallback: BatchReActController | None = None,
+        transport: Transport | None = None,
+    ) -> None:
+        self.provider = provider
+        self.api_key = api_key
+        self.base_url = base_url.rstrip("/")
+        self.model = model
+        self.timeout_seconds = timeout_seconds
+        self.fallback = fallback or DeterministicBatchReActController()
+        self.transport = transport or _default_transport
+
+    def decide_batch(
+        self,
+        *,
+        question: str,
+        task_type: str | None,
+        original_plan: list[PlanStep],
+        pending_steps: list[PlanStep],
+        observations: list[AgentObservation],
+        remaining_steps: int,
+        evidence_bundle: dict[str, Any],
+        conversation_context: dict[str, Any] | None = None,
+    ) -> ReActBatchDecision:
+        try:
+            body = json.dumps(
+                {
+                    "model": self.model,
+                    "messages": [
+                        {"role": "system", "content": _batch_controller_system_prompt()},
+                        {
+                            "role": "user",
+                            "content": json.dumps(
+                                {
+                                    "question": question,
+                                    "task_type": task_type,
+                                    "remaining_steps": remaining_steps,
+                                    "original_plan": [_plan_step_to_dict(step) for step in original_plan],
+                                    "pending_steps": [_plan_step_to_dict(step) for step in pending_steps],
+                                    "observations": [item.to_dict() for item in observations],
+                                    "evidence_bundle": _compact_evidence_bundle(evidence_bundle),
+                                    "conversation_context": conversation_context or {},
+                                },
+                                ensure_ascii=False,
+                            ),
+                        },
+                    ],
+                    "temperature": 0.0,
+                },
+                ensure_ascii=False,
+            ).encode("utf-8")
+            response = self.transport(
+                f"{self.base_url}/chat/completions",
+                {
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
+                body,
+                self.timeout_seconds,
+            )
+            content = str(response["choices"][0]["message"]["content"])
+            decision = _batch_decision_from_llm_payload(
+                content=content,
+                controller=f"llm_batch:{self.provider}:{self.model}",
+            )
+            return _validated_batch_decision(
+                decision,
+                pending_steps=pending_steps,
+                observations=observations,
+                remaining_steps=remaining_steps,
+            )
+        except Exception as exc:
+            fallback = self.fallback.decide_batch(
+                question=question,
+                task_type=task_type,
+                original_plan=original_plan,
+                pending_steps=pending_steps,
+                observations=observations,
+                remaining_steps=remaining_steps,
+                evidence_bundle=evidence_bundle,
+                conversation_context=conversation_context,
+            )
+            return ReActBatchDecision(
+                action=fallback.action,
+                reason=f"LLM batch ReAct decision failed ({exc}); {fallback.reason}",
+                steps=fallback.steps,
                 confidence=fallback.confidence,
                 controller=fallback.controller,
                 fallback_used=True,
@@ -748,6 +924,444 @@ class BoundedReActOrchestrator:
         )
 
 
+class BatchBoundedReActOrchestrator(BoundedReActOrchestrator):
+    """Bounded plan-execute-reflect loop that executes tool batches before LLM reflection."""
+
+    def __init__(
+        self,
+        baseline: BaselineOrchestrator,
+        route_planner: RoutePlanner | None = None,
+        controller: BatchReActController | None = None,
+        task_executor: AgentTaskExecutor | None = None,
+        max_steps: int = MAX_REACT_STEPS,
+    ) -> None:
+        super().__init__(
+            baseline,
+            route_planner=route_planner,
+            controller=DeterministicReActController(),
+            task_executor=task_executor,
+            max_steps=max_steps,
+        )
+        self.batch_controller = controller or DeterministicBatchReActController()
+
+    def run(
+        self,
+        question: str,
+        task_type: str | None = None,
+        conversation_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        runtime_trace = AgentRuntimeTrace()
+        plan = self.route_planner.plan(
+            question,
+            task_type=task_type,
+            conversation_context=conversation_context,
+        )
+        pending_steps = list(plan.steps)
+        original_plan = list(plan.steps)
+        workflow_trace: list[dict[str, Any]] = [
+            {
+                "node": "planner",
+                "planned_steps": [step.route for step in plan.steps],
+                "planned_step_specs": [_plan_step_to_dict(step) for step in plan.steps],
+                "planner": plan.planner,
+                "confidence": plan.confidence,
+                "fallback_used": plan.fallback_used,
+                "route": plan.steps[-1].route,
+                "memory_context_available": bool(conversation_context),
+                "memory_recent_turn_count": len((conversation_context or {}).get("recent_turns", [])),
+            }
+        ]
+        observations: list[AgentObservation] = []
+        step_results: list[dict[str, Any]] = []
+        executed_steps: list[PlanStep] = []
+        required_policy_pending = any(step.route == "policy_recommendation" for step in original_plan)
+        previous_runtime_trace = self.task_executor.runtime_trace
+        self.task_executor.runtime_trace = runtime_trace
+        stop_reason = "max_steps_exhausted"
+
+        try:
+            while len(executed_steps) < self.max_steps:
+                required_policy_pending = _policy_required_but_unmet(
+                    required_policy_pending,
+                    observations,
+                )
+                remaining_steps = self.max_steps - len(executed_steps)
+                evidence_bundle = self._current_evidence_bundle(
+                    question=question,
+                    plan=plan,
+                    step_results=step_results,
+                    conversation_context=conversation_context,
+                )
+                if observations:
+                    workflow_trace.append(
+                        {
+                            "node": "batch_reflection",
+                            "observation_count": len(observations),
+                            "citation_count": len(evidence_bundle.get("citations", [])),
+                            "context_count": len(evidence_bundle.get("retrieved_contexts", [])),
+                            "tool_result_count": len(evidence_bundle.get("tool_results", [])),
+                            "has_policy_result": isinstance(evidence_bundle.get("policy_result"), dict),
+                        }
+                    )
+                decision = self._safe_batch_controller_decision(
+                    question=question,
+                    task_type=task_type,
+                    original_plan=original_plan,
+                    pending_steps=pending_steps,
+                    observations=observations,
+                    remaining_steps=remaining_steps,
+                    evidence_bundle=evidence_bundle,
+                    conversation_context=conversation_context,
+                    runtime_trace=runtime_trace,
+                    required_policy_pending=required_policy_pending,
+                )
+                workflow_trace.append({"node": "batch_controller", **decision.to_dict()})
+
+                if decision.action == "stop_blocked":
+                    stop_reason = "blocked"
+                    break
+                if decision.action == "stop_and_answer":
+                    if not _has_pending_required_policy(
+                        pending_steps,
+                        observations,
+                        required_policy_pending=required_policy_pending,
+                    ):
+                        stop_reason = "controller_stop"
+                        break
+                    runtime_trace.record_recovery(
+                        {
+                            "strategy": "react_decision_fallback",
+                            "status": "success",
+                            "error": "stop_and_answer rejected with pending policy step",
+                        }
+                    )
+                    runtime_trace.record_recovery(
+                        {
+                            "strategy": "react_policy_budget_guard",
+                            "status": "success",
+                            "error": "required policy step promoted after premature stop",
+                            "remaining_steps": remaining_steps,
+                        }
+                    )
+                    decision = ReActBatchDecision(
+                        action="plan_batch",
+                        reason="Pending policy step must be executed before answering.",
+                        steps=[_required_policy_step(original_plan)],
+                        confidence=1.0,
+                        controller="deterministic_batch_react_guard",
+                        fallback_used=True,
+                    )
+                    workflow_trace.append({"node": "batch_controller", **decision.to_dict()})
+
+                batch_steps = list(decision.steps or pending_steps[:remaining_steps])
+                batch_steps = self._validated_batch_steps(
+                    batch_steps=batch_steps,
+                    observations=observations,
+                    remaining_steps=remaining_steps,
+                    required_policy_pending=required_policy_pending,
+                    runtime_trace=runtime_trace,
+                )
+                if not batch_steps:
+                    stop_reason = "no_valid_batch_steps"
+                    break
+                pending_steps = _remove_batch_steps(pending_steps, batch_steps)
+                if required_policy_pending and not any(
+                    step.route == "policy_recommendation" for step in [*batch_steps, *pending_steps]
+                ):
+                    pending_steps.append(_required_policy_step(original_plan))
+                    runtime_trace.record_recovery(
+                        {
+                            "strategy": "react_decision_fallback",
+                            "status": "success",
+                            "error": "required policy step restored after batch decision",
+                        }
+                    )
+                batch_steps = self._promote_policy_inside_batch_if_needed(
+                    batch_steps=batch_steps,
+                    pending_steps=pending_steps,
+                    remaining_steps=remaining_steps,
+                    required_policy_pending=required_policy_pending,
+                    runtime_trace=runtime_trace,
+                )
+                workflow_trace.append(
+                    {
+                        "node": "execute_batch",
+                        "step_count": len(batch_steps),
+                        "steps": [_plan_step_to_dict(step) for step in batch_steps],
+                    }
+                )
+                for step in batch_steps:
+                    if len(executed_steps) >= self.max_steps:
+                        stop_reason = "max_steps_exhausted"
+                        break
+                    if self._is_duplicate_step(step, observations):
+                        self._record_blocked_guard_step(
+                            step=step,
+                            reason="duplicate_step_blocked",
+                            runtime_trace=runtime_trace,
+                            workflow_trace=workflow_trace,
+                            executed_step_count=len(executed_steps),
+                            append_stop=False,
+                        )
+                        continue
+                    self._execute_and_record_step(
+                        question=question,
+                        step=step,
+                        runtime_trace=runtime_trace,
+                        workflow_trace=workflow_trace,
+                        step_results=step_results,
+                        executed_steps=executed_steps,
+                        observations=observations,
+                    )
+                    if observations[-1].blocked:
+                        stop_reason = "blocked"
+                        break
+                if stop_reason == "blocked":
+                    break
+            if stop_reason == "max_steps_exhausted" and len(executed_steps) < self.max_steps:
+                stop_reason = "loop_complete"
+            workflow_trace.append(
+                {
+                    "node": "react_stop",
+                    "reason": stop_reason,
+                    "executed_step_count": len(executed_steps),
+                }
+            )
+            if not step_results:
+                fallback_step = original_plan[0]
+                self._execute_and_record_step(
+                    question=question,
+                    step=fallback_step,
+                    runtime_trace=runtime_trace,
+                    workflow_trace=workflow_trace,
+                    step_results=step_results,
+                    executed_steps=executed_steps,
+                    observations=observations,
+                )
+        finally:
+            self.task_executor.runtime_trace = previous_runtime_trace
+
+        merged_plan = PlanDecision(
+            steps=executed_steps,
+            planner=f"{plan.planner}+bounded_react_batch",
+            confidence=plan.confidence,
+            fallback_used=plan.fallback_used,
+        )
+        merged_evidence = _merge_step_results(
+            question=question,
+            plan=merged_plan,
+            step_results=step_results,
+        )
+        if conversation_context is not None:
+            merged_evidence["conversation_context"] = conversation_context
+        result = self.task_executor.generate_answer_from_evidence(merged_evidence)
+        if any(observation.blocked for observation in observations):
+            result["policy_result"] = None
+        runtime_dict = runtime_trace.to_dict()
+        return {
+            **result,
+            "workflow_engine": "bounded_react_batch",
+            "workflow_trace": [
+                *workflow_trace,
+                {
+                    "node": "evidence_aggregator",
+                    "route": result.get("route"),
+                    "citation_count": len(result.get("citations", [])),
+                    "context_count": len(result.get("retrieved_contexts", [])),
+                    "tool_result_count": len(result.get("tool_results", [])),
+                    "has_policy_result": isinstance(result.get("policy_result"), dict),
+                },
+                {
+                    "node": "answer_generator",
+                    "route": result.get("route"),
+                    "answer_generator": result.get("answer_generator"),
+                    "citation_count": len(result.get("citations", [])),
+                    "context_count": len(result.get("retrieved_contexts", [])),
+                    "tool_result_count": len(result.get("tool_results", [])),
+                    "has_policy_result": isinstance(result.get("policy_result"), dict),
+                },
+                {
+                    "node": "answer_audit",
+                    "route": result.get("route"),
+                    "passed": bool(result.get("answer_audit", {}).get("passed", False)),
+                    "audit_passed": bool(result.get("answer_audit", {}).get("passed", False)),
+                    "violations": result.get("answer_audit", {}).get("violations", []),
+                    "citation_count": len(result.get("citations", [])),
+                    "tool_result_count": len(result.get("tool_results", [])),
+                },
+            ],
+            "react_trace": [
+                {
+                    "step": observation.step_index,
+                    "action": step.route,
+                    "route": step.route,
+                    "observation": observation.to_dict(),
+                }
+                for step, observation in zip(executed_steps, observations)
+            ],
+            "todos": runtime_dict["todos"],
+            "runtime_trace": runtime_dict,
+        }
+
+    def _safe_batch_controller_decision(
+        self,
+        *,
+        question: str,
+        task_type: str | None,
+        original_plan: list[PlanStep],
+        pending_steps: list[PlanStep],
+        observations: list[AgentObservation],
+        remaining_steps: int,
+        evidence_bundle: dict[str, Any],
+        conversation_context: dict[str, Any] | None,
+        runtime_trace: AgentRuntimeTrace,
+        required_policy_pending: bool = False,
+    ) -> ReActBatchDecision:
+        try:
+            decision = self.batch_controller.decide_batch(
+                question=question,
+                task_type=task_type,
+                original_plan=original_plan,
+                pending_steps=pending_steps,
+                observations=observations,
+                remaining_steps=remaining_steps,
+                evidence_bundle=evidence_bundle,
+                conversation_context=conversation_context,
+            )
+            if decision.fallback_used:
+                runtime_trace.record_recovery(
+                    {
+                        "strategy": "react_decision_fallback",
+                        "status": "success",
+                        "error": decision.reason,
+                    }
+                )
+            return _validated_batch_decision(
+                decision,
+                pending_steps=pending_steps,
+                observations=observations,
+                remaining_steps=remaining_steps,
+                required_policy_pending=required_policy_pending,
+                duplicate_checker=self._is_duplicate_step,
+            )
+        except Exception as exc:
+            runtime_trace.record_recovery(
+                {
+                    "strategy": "react_decision_fallback",
+                    "status": "success",
+                    "error": str(exc),
+                }
+            )
+            fallback = DeterministicBatchReActController().decide_batch(
+                question=question,
+                task_type=task_type,
+                original_plan=original_plan,
+                pending_steps=pending_steps,
+                observations=observations,
+                remaining_steps=remaining_steps,
+                evidence_bundle=evidence_bundle,
+                conversation_context=conversation_context,
+            )
+            return ReActBatchDecision(
+                action=fallback.action,
+                reason=f"Invalid batch ReAct decision ({exc}); {fallback.reason}",
+                steps=fallback.steps,
+                confidence=fallback.confidence,
+                controller=fallback.controller,
+                fallback_used=True,
+            )
+
+    def _validated_batch_steps(
+        self,
+        *,
+        batch_steps: list[PlanStep],
+        observations: list[AgentObservation],
+        remaining_steps: int,
+        required_policy_pending: bool,
+        runtime_trace: AgentRuntimeTrace,
+    ) -> list[PlanStep]:
+        limited_steps = batch_steps[:remaining_steps]
+        try:
+            validate_plan_steps(limited_steps)
+            for step in limited_steps:
+                _reject_duplicate_step(
+                    step,
+                    observations,
+                    duplicate_checker=self._is_duplicate_step,
+                )
+        except Exception as exc:
+            runtime_trace.record_recovery(
+                {
+                    "strategy": "react_decision_fallback",
+                    "status": "success",
+                    "error": str(exc),
+                }
+            )
+            return []
+        return limited_steps
+
+    def _promote_policy_inside_batch_if_needed(
+        self,
+        *,
+        batch_steps: list[PlanStep],
+        pending_steps: list[PlanStep],
+        remaining_steps: int,
+        required_policy_pending: bool,
+        runtime_trace: AgentRuntimeTrace,
+    ) -> list[PlanStep]:
+        if not required_policy_pending:
+            return batch_steps
+        if any(step.route == "policy_recommendation" for step in batch_steps):
+            return batch_steps
+        policy_step = _first_policy_step(pending_steps)
+        if policy_step is None:
+            return batch_steps
+        if len(batch_steps) + 1 <= remaining_steps:
+            return batch_steps
+        runtime_trace.record_recovery(
+            {
+                "strategy": "react_policy_budget_guard",
+                "status": "success",
+                "error": "required policy step promoted into batch before budget exhaustion",
+            }
+        )
+        if not batch_steps:
+            return [policy_step]
+        return [*batch_steps[:-1], policy_step]
+
+    def _current_evidence_bundle(
+        self,
+        *,
+        question: str,
+        plan: PlanDecision,
+        step_results: list[dict[str, Any]],
+        conversation_context: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        if not step_results:
+            return {
+                "question": question,
+                "route": plan.steps[-1].route,
+                "citations": [],
+                "retrieved_contexts": [],
+                "tools": [],
+                "tool_results": [],
+                "tool_calls": [],
+            }
+        evidence = _merge_step_results(
+            question=question,
+            plan=PlanDecision(
+                steps=plan.steps,
+                planner=plan.planner,
+                confidence=plan.confidence,
+                fallback_used=plan.fallback_used,
+            ),
+            step_results=step_results,
+        )
+        if conversation_context is not None:
+            evidence["conversation_context"] = conversation_context
+        return evidence
+
+
 def build_react_controller_from_env(
     project_root: str | Path | None = None,
     transport: Transport | None = None,
@@ -777,6 +1391,35 @@ def build_react_controller_from_env(
     return DeterministicReActController()
 
 
+def build_batch_react_controller_from_env(
+    project_root: str | Path | None = None,
+    transport: Transport | None = None,
+) -> BatchReActController:
+    root = Path(project_root) if project_root else Path(__file__).resolve().parents[2]
+    load_env_file(root / ".env")
+    provider = os.getenv("BOUNDED_REACT_CONTROLLER_PROVIDER", "auto").strip().lower()
+    if provider in {"", "auto"}:
+        provider = "deepseek" if os.getenv("DEEPSEEK_API_KEY", "").strip() else "deterministic"
+    if provider in {"deterministic", "rule_based"}:
+        return DeterministicBatchReActController()
+    if provider == "deepseek":
+        api_key = os.getenv("DEEPSEEK_API_KEY", "").strip()
+        if not api_key:
+            return DeterministicBatchReActController()
+        return LLMBatchBoundedReActController(
+            provider="deepseek",
+            api_key=api_key,
+            base_url=os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
+            model=os.getenv(
+                "BOUNDED_REACT_CONTROLLER_MODEL",
+                os.getenv("LANGGRAPH_PLANNER_MODEL", os.getenv("DEEPSEEK_MODEL", "deepseek-chat")),
+            ),
+            timeout_seconds=float(os.getenv("BOUNDED_REACT_TIMEOUT_SECONDS", "20")),
+            transport=transport,
+        )
+    return DeterministicBatchReActController()
+
+
 def build_bounded_react_orchestrator_from_env(
     baseline: BaselineOrchestrator,
     *,
@@ -785,6 +1428,24 @@ def build_bounded_react_orchestrator_from_env(
     route_planner = build_route_planner_from_env() if use_env_controller else DeterministicRoutePlanner()
     controller = build_react_controller_from_env() if use_env_controller else DeterministicReActController()
     return BoundedReActOrchestrator(
+        baseline,
+        route_planner=route_planner,
+        controller=controller,
+    )
+
+
+def build_batch_bounded_react_orchestrator_from_env(
+    baseline: BaselineOrchestrator,
+    *,
+    use_env_controller: bool = True,
+) -> BatchBoundedReActOrchestrator:
+    route_planner = build_route_planner_from_env() if use_env_controller else DeterministicRoutePlanner()
+    controller = (
+        build_batch_react_controller_from_env()
+        if use_env_controller
+        else DeterministicBatchReActController()
+    )
+    return BatchBoundedReActOrchestrator(
         baseline,
         route_planner=route_planner,
         controller=controller,
@@ -834,6 +1495,39 @@ def _validated_decision(
     return decision
 
 
+def _validated_batch_decision(
+    decision: ReActBatchDecision,
+    *,
+    pending_steps: list[PlanStep] | None = None,
+    observations: list[AgentObservation],
+    remaining_steps: int,
+    required_policy_pending: bool = False,
+    duplicate_checker: Callable[[PlanStep, list[AgentObservation]], bool] | None = None,
+) -> ReActBatchDecision:
+    if decision.action not in {"plan_batch", "stop_and_answer", "stop_blocked"}:
+        raise ValueError(f"unsupported batch ReAct action: {decision.action}")
+    if remaining_steps <= 0 and decision.action == "plan_batch":
+        raise ValueError("ReAct step budget exhausted")
+    if decision.action == "plan_batch":
+        steps = list(decision.steps or pending_steps or [])
+        if not steps:
+            raise ValueError("plan_batch requires at least one step")
+        if len(steps) > remaining_steps:
+            raise ValueError("plan_batch exceeds remaining step budget")
+        validate_plan_steps(steps)
+        if required_policy_pending and not any(
+            step.route == "policy_recommendation" for step in [*steps, *(pending_steps or [])]
+        ):
+            raise ValueError("required policy step cannot be removed before policy execution")
+        for step in steps:
+            _reject_duplicate_step(
+                step,
+                observations,
+                duplicate_checker=duplicate_checker,
+            )
+    return decision
+
+
 def _candidate_pending_steps(
     decision: ReActDecision,
     pending_steps: list[PlanStep],
@@ -845,6 +1539,23 @@ def _candidate_pending_steps(
     if decision.action == "replace_next_step":
         return [decision.step, *pending_steps[1:]]
     return pending_steps
+
+
+def _remove_batch_steps(
+    pending_steps: list[PlanStep],
+    batch_steps: list[PlanStep],
+) -> list[PlanStep]:
+    remaining = list(pending_steps)
+    for batch_step in batch_steps:
+        for index, pending_step in enumerate(remaining):
+            if _steps_equivalent(batch_step, pending_step):
+                remaining.pop(index)
+                break
+    return remaining
+
+
+def _steps_equivalent(left: PlanStep, right: PlanStep) -> bool:
+    return _plan_step_to_dict(left) == _plan_step_to_dict(right)
 
 
 def _reject_duplicate_step(
@@ -1045,6 +1756,13 @@ def _pending_policy_index(pending_steps: list[PlanStep]) -> int | None:
     return None
 
 
+def _first_policy_step(pending_steps: list[PlanStep]) -> PlanStep | None:
+    for step in pending_steps:
+        if step.route == "policy_recommendation":
+            return step
+    return None
+
+
 def _policy_required_but_unmet(
     required_policy_pending: bool,
     observations: list[AgentObservation],
@@ -1202,6 +1920,18 @@ def _controller_system_prompt() -> str:
     )
 
 
+def _batch_controller_system_prompt() -> str:
+    return (
+        "You are a bounded plan-execute-reflect controller for DataCenter-HVAC Copilot. "
+        "Return only JSON with action, reason, optional steps, and confidence. "
+        "Allowed actions: plan_batch, stop_and_answer, stop_blocked. "
+        "Use plan_batch to request one or more evidence steps that can be executed before "
+        "the next reflection. Use stop_and_answer only when the evidence_bundle is enough "
+        "to answer the user. Never invent tool outputs or control actions. "
+        f"{build_planner_tool_prompt()}"
+    )
+
+
 def _decision_from_llm_payload(*, content: str, controller: str) -> ReActDecision:
     parsed = _parse_json_object(content)
     action = str(parsed.get("action", "")).strip()
@@ -1210,6 +1940,24 @@ def _decision_from_llm_payload(*, content: str, controller: str) -> ReActDecisio
         action=action,  # type: ignore[arg-type]
         reason=str(parsed.get("reason") or "LLM selected bounded ReAct action."),
         step=_step_from_payload(step) if isinstance(step, dict) else None,
+        confidence=_bounded_confidence(parsed.get("confidence", 0.5)),
+        controller=controller,
+    )
+
+
+def _batch_decision_from_llm_payload(*, content: str, controller: str) -> ReActBatchDecision:
+    parsed = _parse_json_object(content)
+    action = str(parsed.get("action", "")).strip()
+    raw_steps = parsed.get("steps")
+    steps = [
+        _step_from_payload(item)
+        for item in raw_steps
+        if isinstance(item, dict)
+    ] if isinstance(raw_steps, list) else []
+    return ReActBatchDecision(
+        action=action,  # type: ignore[arg-type]
+        reason=str(parsed.get("reason") or "LLM selected bounded batch ReAct action."),
+        steps=steps,
         confidence=_bounded_confidence(parsed.get("confidence", 0.5)),
         controller=controller,
     )
@@ -1236,6 +1984,47 @@ def _parse_json_object(content: str) -> dict[str, Any]:
     if not isinstance(parsed, dict):
         raise ValueError("ReAct controller payload must be a JSON object")
     return parsed
+
+
+def _compact_evidence_bundle(evidence_bundle: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "route": evidence_bundle.get("route"),
+        "tools": evidence_bundle.get("tools", []),
+        "citation_count": len(evidence_bundle.get("citations", [])),
+        "context_count": len(evidence_bundle.get("retrieved_contexts", [])),
+        "tool_result_count": len(evidence_bundle.get("tool_results", [])),
+        "has_policy_result": isinstance(evidence_bundle.get("policy_result"), dict),
+        "tool_results": [
+            _compact_tool_result(result)
+            for result in evidence_bundle.get("tool_results", [])[:6]
+            if isinstance(result, dict)
+        ],
+        "retrieved_contexts": [
+            {
+                "source": context.get("source"),
+                "chunk_id": context.get("chunk_id"),
+                "text": str(context.get("text", ""))[:400],
+            }
+            for context in evidence_bundle.get("retrieved_contexts", [])[:4]
+            if isinstance(context, dict)
+        ],
+    }
+
+
+def _compact_tool_result(result: dict[str, Any]) -> dict[str, Any]:
+    compact: dict[str, Any] = {}
+    for key, value in result.items():
+        if isinstance(value, (str, int, float, bool)) or value is None:
+            compact[key] = value
+        elif isinstance(value, list):
+            compact[key] = value[:5]
+        elif isinstance(value, dict):
+            compact[key] = {
+                str(nested_key): nested_value
+                for nested_key, nested_value in list(value.items())[:8]
+                if isinstance(nested_value, (str, int, float, bool)) or nested_value is None
+            }
+    return compact
 
 
 def _optional_string(value: Any) -> str | None:

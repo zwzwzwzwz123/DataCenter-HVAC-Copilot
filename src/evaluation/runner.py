@@ -8,8 +8,13 @@ from typing import Any
 from src.agent.orchestrator import BaselineOrchestrator
 from src.agent.react_agent import ReActOrchestrator
 from src.agent.langgraph_workflow import LangGraphOrchestrator
-from src.agent.bounded_react import BoundedReActOrchestrator, ReActDecision
-from src.agent.planner import PlanStep
+from src.agent.bounded_react import (
+    BatchBoundedReActOrchestrator,
+    BoundedReActOrchestrator,
+    ReActDecision,
+    build_batch_react_controller_from_env,
+)
+from src.agent.planner import PlanStep, build_route_planner_from_env
 from src.evaluation.dataset import load_eval_dataset
 from src.evaluation.dataset import EvalRecord
 from src.evaluation.llm_judge import LLMJudge
@@ -81,21 +86,27 @@ def run_baseline_eval(
             task_type=None if record.expected_steps else record.task_type,
         )
         prediction = {
-                "id": record.id,
-                "question": record.question,
-                "task_type": record.task_type,
-                "answer": output.get("answer"),
-                "route": output.get("route"),
-                "tools": output.get("tools", []),
-                "citations": output.get("citations", []),
-                "retrieved_contexts": output.get("retrieved_contexts", []),
-                "tool_results": output.get("tool_results", []),
-                "tool_calls": output.get("tool_calls", []),
-                "todos": output.get("todos", []),
-                "runtime_trace": output.get("runtime_trace", {}),
-                "planned_steps": output.get("planned_steps", [{"route": output.get("route")}]),
-                "answer_audit": output.get("answer_audit", {}),
-            }
+            "id": record.id,
+            "question": record.question,
+            "task_type": record.task_type,
+            "answer": output.get("answer"),
+            "route": output.get("route"),
+            "route_reason": output.get("route_reason"),
+            "workflow_engine": output.get("workflow_engine"),
+            "answer_generator": output.get("answer_generator"),
+            "tools": output.get("tools", []),
+            "citations": output.get("citations", []),
+            "retrieved_contexts": output.get("retrieved_contexts", []),
+            "tool_results": output.get("tool_results", []),
+            "tool_calls": output.get("tool_calls", []),
+            "todos": output.get("todos", []),
+            "policy_result": output.get("policy_result"),
+            "runtime_trace": output.get("runtime_trace", {}),
+            "react_trace": output.get("react_trace", []),
+            "workflow_trace": output.get("workflow_trace", []),
+            "planned_steps": output.get("planned_steps", [{"route": output.get("route")}]),
+            "answer_audit": output.get("answer_audit", {}),
+        }
         if llm_judge is not None:
             prediction["llm_judge"] = llm_judge.judge(
                 question=record.question,
@@ -124,6 +135,8 @@ def run_baseline_comparison(
     dense_provider: str = "deterministic",
     dense_backend: str = "memory",
     dense_model: str | None = None,
+    use_env_planner: bool = False,
+    use_env_batch_controller: bool = False,
     cross_encoder_scorer: CrossEncoderScorer | None = None,
 ) -> dict[str, Any]:
     records = load_eval_dataset(eval_path)
@@ -259,7 +272,10 @@ def run_baseline_comparison(
     )
     langgraph_run = run_baseline_eval(
         eval_path,
-        LangGraphOrchestrator(orchestrator),
+        LangGraphOrchestrator(
+            orchestrator,
+            route_planner=build_route_planner_from_env() if use_env_planner else None,
+        ),
     )
     runs.append(
         {
@@ -283,7 +299,10 @@ def run_baseline_comparison(
     )
     bounded_react_run = run_baseline_eval(
         eval_path,
-        BoundedReActOrchestrator(orchestrator),
+        BoundedReActOrchestrator(
+            orchestrator,
+            route_planner=build_route_planner_from_env() if use_env_planner else None,
+        ),
     )
     runs.append(
         {
@@ -293,6 +312,23 @@ def run_baseline_comparison(
             "by_task_type": bounded_react_run["by_task_type"],
         }
     )
+    if use_env_batch_controller:
+        batch_bounded_react_run = run_baseline_eval(
+            eval_path,
+            BatchBoundedReActOrchestrator(
+                orchestrator,
+                route_planner=build_route_planner_from_env() if use_env_planner else None,
+                controller=build_batch_react_controller_from_env(),
+            ),
+        )
+        runs.append(
+            {
+                "mode": "bounded_react_llm_batch_agent",
+                "predictions": batch_bounded_react_run["predictions"],
+                "metrics": batch_bounded_react_run["metrics"],
+                "by_task_type": batch_bounded_react_run["by_task_type"],
+            }
+        )
     return {
         "runs": runs,
         "summary": {run["mode"]: run["metrics"] for run in runs},
