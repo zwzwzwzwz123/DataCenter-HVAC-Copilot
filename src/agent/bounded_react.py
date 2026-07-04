@@ -11,13 +11,14 @@ import pandas as pd
 
 from src.agent.deepseek_generator import Transport
 from src.agent.executor import AgentTaskExecutor
-from src.agent.langgraph_workflow import _merge_step_results, _plan_step_to_dict
+from src.agent.langgraph_workflow import _merge_step_results
 from src.agent.orchestrator import BaselineOrchestrator
 from src.agent.planner import (
     DeterministicRoutePlanner,
     PlanDecision,
     PlanStep,
     RoutePlanner,
+    _plan_step_to_dict,
     build_route_planner_from_env,
     validate_plan_steps,
 )

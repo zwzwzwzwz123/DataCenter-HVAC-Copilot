@@ -7,7 +7,13 @@ from langgraph.graph import END, StateGraph
 from src.agent.executor import AgentTaskExecutor
 from src.agent.intent_classifier import IntentClassifier
 from src.agent.orchestrator import BaselineOrchestrator
-from src.agent.planner import DeterministicRoutePlanner, PlanDecision, PlanStep, RoutePlanner
+from src.agent.planner import (
+    DeterministicRoutePlanner,
+    PlanDecision,
+    PlanStep,
+    RoutePlanner,
+    _plan_step_to_dict,
+)
 from src.agent.runtime import AgentRuntimeTrace
 
 
@@ -304,17 +310,6 @@ def _dedupe_dicts(items: list[Any]) -> list[Any]:
         seen.add(marker)
         deduped.append(item)
     return deduped
-
-
-def _plan_step_to_dict(step: PlanStep) -> dict[str, Any]:
-    return {
-        "route": step.route,
-        "reason": step.reason,
-        **({"tool": step.tool} if step.tool else {}),
-        **({"metric_name": step.metric_name} if step.metric_name else {}),
-        **({"zone_id": step.zone_id} if step.zone_id else {}),
-        **({"time_window": step.time_window} if step.time_window else {}),
-    }
 
 
 def _append_trace(state: WorkflowState, item: dict[str, Any]) -> list[dict[str, Any]]:

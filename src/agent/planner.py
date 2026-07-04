@@ -163,19 +163,7 @@ class LLMRoutePlanner:
         body = json.dumps(
             {
                 "model": self.model,
-                "messages": [
-                    {"role": "system", "content": _system_prompt()},
-                    {
-                        "role": "user",
-                        "content": json.dumps(
-                            {
-                                "question": question,
-                                "conversation_context": conversation_context or {},
-                            },
-                            ensure_ascii=False,
-                        ),
-                    },
-                ],
+                "messages": build_planner_messages(question, conversation_context),
                 "temperature": 0.0,
             },
             ensure_ascii=False,
@@ -256,16 +244,16 @@ def _infer_steps(question: str) -> list[PlanStep]:
 
     if any(
         keyword in normalized
-        for keyword in ["trend", "metric", "zone", "episode", "temperature", "娓╁害", "鍔熺巼"]
+        for keyword in ["trend", "metric", "zone", "episode", "temperature", "温度", "功率"]
     ):
         decision = route_task(question, task_type="timeseries_query")
         steps.append(_step_from_route_decision(question, decision.route, decision.reason))
-    if any(keyword in normalized for keyword in ["anomaly", "alarm", "abnormal", "寮傚父", "鍛婅"]):
+    if any(keyword in normalized for keyword in ["anomaly", "alarm", "abnormal", "异常", "告警"]):
         decision = route_task(question, task_type="anomaly_diagnosis")
         steps.append(_step_from_route_decision(question, decision.route, decision.reason))
     if any(
         keyword in normalized
-        for keyword in ["policy", "control", "recommend", "adjust", "strategy", "绛栫暐", "鎺у埗", "璋冩暣"]
+        for keyword in ["policy", "control", "recommend", "adjust", "strategy", "策略", "控制", "调整"]
     ):
         decision = route_task(question, task_type="policy_recommendation")
         steps.append(_step_from_route_decision(question, decision.route, decision.reason))
@@ -345,6 +333,59 @@ def _system_prompt() -> str:
         "Use conversation_context only for continuity and reference resolution; current fresh evidence remains authoritative. "
         "Do not call tools, write Python, or produce control actions."
     )
+
+
+def build_planner_messages(
+    question: str,
+    conversation_context: dict[str, Any] | None = None,
+) -> list[dict[str, str]]:
+    """Build the chat messages for the route planner.
+
+    Shared by the online ``LLMRoutePlanner`` and offline distillation-data
+    export so a fine-tuned student model is trained on exactly the prompt
+    format it will later see at inference time.
+    """
+    return [
+        {"role": "system", "content": _system_prompt()},
+        {
+            "role": "user",
+            "content": json.dumps(
+                {
+                    "question": question,
+                    "conversation_context": conversation_context or {},
+                },
+                ensure_ascii=False,
+            ),
+        },
+    ]
+
+
+def serialize_plan_steps(steps: list[PlanStep], confidence: float = 1.0) -> str:
+    """Serialize a validated plan into the exact JSON string a planner emits.
+
+    This is the target label format for supervised fine-tuning: it matches the
+    schema the online planner parses in ``_decision_from_llm_payload``.
+    """
+    return json.dumps(
+        {
+            "steps": [_plan_step_to_dict(step) for step in steps],
+            "confidence": _bounded_confidence(confidence),
+        },
+        ensure_ascii=False,
+    )
+
+
+def _plan_step_to_dict(step: PlanStep) -> dict[str, Any]:
+    return {
+        "route": step.route,
+        "reason": step.reason,
+        **({"tool": step.tool} if step.tool else {}),
+        **({"metric_name": step.metric_name} if step.metric_name else {}),
+        **({"zone_id": step.zone_id} if step.zone_id else {}),
+        **({"time_window": step.time_window} if step.time_window else {}),
+    }
+
+
 
 
 def _parse_json_object(content: str) -> dict[str, Any]:
