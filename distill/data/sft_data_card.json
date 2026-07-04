@@ -1,0 +1,18 @@
+{
+  "eval_paths": [
+    "data/eval/real_eval.jsonl",
+    "data/eval/hvac_eval.jsonl",
+    "data/eval/compound_task_eval.jsonl"
+  ],
+  "questions_path": "distill/data/questions.jsonl",
+  "teacher": "deterministic",
+  "unique_questions": 1330,
+  "kept": 1330,
+  "invalid": 0,
+  "planner_error": 0,
+  "valid_rate": 1.0,
+  "train_size": 1197,
+  "val_size": 133,
+  "prompt_source": "src.agent.planner.build_planner_messages",
+  "label_source": "src.agent.planner.serialize_plan_steps"
+}

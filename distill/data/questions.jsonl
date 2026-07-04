@@ -1,0 +1,1210 @@
+{"id": "aug_00000", "question": "Please analyze: Check the zone_temperature and setpoint values in episode_001 zone_a over the last 48 hours, detect any comfort violation anomalies, and then retrieve the policy document to confirm the violation criteria."}
+{"id": "aug_00001", "question": "帮我看看Uptime Institute 2024 outage 摘要关注 outage 的哪些方面？"}
+{"id": "aug_00002", "question": "Check the trend of comfort_violation episodes in episode_001 zone_a over the past month, detect if the frequency is increasing anomalously, and then retrieve the policy document on compliance targets."}
+{"id": "aug_00003", "question": "画一下 internal_load 的趋势折线图"}
+{"id": "aug_00004", "question": "请问Plot the trend of hvac_power for episode_001 zone_a over the last month, detect any anomalies in the power consumption, and recommend a policy to optimize HVAC scheduling."}
+{"id": "aug_00005", "question": "请问为什么平台侧遥测能帮助设施侧更稳地调冷却，而不仅是做 IT 监控？"}
+{"id": "aug_00006", "question": "full_demo_range outdoor_temp 的能耗构成是怎样的"}
+{"id": "aug_00007", "question": "Please analyze: 请比较当前 control_action 的前半段和后半段平均值变化。"}
+{"id": "aug_00008", "question": "Could you check: Using episode_001 zone_a, compute the energy breakdown of hvac_power, detect any anomaly in fan_power consumption, and recommend a policy to improve fan efficiency."}
+{"id": "aug_00009", "question": "Could you check: 请比较当前 control_action 的前半段和后半段平均值变化。"}
+{"id": "aug_00010", "question": "full_demo_range outdoor_temp 最近有没有异常告警"}
+{"id": "aug_00011", "question": "Could you check: 请比较 control_action 在两个时间窗口中的变化。"}
+{"id": "aug_00012", "question": "Could you check: 当前 BEAR rollout 覆盖了多少行样本、多少个 zone、什么时间范围？"}
+{"id": "aug_00013", "question": "Compare the fan_power trend in episode_001 zone_a between two consecutive days, detect anomalies in the daily pattern, and propose a policy to optimize fan scheduling."}
+{"id": "aug_00014", "question": "Could you check: Uptime outage 摘要能否直接判断当前 BEAR rollout 的 comfort_violation 是真实故障？"}
+{"id": "aug_00015", "question": "Could you check: economizer free cooling 适合在什么证据下讨论？"}
+{"id": "aug_00016", "question": "我想知道Analyze the trend of control_action counts during the night (10 PM-6 AM) in episode_001 zone_a over the last month, detect any night with excessive actions (possible equipment cycling), and then propose a policy to increase night deadband."}
+{"id": "aug_00017", "question": "我想知道什么时候应该使用 offline replay 而不是让模型生成策略？"}
+{"id": "aug_00018", "question": "我想知道Plot the trend of cooling_power and fan_power ratio over the last 2 weeks in episode_001 zone_a, detect any day where the ratio is below 2:1 (inefficient), and then retrieve the policy document on optimal cooling-to-fan ratio."}
+{"id": "aug_00019", "question": "帮我看看Query fan_power for episode_001 zone_a over the last 4 hours, compare with the same period yesterday, and if there is an anomaly, recommend a policy for fan maintenance."}
+{"id": "aug_00020", "question": "control_action 最近有没有异常告警"}
+{"id": "aug_00021", "question": "最近zone_temperature 的平均值和最大值是多少"}
+{"id": "aug_00022", "question": "能不能告诉我Check the zone_temperature and setpoint values in episode_001 zone_a over the last 48 hours, detect any comfort violation anomalies, and then retrieve the policy document to confirm the violation criteria."}
+{"id": "aug_00023", "question": "帮我看看Analyze the trend of internal_load in episode_001 zone_a during the last month, detect any day where internal_load exceeded the cooling capacity (implicitly cooling_power was maxed out), and then propose a policy to manage internal load peaks."}
+{"id": "aug_00024", "question": "Please analyze: Retrieve the policy document on temperature setpoints (doc_002), then query the zone_temperature in episode_001 zone_a, detect any deviation from the policy, and recommend an updated setpoint."}
+{"id": "aug_00025", "question": "Could you check: Plot the trend of comfort_violation events over the last month in episode_001 zone_a, detect if there is a seasonal pattern anomaly, and then propose a policy to adapt comfort thresholds seasonally."}
+{"id": "aug_00026", "question": "麻烦分析一下Retrieve a policy document about energy savings (doc_004), then compute the energy breakdown of hvac_power in episode_001 zone_a, detect any anomaly in fan energy share, and recommend a policy to meet savings targets."}
+{"id": "aug_00027", "question": "请问Get the zone_temperature and setpoint timeseries for episode_001 zone_a for the last 48 hours, detect any period where the temperature crosses setpoint more than once per hour (hunting), and then recommend a policy to increase deadband to prevent hunting."}
+{"id": "aug_00028", "question": "Please analyze: Using episode_001 zone_a, compute the energy breakdown of hvac_power, detect any anomaly in fan_power consumption, and recommend a policy to improve fan efficiency."}
+{"id": "aug_00029", "question": "我想知道如果当前状态接近舒适区间，是否仍需要激进调整？"}
+{"id": "aug_00030", "question": "请问设定点上调建议中为什么必须说明 policy 工具来源？"}
+{"id": "aug_00031", "question": "请问ASHRAE TC9.9 文档中提到的 A2、A3、A4 冷通道温度范围分别是多少？"}
+{"id": "aug_00032", "question": "麻烦分析一下请比较 control_action 在两个时间窗口中的变化。"}
+{"id": "aug_00033", "question": "我想知道Plot the metric trends for fan_power and internal_load together in episode_001 zone_a over the last 10 days to see their correlation, detect any days where internal_load is high but fan_power is low (possible overheating risk), and then retrieve the policy document on ventilation requirements."}
+{"id": "aug_00034", "question": "麻烦分析一下Check the zone_temperature derivative over the last 48 hours in episode_001 zone_a, detect any periods where the derivative exceeds 1°F per 5 minutes (potential comfort issue), and then propose a policy to limit temperature change rate through control parameter tuning."}
+{"id": "aug_00035", "question": "我想知道Using episode_001 zone_a, compute the energy breakdown of hvac_power, then compare the breakdown with last month's data (use compare_period), and recommend a policy to shift energy distribution."}
+{"id": "aug_00036", "question": "Please analyze: Plot the trend of hvac_power for episode_001 zone_a over the last month, detect any anomalies in the power consumption, and recommend a policy to optimize HVAC scheduling."}
+{"id": "aug_00037", "question": "能不能告诉我Query the hvac_power trend in episode_001 zone_a for the last 6 hours, then if an anomaly is detected in the trend slope, recommend a policy to respond to rapid changes."}
+{"id": "aug_00038", "question": "麻烦分析一下先检查最新 zone_temperature，再给出是否增加冷却的策略建议。"}
+{"id": "aug_00039", "question": "Could you check: hybrid cooling 评估中 fan_power 下降能说明什么，不能说明什么？"}
+{"id": "aug_00040", "question": "帮我看看ASHRAE Standard 55 fact sheet 的主要目的是什么？"}
+{"id": "aug_00041", "question": "Could you check: 请把 OCP 的平台功耗遥测和 Google 的 PUE 模型放在一起解释：二者怎样从不同层面支持冷却优化？"}
+{"id": "aug_00042", "question": "请问请查询当前轨迹中 zone_temperature 的最小值和平均值。"}
+{"id": "aug_00043", "question": "麻烦分析一下当前策略建议是否可以直接由 LLM 编造控制动作？"}
+{"id": "aug_00044", "question": "Using episode_001 zone_a, compute the energy breakdown of hvac_power, detect any anomaly in fan_power consumption, and recommend a policy to improve fan efficiency."}
+{"id": "aug_00045", "question": "请问结合 ASHRAE 热边界文档和当前高温仿真状态，给出保守策略建议。"}
+{"id": "aug_00046", "question": "我想知道当前轨迹的冷却能耗构成是什么？"}
+{"id": "aug_00047", "question": "请问Get the outdoor_temp data for episode_001 zone_a and the cooling_power data, compute the cooling efficiency (cooling_power / outdoor_temp) for each day over the last month, detect any day with efficiency anomaly (low or high), and then look up the policy document on efficiency benchmarks."}
+{"id": "aug_00048", "question": "Get the zone_temperature and outdoor_temp data for episode_001 zone_a over the last 24 hours, detect any periods where the temperature rise rate exceeds 2°F per hour (possible equipment malfunction), and then propose a policy to add rate-of-change alarms."}
+{"id": "aug_00049", "question": "能不能告诉我Compare the internal_load on weekends versus weekdays in episode_001 zone_a for the last 2 months, detect any weekend where internal_load is abnormally high (possible after-hours activity), and then recommend a policy to restrict unoccupied load."}
+{"id": "aug_00050", "question": "Compare the cooling_power consumption between similar weather days (outdoor_temp 85-90°F) in episode_001 zone_a, detect any day where cooling_power is significantly lower (possible underperformance), and then retrieve the policy document on cooling system performance benchmarks."}
+{"id": "aug_00051", "question": "full_demo_range internal_load 数据有没有缺失或字段质量问题"}
+{"id": "aug_00052", "question": "Plot the metric trends for fan_power and internal_load together in episode_001 zone_a over the last 10 days to see their correlation, detect any days where internal_load is high but fan_power is low (possible overheating risk), and then retrieve the policy document on ventilation requirements."}
+{"id": "aug_00053", "question": "请问OCP 和 Google 文档都谈 PUE；如果问“神经网络预测 PUE 的平均绝对误差约 0.004-0.005”，应引用哪篇？"}
+{"id": "aug_00054", "question": "请问为什么 Google 论文说预测 plant configuration 对 PUE 的影响很难？"}
+{"id": "aug_00055", "question": "最近fan_power 前后两个时段有没有明显变化对比"}
+{"id": "aug_00056", "question": "最近zone_temperature 数据有没有缺失或字段质量问题"}
+{"id": "aug_00057", "question": "麻烦分析一下Retrieve policy document on energy audit (doc_008), then compute the energy breakdown for episode_001 zone_a, identify the biggest anomaly in consumption, and recommend a policy to address it."}
+{"id": "aug_00058", "question": "Retrieve a policy document about reactive maintenance (doc_006), then query the control_action count anomaly in episode_001 zone_a over the last week, and recommend a policy to shift to predictive maintenance."}
+{"id": "aug_00059", "question": "能不能告诉我Get the zone_temperature and setpoint timeseries for episode_001 zone_a for the last 48 hours, detect any period where the temperature crosses setpoint more than once per hour (hunting), and then recommend a policy to increase deadband to prevent hunting."}
+{"id": "aug_00060", "question": "请问Look up the policy document on energy budgeting and then analyze the current hvac_power consumption in episode_001 zone_a to see if it is within budget, and recommend adjustments if needed."}
+{"id": "aug_00061", "question": "我想知道Retrieve policy document on energy audit (doc_008), then compute the energy breakdown for episode_001 zone_a, identify the biggest anomaly in consumption, and recommend a policy to address it."}
+{"id": "aug_00062", "question": "Compute the energy breakdown for episode_001 zone_a over the last month and then look up the policy document to see if the building meets the required renewable energy fraction (from grid vs local generation)."}
+{"id": "aug_00063", "question": "Before policy recommendation, query the current control_action evidence and then explain recommended_action from the policy tool."}
+{"id": "aug_00064", "question": "能不能告诉我Look up the policy document on anomaly thresholds, analyze the recent anomaly in cooling_power in episode_001 zone_a, and propose a policy update."}
+{"id": "aug_00065", "question": "Compute the energy breakdown for episode_001 zone_a for each day of the current month, detect any day where the total energy consumption is more than 20% above the monthly average, and then recommend a policy to cap daily energy use."}
+{"id": "aug_00066", "question": "帮我看看Analyze the zone_temperature response time to a setpoint change in episode_001 zone_a (assume setpoint change occurred), detect if the response is slower than expected (anomaly), and then recommend a policy to monitor response times and auto-tune control parameters."}
+{"id": "aug_00067", "question": "最近outdoor_temp 数据有没有缺失或字段质量问题"}
+{"id": "aug_00068", "question": "当前 rollout 是否有全局温度异常候选？不要只做主观判断。"}
+{"id": "aug_00069", "question": "我想知道为什么 Google 论文说预测 plant configuration 对 PUE 的影响很难？"}
+{"id": "aug_00070", "question": "我想知道请先检查最近温度，再判断是否需要把异常解释为数据质量问题而不是 HVAC 故障。"}
+{"id": "aug_00071", "question": "我想知道policy recommendation 中如何说明 fallback 来源？"}
+{"id": "aug_00072", "question": "请问Compute the energy breakdown for episode_001 zone_a for each day of the current month, detect any day where the total energy consumption is more than 20% above the monthly average, and then recommend a policy to cap daily energy use."}
+{"id": "aug_00073", "question": "full_demo_range zone_temperature 最近有没有异常告警"}
+{"id": "aug_00074", "question": "请问最近温度趋势是否适合画折线图展示？"}
+{"id": "aug_00075", "question": "last_24_hours cooling_power 最近有没有异常告警"}
+{"id": "aug_00076", "question": "麻烦分析一下什么情况下应将 HVAC 问题从普通问答升级为时序分析任务？"}
+{"id": "aug_00077", "question": "帮我看看如果冷却冗余下降且温度持续升高，应使用什么工具？"}
+{"id": "aug_00078", "question": "请问最新状态温度高于舒适上限时，规则策略会给出什么建议？"}
+{"id": "aug_00079", "question": "最近画一下 cooling_power 的趋势折线图"}
+{"id": "aug_00080", "question": "BEAR 轨迹在本项目中应如何表述，为什么不能说成真实生产数据？"}
+{"id": "aug_00081", "question": "Please analyze: zone_0 的 zone_temperature 在当前 rollout 中最大值大约是多少？请只要求一位小数量级，不要要求完全相同的小数。"}
+{"id": "aug_00082", "question": "Get the zone_temperature timeseries for episode_001 zone_a for the last 7 days, detect any period of flatline (sensor stuck) where temperature did not change for more than 2 hours, and then propose a policy for sensor health monitoring."}
+{"id": "aug_00083", "question": "请问数据中心空气管理中，为什么减少冷热气流混合比单纯降低送风温度更关键？"}
+{"id": "aug_00084", "question": "能不能告诉我ASHRAE TC9.9 文档中提到的 A2、A3、A4 冷通道温度范围分别是多少？"}
+{"id": "aug_00085", "question": "last_24_hours outdoor_temp 最近有没有异常告警"}
+{"id": "aug_00086", "question": "Could you check: 传感器缺失时，为什么回答要先说明 count 和时间范围？"}
+{"id": "aug_00087", "question": "Could you check: 如果 zone_temperature 出现约 -23°C 这样的低值，应如何标注诊断边界？"}
+{"id": "aug_00088", "question": "帮我看看最近时刻所有 zone 都 comfort_violation 为 True，这是否足以直接下生产控制指令？"}
+{"id": "aug_00089", "question": "Analyze the zone_temperature trend in episode_001 zone_a over the past 7 days, identify any anomalies, and recommend a policy adjustment to maintain comfort."}
+{"id": "aug_00090", "question": "Please analyze: Compute the energy breakdown of hvac_power in episode_001 zone_a, then identify if any component shows an anomalous trend compared to last week, and recommend a policy to reduce that component's share."}
+{"id": "aug_00091", "question": "我想知道当 supply air reset 有节能潜力但存在热点风险时，Agent 应如何回答？"}
+{"id": "aug_00092", "question": "能不能告诉我Plot the trend of control_action frequency over the last week in episode_001 zone_a, detect any periods of excessive cycling, and then retrieve the policy document on actuator maintenance cycles."}
+{"id": "aug_00093", "question": "我想知道Plot the trend of hvac_power for episode_001 zone_a over the last month, detect any anomalies in the power consumption, and recommend a policy to optimize HVAC scheduling."}
+{"id": "aug_00094", "question": "我想知道BEAR 论文为什么适合作为本项目 HVAC 控制与强化学习基准的来源？"}
+{"id": "aug_00095", "question": "Please analyze: 液冷混合场景是否可以让 LLM 直接输出 CDU 控制量？"}
+{"id": "aug_00096", "question": "Please analyze: Compare the energy consumption (hvac_power) of episode_001 zone_a between the first and last 10 days of the month, detect if there is a significant increase (possible equipment degradation), and then retrieve the policy document on performance degradation monitoring."}
+{"id": "aug_00097", "question": "麻烦分析一下如果冷却冗余下降且温度持续升高，应使用什么工具？"}
+{"id": "aug_00098", "question": "Could you check: Plot the trend of cooling_power and fan_power ratio over the last 2 weeks in episode_001 zone_a, detect any day where the ratio is below 2:1 (inefficient), and then retrieve the policy document on optimal cooling-to-fan ratio."}
+{"id": "aug_00099", "question": "最近制冷能效和 power 效率如何"}
+{"id": "aug_00100", "question": "full_demo_range fan_power 最近有没有异常告警"}
+{"id": "aug_00101", "question": "Check the zone_temperature derivative over the last 48 hours in episode_001 zone_a, detect any periods where the derivative exceeds 1°F per 5 minutes (potential comfort issue), and then propose a policy to limit temperature change rate through control parameter tuning."}
+{"id": "aug_00102", "question": "能不能告诉我Analyze the trend of cooling_power vs cooling setpoint differential over the last month in episode_001 zone_a, detect if there is a correlation breakdown (anomaly) where cooling runs high even when setpoint is not demanding, and then recommend a policy to monitor setpoint compliance."}
+{"id": "aug_00103", "question": "画一下 outdoor_temp 的趋势折线图"}
+{"id": "aug_00104", "question": "last_24_hours 哪个区域是最热的 hotspot 排名"}
+{"id": "aug_00105", "question": "能不能告诉我当前 rollout 是否有全局温度异常候选？不要只做主观判断。"}
+{"id": "aug_00106", "question": "麻烦分析一下Compare the control_action pattern between the first and second halves of the current month in episode_001 zone_a, detect if the number of actions has increased significantly, and then retrieve the policy document on actuator lifecycle limits."}
+{"id": "aug_00107", "question": "能不能告诉我如果当前状态接近舒适区间，是否仍需要激进调整？"}
+{"id": "aug_00108", "question": "帮我看看Check the zone_temperature derivative over the last 48 hours in episode_001 zone_a, detect any periods where the derivative exceeds 1°F per 5 minutes (potential comfort issue), and then propose a policy to limit temperature change rate through control parameter tuning."}
+{"id": "aug_00109", "question": "为什么 Agent 不应该直接写回控制动作到 BEAR 环境？"}
+{"id": "aug_00110", "question": "last_24_hours cooling_power 数据有没有缺失或字段质量问题"}
+{"id": "aug_00111", "question": "Could you check: Using episode_001 zone_a, compute the energy breakdown of hvac_power, then compare the breakdown with last month's data (use compare_period), and recommend a policy to shift energy distribution."}
+{"id": "aug_00112", "question": "Please analyze: 请检查 outdoor_temp 的数据覆盖范围。"}
+{"id": "aug_00113", "question": "我想知道最近窗口内某区域温度是否超过 26 摄氏度？"}
+{"id": "aug_00114", "question": "Please analyze: Get the internal_load metric for episode_001 zone_a over the last 24 hours, diagnose any anomalies in its pattern, and suggest a policy to adjust cooling based on occupancy."}
+{"id": "aug_00115", "question": "请问BEAR 轨迹中的 PUE、湿度和 IT 负载字段应该如何处理？"}
+{"id": "aug_00116", "question": "能不能告诉我液冷相关问题中，哪些字段不能由当前 BEAR adapter 编造？"}
+{"id": "aug_00117", "question": "我想知道Compare the cooling_power between weekdays and weekends in episode_001 zone_a over the last 4 weeks, detect any weekend anomaly, and then look up the policy document for weekend setpoint rules."}
+{"id": "aug_00118", "question": "我想知道Plot the trend of comfort_violation events over the last month in episode_001 zone_a, detect if there is a seasonal pattern anomaly, and then propose a policy to adapt comfort thresholds seasonally."}
+{"id": "aug_00119", "question": "麻烦分析一下这些上传文档里是否给出了当前某个真实 Google 数据中心今天的实时 PUE？"}
+{"id": "aug_00120", "question": "麻烦分析一下Compare zone_temperature of episode_001 zone_a between last week and this week, identify if there is an anomaly in comfort_violation rate, and suggest a policy to maintain comfort."}
+{"id": "aug_00121", "question": "麻烦分析一下ASHRAE Standard 55 fact sheet 的主要目的是什么？"}
+{"id": "aug_00122", "question": "如果用户要求 estimated_energy，系统应从哪里取得？"}
+{"id": "aug_00123", "question": "Could you check: 如何确认某个高温片段不是正常负载变化？"}
+{"id": "aug_00124", "question": "zone_temperature 的平均值和最大值是多少"}
+{"id": "aug_00125", "question": "帮我看看ASHRAE TC9.9 白皮书为什么说数据中心热环境变化不仅影响 IT 设备，也会影响电力设备？"}
+{"id": "aug_00126", "question": "帮我看看维护窗口期间出现高温点，应如何判断告警优先级？"}
+{"id": "aug_00127", "question": "zone_1 舒适度有没有过热越限风险"}
+{"id": "aug_00128", "question": "我想知道维护窗口期间冷却告警为什么要结合冗余能力解释？"}
+{"id": "aug_00129", "question": "能不能告诉我如果要比较前 48 小时和后 48 小时的 zone_temperature，而不是全量前后半段，回答应如何保持可复现？"}
+{"id": "aug_00130", "question": "Please analyze: 为什么 Google 论文说预测 plant configuration 对 PUE 的影响很难？"}
+{"id": "aug_00131", "question": "outdoor_temp 最近有没有异常告警"}
+{"id": "aug_00132", "question": "麻烦分析一下BEAR 和直接使用真实楼宇生产数据相比，作为评测数据源的边界是什么？"}
+{"id": "aug_00133", "question": "帮我看看Compute the energy breakdown of cooling_power and fan_power in episode_001 zone_a for the last two weeks, identify any anomalies in the fan-to-cooling ratio, and retrieve the policy document for fan energy guidelines."}
+{"id": "aug_00134", "question": "Could you check: Compute the energy breakdown for episode_001 zone_a over the last 3 months and look up the policy document to see if the building meets the efficiency target (cooling_power should be less than hvac_power by at least 20%)."}
+{"id": "aug_00135", "question": "能不能告诉我Compute the energy breakdown of hvac_power in episode_001 zone_a, then identify if any component shows an anomalous trend compared to last week, and recommend a policy to reduce that component's share."}
+{"id": "aug_00136", "question": "帮我看看Get the zone_temperature timeseries for episode_001 zone_a for the last 7 days, detect any period of flatline (sensor stuck) where temperature did not change for more than 2 hours, and then propose a policy for sensor health monitoring."}
+{"id": "aug_00137", "question": "帮我看看请比较 control_action 在两个时间窗口中的变化。"}
+{"id": "aug_00138", "question": "能不能告诉我请比较 zone_temperature 在前半段和后半段的平均值变化。"}
+{"id": "aug_00139", "question": "我想知道Check the outdoor_temp trend and its correlation with cooling_power in episode_001 zone_a over the last two weeks, detect anomalies in cooling_power that are not explained by outdoor_temp, and then propose a policy to improve cooling plant control."}
+{"id": "aug_00140", "question": "能不能告诉我Plot the trend of comfort_violation for episode_001 zone_a over the last month, detect if there is a weekly anomaly pattern, and recommend a policy to minimize violations."}
+{"id": "aug_00141", "question": "Retrieve the policy document about comfort violations and then recommend adjustments based on the current comfort_violation trend in episode_001 zone_a."}
+{"id": "aug_00142", "question": "我想知道free cooling 为什么不能只凭室外温度判断可行？"}
+{"id": "aug_00143", "question": "请问请给出当前状态的节能控制建议，并说明其来源。"}
+{"id": "aug_00144", "question": "能不能告诉我Analyze the zone_temperature trend in episode_001 zone_a over the past 7 days, identify any anomalies, and recommend a policy adjustment to maintain comfort."}
+{"id": "aug_00145", "question": "能不能告诉我Retrieve the policy document on setpoint adjustments and then analyze the recent zone_temperature data in episode_001 zone_a to see if the current setpoint is appropriate, and recommend an update if needed."}
+{"id": "aug_00146", "question": "请问Compare the energy consumption (hvac_power) of episode_001 zone_a between the first and last 10 days of the month, detect if there is a significant increase (possible equipment degradation), and then retrieve the policy document on performance degradation monitoring."}
+{"id": "aug_00147", "question": "我想知道请比较当前 control_action 的前半段和后半段平均值变化。"}
+{"id": "aug_00148", "question": "Please analyze: Compare the zone_temperature setpoint vs actual in episode_001 zone_a over the last 48 hours, detect any persistent offset anomaly, and recommend a policy to calibrate sensors."}
+{"id": "aug_00149", "question": "能不能告诉我缺失观测值会怎样影响告警候选判断？"}
+{"id": "aug_00150", "question": "Please analyze: Google 论文中的灵敏度分析为什么能帮助寻找 PUE 优化机会？"}
+{"id": "aug_00151", "question": "能不能告诉我Analyze the fan_power timeseries in episode_001 zone_a over the last 2 weeks, detect any periods of excessive fan operation at night (when cooling load is low), and then retrieve the policy document on fan scheduling."}
+{"id": "aug_00152", "question": "episode_001 中 zone_a 在最近 3 小时的温度最大值是多少？"}
+{"id": "aug_00153", "question": "帮我看看BEAR 论文为什么适合作为本项目 HVAC 控制与强化学习基准的来源？"}
+{"id": "aug_00154", "question": "能不能告诉我OCP 和 Google 文档都谈 PUE；如果问“利用平台功耗遥测把 IT 负载暴露给设施侧”，应引用哪篇？请同时说明 Google 为什么是相近但非主证据。"}
+{"id": "aug_00155", "question": "请问上传的 DOE 指南是否包含本项目 rollout 中 zone_5 最新温度的具体观测值？"}
+{"id": "aug_00156", "question": "outdoor_temp 数据有没有缺失或字段质量问题"}
+{"id": "aug_00157", "question": "麻烦分析一下请画出 zone_temperature 的趋势序列，说明需要返回哪些结构化字段。"}
+{"id": "aug_00158", "question": "BEAR 和直接使用真实楼宇生产数据相比，作为评测数据源的边界是什么？"}
+{"id": "aug_00159", "question": "last_24_hours outdoor_temp 数据有没有缺失或字段质量问题"}
+{"id": "aug_00160", "question": "我想知道Use recent zone_temperature evidence before giving the final control policy recommendation."}
+{"id": "aug_00161", "question": "Please analyze: Query the setpoint and zone_temperature for episode_001 zone_a over the last 12 hours, detect any persistent deviation anomaly, and recommend a policy to align setpoint with actual temperature."}
+{"id": "aug_00162", "question": "请比较 fan_power 在策略调整前后的变化。"}
+{"id": "aug_00163", "question": "能不能告诉我请查询 internal_load 的统计摘要。"}
+{"id": "aug_00164", "question": "能不能告诉我policy recommendation 中如何说明 fallback 来源？"}
+{"id": "aug_00165", "question": "Could you check: 当前 BEAR-like 轨迹中 zone_temperature 的样本数量是多少？"}
+{"id": "aug_00166", "question": "last_24_hours 画一下 fan_power 的趋势折线图"}
+{"id": "aug_00167", "question": "帮我看看请画出 zone_temperature 的趋势序列，说明需要返回哪些结构化字段。"}
+{"id": "aug_00168", "question": "帮我看看请查询当前轨迹中 zone_temperature 的最小值和平均值。"}
+{"id": "aug_00169", "question": "最近哪个区域是最热的 hotspot 排名"}
+{"id": "aug_00170", "question": "帮我看看Before giving a policy recommendation, inspect the latest zone_temperature summary and then return the policy_result boundary."}
+{"id": "aug_00171", "question": "请问Check the zone_temperature data for episode_001 zone_a during occupied hours over the last work week, detect if there is a systematic drift away from setpoint over the course of the day, and then recommend a policy to implement a dynamic setpoint schedule."}
+{"id": "aug_00172", "question": "请问维护窗口中是否应该激进降低冷却功率？"}
+{"id": "aug_00173", "question": "结合 ASHRAE 热边界文档和当前高温仿真状态，给出保守策略建议。"}
+{"id": "aug_00174", "question": "Please analyze: Get the zone_temperature and internal_load data for episode_001 zone_a over the last 10 days, detect if there is a high internal_load day where zone_temperature did not increase (possible cooling overpowering), and then recommend a policy to balance cooling with internal load."}
+{"id": "aug_00175", "question": "Could you check: 为什么 natural language policy advice 不能当成控制器输出？"}
+{"id": "aug_00176", "question": "帮我看看Plot the trend of zone_temperature and setpoint together for episode_001 zone_a over the last 3 days to visualize deviations, detect the longest continuous violation period, and then retrieve the policy document on violation response."}
+{"id": "aug_00177", "question": "能不能告诉我如果问题问的是 IT 设备 A2/A3/A4 允许温度范围，ASHRAE Standard 55 表面上也谈温度，但正确引用应是哪篇？"}
+{"id": "aug_00178", "question": "请判断当前轨迹是否存在温控波动异常。"}
+{"id": "aug_00179", "question": "能不能告诉我Compare the cooling_power between weekdays and weekends in episode_001 zone_a over the last 4 weeks, detect any weekend anomaly, and then look up the policy document for weekend setpoint rules."}
+{"id": "aug_00180", "question": "我想知道传感器漂移导致的高温告警应该怎样验证？"}
+{"id": "aug_00181", "question": "能不能告诉我如果问题问的是人员热舒适的六类环境/个人因素，应该优先引用 ASHRAE Standard 55 还是 ASHRAE TC9.9？请同时说明为什么另一篇容易被误召回但不是主证据。"}
+{"id": "aug_00182", "question": "帮我看看最近窗口内某区域温度是否超过 26 摄氏度？"}
+{"id": "aug_00183", "question": "帮我看看传感器缺失时是否应该输出激进策略建议？"}
+{"id": "aug_00184", "question": "last_24_hours zone_temperature 的平均值和最大值是多少"}
+{"id": "aug_00185", "question": "能不能告诉我Analyze the trend of hvac_power consumption during weekends in episode_001 zone_a over the last two months, detect any weekend where consumption approaches weekday levels (anomaly), and then propose a policy to enforce weekend setback schedules."}
+{"id": "aug_00186", "question": "last_24_hours fan_power 数据有没有缺失或字段质量问题"}
+{"id": "aug_00187", "question": "麻烦分析一下Before policy recommendation, check the latest 3 hour zone_temperature max and then decide whether to adjust the control policy."}
+{"id": "aug_00188", "question": "plot_metric_trend 在 demo 中适合回答哪类问题？"}
+{"id": "aug_00189", "question": "帮我看看Compare the control_action patterns between two consecutive weeks in episode_001 zone_a, detect anomalies in the number of control actions, and suggest a policy to reduce excessive actuation."}
+{"id": "aug_00190", "question": "麻烦分析一下温度突然上升时，系统应该如何定位异常证据？"}
+{"id": "aug_00191", "question": "请问Query the hvac_power trend in episode_001 zone_a for the last 6 hours, then if an anomaly is detected in the trend slope, recommend a policy to respond to rapid changes."}
+{"id": "aug_00192", "question": "我想知道结合 ASHRAE 热边界文档和当前高温仿真状态，给出保守策略建议。"}
+{"id": "aug_00193", "question": "文档里关于PUE 优化是怎么说的"}
+{"id": "aug_00194", "question": "麻烦分析一下如果要说明“数据中心节能既要靠空气管理，也可用机器学习评估 PUE 配置变化”，应分别引用哪两篇文档？"}
+{"id": "aug_00195", "question": "麻烦分析一下数据中心空气管理中，为什么减少冷热气流混合比单纯降低送风温度更关键？"}
+{"id": "aug_00196", "question": "我想知道当前轨迹中是否有需要标记为告警候选的温度点？"}
+{"id": "aug_00197", "question": "帮我看看ASHRAE TC9.9 或 Standard 55 是否能证明本项目里的 BEAR rollout 是真实机房传感器数据？"}
+{"id": "aug_00198", "question": "帮我看看当前轨迹的冷却能耗构成是什么？"}
+{"id": "aug_00199", "question": "Could you check: Compare the hvac_power consumption of episode_001 zone_a during the first and third weeks of the month, detect an anomaly if the third week is more than 10% higher, and then retrieve the policy document on weekly energy review procedures."}
+{"id": "aug_00200", "question": "帮我看看为什么 natural language policy advice 不能当成控制器输出？"}
+{"id": "aug_00201", "question": "我想知道为什么长篇 cooling airflow 噪声文档不应压过更具体的 supply air reset 文档？"}
+{"id": "aug_00202", "question": "能不能告诉我请先检查最近温度，再判断是否需要把异常解释为数据质量问题而不是 HVAC 故障。"}
+{"id": "aug_00203", "question": "我想知道Analyze the zone_temperature trend in episode_001 zone_a over the last 24 hours, detect if there is an anomaly in the ramp rate, and recommend a policy to smooth temperature changes."}
+{"id": "aug_00204", "question": "我想知道冷通道封闭改善后 Delta-T 上升是否一定是坏事？"}
+{"id": "aug_00205", "question": "能不能告诉我hybrid cooling 评估中 fan_power 下降能说明什么，不能说明什么？"}
+{"id": "aug_00206", "question": "full_demo_range fan_power 的能耗构成是怎样的"}
+{"id": "aug_00207", "question": "能不能告诉我Compare the control_action patterns between two consecutive weeks in episode_001 zone_a, detect anomalies in the number of control actions, and suggest a policy to reduce excessive actuation."}
+{"id": "aug_00208", "question": "Please analyze: Analyze the zone_temperature response time to a setpoint change in episode_001 zone_a (assume setpoint change occurred), detect if the response is slower than expected (anomaly), and then recommend a policy to monitor response times and auto-tune control parameters."}
+{"id": "aug_00209", "question": "Could you check: Compare zone_temperature of episode_001 zone_a between last week and this week, identify if there is an anomaly in comfort_violation rate, and suggest a policy to maintain comfort."}
+{"id": "aug_00210", "question": "outdoor_temp 的能耗构成是怎样的"}
+{"id": "aug_00211", "question": "麻烦分析一下Compute the energy breakdown for episode_001 zone_a for each day of the current month, detect any day where the total energy consumption is more than 20% above the monthly average, and then recommend a policy to cap daily energy use."}
+{"id": "aug_00212", "question": "制冷能效和 power 效率如何"}
+{"id": "aug_00213", "question": "我想知道当前策略建议是否可以直接由 LLM 编造控制动作？"}
+{"id": "aug_00214", "question": "我想知道Compute the energy breakdown for episode_001 zone_a for each day of the last week, detect any day where fan_power is more than 50% of total HVAC energy (inefficient), and then recommend a policy to enforce a maximum fan energy fraction."}
+{"id": "aug_00215", "question": "我想知道请同时引用 BEAR、ASHRAE TC9.9 和 DOE，说明本项目为什么只能声称“仿真控制 + 文档知识库评测”，不能声称真实生产优化。"}
+{"id": "aug_00216", "question": "请问Analyze the trend of control_action counts during the night (10 PM-6 AM) in episode_001 zone_a over the last month, detect any night with excessive actions (possible equipment cycling), and then propose a policy to increase night deadband."}
+{"id": "aug_00217", "question": "文档里关于ASHRAE 温度上限是怎么说的"}
+{"id": "aug_00218", "question": "请问Plot the trend of outdoor_temp and zone_temperature together for episode_001 zone_a over the last 3 days, detect any correlation anomalies, and then suggest a policy to optimize setpoint reset based on outdoor conditions."}
+{"id": "aug_00219", "question": "full_demo_range fan_power 数据有没有缺失或字段质量问题"}
+{"id": "aug_00220", "question": "帮我看看zone_a 是否存在温度异常升高？"}
+{"id": "aug_00221", "question": "麻烦分析一下Retrieve a policy document about reactive maintenance (doc_006), then query the control_action count anomaly in episode_001 zone_a over the last week, and recommend a policy to shift to predictive maintenance."}
+{"id": "aug_00222", "question": "Could you check: Uptime 报告和 Google 论文都提到 operations；如果问 outage 的原因、成本和后果，应引用哪篇而不是哪篇？"}
+{"id": "aug_00223", "question": "能不能告诉我Compare the hvac_power consumption of episode_001 zone_a during the first and third weeks of the month, detect an anomaly if the third week is more than 10% higher, and then retrieve the policy document on weekly energy review procedures."}
+{"id": "aug_00224", "question": "能不能告诉我Check the zone_temperature data for episode_001 zone_a during occupied hours over the last work week, detect if there is a systematic drift away from setpoint over the course of the day, and then recommend a policy to implement a dynamic setpoint schedule."}
+{"id": "aug_00225", "question": "last_24_hours zone_temperature 最近有没有异常告警"}
+{"id": "aug_00226", "question": "麻烦分析一下zone_a 是否存在温度异常升高？"}
+{"id": "aug_00227", "question": "我想知道Get the zone_temperature and setpoint timeseries for episode_001 zone_a for the last 48 hours, detect any period where the temperature crosses setpoint more than once per hour (hunting), and then recommend a policy to increase deadband to prevent hunting."}
+{"id": "aug_00228", "question": "Please analyze: 请先说明 Google PUE 模型对真实生产优化有什么限制，再说明本项目规则策略只能作为离线建议。"}
+{"id": "aug_00229", "question": "我想知道Compute the energy breakdown of hvac_power, cooling_power, and fan_power in episode_001 zone_a for the current week, detect any anomalous distribution, and then propose a policy to shift energy between components for efficiency."}
+{"id": "aug_00230", "question": "Please analyze: 如果用户要求 estimated_energy，系统应从哪里取得？"}
+{"id": "aug_00231", "question": "请问Retrieve the policy document on setpoint adjustments and then analyze the recent zone_temperature data in episode_001 zone_a to see if the current setpoint is appropriate, and recommend an update if needed."}
+{"id": "aug_00232", "question": "我想知道如果用户问能耗构成，为什么应该调用 compute_energy_breakdown？"}
+{"id": "aug_00233", "question": "维护窗口期间冷却告警为什么要结合冗余能力解释？"}
+{"id": "aug_00234", "question": "麻烦分析一下如果用户要求直接给出风机和冷却动作数值，系统应该怎样保持边界？"}
+{"id": "aug_00235", "question": "Could you check: Analyze the fan_power and cooling_power relationship in episode_001 zone_a over the last 24 hours, detect if the ratio is anomalous, and recommend a policy to balance them."}
+{"id": "aug_00236", "question": "能不能告诉我N+1 redundancy 下降时，温度异常诊断应优先看哪些证据？"}
+{"id": "aug_00237", "question": "帮我看看Compute the energy breakdown for episode_001 zone_a over the last 3 months and look up the policy document to see if the building meets the efficiency target (cooling_power should be less than hvac_power by at least 20%)."}
+{"id": "aug_00238", "question": "麻烦分析一下结合 ASHRAE 热边界文档和当前高温仿真状态，给出保守策略建议。"}
+{"id": "aug_00239", "question": "能不能告诉我BEAR 论文和 Google 论文都涉及模型；如果问“可配置建筑环境用于 RL/control 算法评测”，应排除哪类 PUE 优化文档？"}
+{"id": "aug_00240", "question": "帮我看看Check the outdoor_temp trend and its correlation with cooling_power in episode_001 zone_a over the last two weeks, detect anomalies in cooling_power that are not explained by outdoor_temp, and then propose a policy to improve cooling plant control."}
+{"id": "aug_00241", "question": "麻烦分析一下Retrieve the policy document about comfort violations and then recommend adjustments based on the current comfort_violation trend in episode_001 zone_a."}
+{"id": "aug_00242", "question": "麻烦分析一下offline replay 与 diffusion adapter 的边界是什么？"}
+{"id": "aug_00243", "question": "我想知道为什么 natural language policy advice 不能当成控制器输出？"}
+{"id": "aug_00244", "question": "麻烦分析一下什么问题应该调用 compare_period 而不是 query_metric？"}
+{"id": "aug_00245", "question": "请问N+1 redundancy 下降时，温度异常诊断应优先看哪些证据？"}
+{"id": "aug_00246", "question": "Please analyze: 什么时候应该使用 offline replay 而不是让模型生成策略？"}
+{"id": "aug_00247", "question": "能不能告诉我First check zone_temperature for the current episode, then produce a bounded policy recommendation."}
+{"id": "aug_00248", "question": "last_24_hours zone_0 舒适度有没有过热越限风险"}
+{"id": "aug_00249", "question": "我想知道Query the setpoint and zone_temperature for episode_001 zone_a over the last 12 hours, detect any persistent deviation anomaly, and recommend a policy to align setpoint with actual temperature."}
+{"id": "aug_00250", "question": "帮我看看液冷混合场景中风侧温度异常能否证明 CDU 故障？"}
+{"id": "aug_00251", "question": "Could you check: 维护窗口中是否应该激进降低冷却功率？"}
+{"id": "aug_00252", "question": "zone_a 是否存在温度异常升高？"}
+{"id": "aug_00253", "question": "我想知道Query the hvac_power trend in episode_001 zone_a for the last 6 hours, then if an anomaly is detected in the trend slope, recommend a policy to respond to rapid changes."}
+{"id": "aug_00254", "question": "我想知道Get the zone_temperature timeseries for episode_001 zone_a for the last month, detect days with highest anomaly score, and then recommend a policy to pre-cool the zone on those days based on weather forecast."}
+{"id": "aug_00255", "question": "策略回答中如何避免把仿真结论当成生产控制指令？"}
+{"id": "aug_00256", "question": "我想知道Delta-T 异常升高并伴随 comfort violation 时应先做什么？"}
+{"id": "aug_00257", "question": "Please analyze: 当前 BEAR-like 轨迹中 zone_temperature 的样本数量是多少？"}
+{"id": "aug_00258", "question": "full_demo_range control_action 数据有没有缺失或字段质量问题"}
+{"id": "aug_00259", "question": "请问Look up the policy document on anomaly thresholds, analyze the recent anomaly in cooling_power in episode_001 zone_a, and propose a policy update."}
+{"id": "aug_00260", "question": "Could you check: 传感器缺失时是否应该输出激进策略建议？"}
+{"id": "aug_00261", "question": "帮我看看请给出当前区域温度查询的结构化摘要。"}
+{"id": "aug_00262", "question": "帮我看看液冷和风冷混合场景下，为什么不能把 zone_temperature 当作液路状态？"}
+{"id": "aug_00263", "question": "请问如果用户问最近温度最高点，应调用什么工具并返回哪些字段？"}
+{"id": "aug_00264", "question": "Please analyze: 策略推荐回答中必须包含哪些结构化信息？"}
+{"id": "aug_00265", "question": "Could you check: 请先说明 Google PUE 模型对真实生产优化有什么限制，再说明本项目规则策略只能作为离线建议。"}
+{"id": "aug_00266", "question": "帮我看看Retrieve policy document on setpoint scheduling (doc_007), then compare current setpoint schedule with actual zone_temperature in episode_001 zone_a, detect anomalies, and recommend updates."}
+{"id": "aug_00267", "question": "我想知道请画出 zone_temperature 的趋势序列，说明需要返回哪些结构化字段。"}
+{"id": "aug_00268", "question": "帮我看看当 supply air reset 有节能潜力但存在热点风险时，Agent 应如何回答？"}
+{"id": "aug_00269", "question": "能不能告诉我Before giving a policy recommendation, inspect the latest zone_temperature summary and then return the policy_result boundary."}
+{"id": "aug_00270", "question": "Analyze the trend of zone_temperature during unoccupied hours in episode_001 zone_a over the last month, detect if the temperature is drifting too far from setpoint (energy waste), and then recommend a policy to tighten unoccupied deadband."}
+{"id": "aug_00271", "question": "我想知道请用 Uptime 和 DOE 两类文档解释：为什么数据中心优化不能只看节能，还要考虑运维韧性？"}
+{"id": "aug_00272", "question": "请问过度制冷导致温度过低时，如何用异常工具标记？"}
+{"id": "aug_00273", "question": "Could you check: 为什么长篇 cooling airflow 噪声文档不应压过更具体的 supply air reset 文档？"}
+{"id": "aug_00274", "question": "请问如果问题问的是人员热舒适的六类环境/个人因素，应该优先引用 ASHRAE Standard 55 还是 ASHRAE TC9.9？请同时说明为什么另一篇容易被误召回但不是主证据。"}
+{"id": "aug_00275", "question": "Could you check: 如果风机或冷却动作变化后温度仍升高，应先看什么时序证据？"}
+{"id": "aug_00276", "question": "last_24_hours 画一下 internal_load 的趋势折线图"}
+{"id": "aug_00277", "question": "请问Plot the trend of control_action frequency over the last week in episode_001 zone_a, detect any periods of excessive cycling, and then retrieve the policy document on actuator maintenance cycles."}
+{"id": "aug_00278", "question": "Could you check: 设定点上调建议中为什么必须说明 policy 工具来源？"}
+{"id": "aug_00279", "question": "Compare the energy consumption (hvac_power) of episode_001 zone_a to a similar zone (not allowed to mention) but since only zone_a, compare the monthly consumption to itself last year (assume data available), detect if consumption has increased anomalously, and propose a policy for year-over-year benchmarking."}
+{"id": "aug_00280", "question": "Could you check: 请比较 zone_temperature 在前半段和后半段的平均值变化。"}
+{"id": "aug_00281", "question": "最近zone_0 舒适度有没有过热越限风险"}
+{"id": "aug_00282", "question": "full_demo_range zone_1 舒适度有没有过热越限风险"}
+{"id": "aug_00283", "question": "Could you check: 当前轨迹有哪些可用能耗字段可以汇总？"}
+{"id": "aug_00284", "question": "control_action 数据有没有缺失或字段质量问题"}
+{"id": "aug_00285", "question": "Plot the trend of fan_power and control_action together in episode_001 zone_a over the last week to see if high fan_power correlates with high control action, detect any disconnection (anomaly), and then propose a policy to ensure coordinated control."}
+{"id": "aug_00286", "question": "Could you check: policy recommendation 中如何说明 fallback 来源？"}
+{"id": "aug_00287", "question": "full_demo_range cooling_power 的平均值和最大值是多少"}
+{"id": "aug_00288", "question": "请问请检查当前轨迹中 zone_temperature 是否有可用观测值。"}
+{"id": "aug_00289", "question": "能不能告诉我Analyze the fan_power and cooling_power relationship in episode_001 zone_a over the last 24 hours, detect if the ratio is anomalous, and recommend a policy to balance them."}
+{"id": "aug_00290", "question": "Please analyze: Look up the policy document on temperature setpoint guidelines for occupied zones, then analyze the current setpoint usage in episode_001 zone_a to see if it aligns, and recommend updates if necessary."}
+{"id": "aug_00291", "question": "请问plot_metric_trend 在 demo 中适合回答哪类问题？"}
+{"id": "aug_00292", "question": "Could you check: plot_metric_trend 在 demo 中适合回答哪类问题？"}
+{"id": "aug_00293", "question": "请问传感器漂移和真实热点如何初步区分？"}
+{"id": "aug_00294", "question": "Plot the trend of zone_temperature and setpoint together for episode_001 zone_a over the last 3 days to visualize deviations, detect the longest continuous violation period, and then retrieve the policy document on violation response."}
+{"id": "aug_00295", "question": "我想知道Check the trend of comfort_violation episodes in episode_001 zone_a over the past month, detect if the frequency is increasing anomalously, and then retrieve the policy document on compliance targets."}
+{"id": "aug_00296", "question": "帮我看看BEAR 轨迹中的 PUE、湿度和 IT 负载字段应该如何处理？"}
+{"id": "aug_00297", "question": "帮我看看Retrieve policy document on energy audit (doc_008), then compute the energy breakdown for episode_001 zone_a, identify the biggest anomaly in consumption, and recommend a policy to address it."}
+{"id": "aug_00298", "question": "能不能告诉我Analyze the zone_temperature in episode_001 zone_a for the last 24 hours, detect any time periods where it violates the setpoint by more than 2°F, and then recommend a policy to automatically adjust setpoint based on occupancy patterns."}
+{"id": "aug_00299", "question": "最近cooling_power 最近有没有异常告警"}
+{"id": "aug_00300", "question": "Could you check: Retrieve the policy document on cooling power limits (doc_003), then analyze the cooling_power trend in episode_001 zone_a over the last day, and recommend if the policy limits need adjustment."}
+{"id": "aug_00301", "question": "最近internal_load 的平均值和最大值是多少"}
+{"id": "aug_00302", "question": "麻烦分析一下控制动作频繁变化但温度没有改善，如何判断控制震荡？"}
+{"id": "aug_00303", "question": "Agent 和控制策略之间应该如何分工？"}
+{"id": "aug_00304", "question": "请问Compare the cooling_power and outdoor_temp correlation in episode_001 zone_a for the last 3 days with a baseline period, detect anomaly in the correlation coefficient, and recommend a policy to improve cooling efficiency."}
+{"id": "aug_00305", "question": "Could you check: 最近温度趋势是否适合画折线图展示？"}
+{"id": "aug_00306", "question": "麻烦分析一下请判断当前轨迹是否存在温控波动异常。"}
+{"id": "aug_00307", "question": "麻烦分析一下Check the outdoor_temp trend and its impact on cooling_power in episode_001 zone_a over the last 14 days, detect anomalies where cooling_power is lower than expected for high outdoor_temp (possible undercooling), and recommend a policy to ensure adequate cooling capacity."}
+{"id": "aug_00308", "question": "Before policy recommendation, check the latest 3 hour zone_temperature max and then decide whether to adjust the control policy."}
+{"id": "aug_00309", "question": "能不能告诉我Get the zone_temperature data for episode_001 zone_a during the last heatwave (5 consecutive days with outdoor_temp >95°F), detect any anomalies where cooling failed to maintain setpoint, and then retrieve the policy document for extreme weather protocols."}
+{"id": "aug_00310", "question": "Please analyze: 如果要说明“数据中心节能既要靠空气管理，也可用机器学习评估 PUE 配置变化”，应分别引用哪两篇文档？"}
+{"id": "aug_00311", "question": "Could you check: 为什么平台侧遥测能帮助设施侧更稳地调冷却，而不仅是做 IT 监控？"}
+{"id": "aug_00312", "question": "Please analyze: 缺失观测值会怎样影响告警候选判断？"}
+{"id": "aug_00313", "question": "Plot the trend of internal_load for episode_001 zone_a over the last week, detect any anomalies in the load profile, and recommend a policy to optimize internal load management."}
+{"id": "aug_00314", "question": "能不能告诉我Query the cooling_power metric for episode_001 zone_a over the last 6 hours, then diagnose if there is an anomaly related to outdoor_temp correlation, and recommend a policy to handle extreme weather."}
+{"id": "aug_00315", "question": "Could you check: 请查询 internal_load 的统计摘要。"}
+{"id": "aug_00316", "question": "麻烦分析一下Analyze the fan_power and cooling_power relationship in episode_001 zone_a over the last 24 hours, detect if the ratio is anomalous, and recommend a policy to balance them."}
+{"id": "aug_00317", "question": "为什么长篇 cooling airflow 噪声文档不应压过更具体的 supply air reset 文档？"}
+{"id": "aug_00318", "question": "Compare the hvac_power consumption on Mondays versus Fridays over the last 4 weeks in episode_001 zone_a, detect if there is a significant difference, and then retrieve the policy document on day-of-week occupancy schedules."}
+{"id": "aug_00319", "question": "麻烦分析一下判断 Delta-T 变化原因时，为什么要同时看 fan_power 或 control_action？"}
+{"id": "aug_00320", "question": "full_demo_range cooling_power 数据有没有缺失或字段质量问题"}
+{"id": "aug_00321", "question": "Could you check: 当前策略建议是否可以直接由 LLM 编造控制动作？"}
+{"id": "aug_00322", "question": "Please analyze: 如果 compare_period 显示维护后能耗上升，策略建议应如何给出？"}
+{"id": "aug_00323", "question": "最近outdoor_temp 最近有没有异常告警"}
+{"id": "aug_00324", "question": "last_24_hours fan_power 的平均值和最大值是多少"}
+{"id": "aug_00325", "question": "Please analyze: Check the trend of zone_temperature setpoint deviations in episode_001 zone_a over the past week, detect any systematic bias (consistently above or below setpoint), and recommend a policy to adjust the setpoint offset."}
+{"id": "aug_00326", "question": "麻烦分析一下如果用户问能耗构成，为什么应该调用 compute_energy_breakdown？"}
+{"id": "aug_00327", "question": "能不能告诉我Analyze the energy breakdown of hvac_power and cooling_power in episode_001 zone_a over the last week, detect any night where cooling_power is unusually high (possible nocturnal cooling waste), and then recommend a policy to ensure night setback is enforced."}
+{"id": "aug_00328", "question": "Please analyze: zone_a 的温度数据覆盖了什么时间范围？"}
+{"id": "aug_00329", "question": "Please analyze: 冷热通道封闭为什么有助于降低回流风险？"}
+{"id": "aug_00330", "question": "control_action 的能耗构成是怎样的"}
+{"id": "aug_00331", "question": "Compare the energy consumption breakdown for episode_001 zone_a between two consecutive months, detect any anomalous change in the proportion of hvac_power vs cooling_power, and then recommend a policy to shift cooling load to off-peak hours."}
+{"id": "aug_00332", "question": "Could you check: Look up the latest cooling_power value before deciding if the control policy needs a change."}
+{"id": "aug_00333", "question": "能不能告诉我Compute the energy breakdown for episode_001 zone_a for each day of the current month, detect any day where the total energy consumption is more than 20% above the monthly average, and then recommend a policy to cap daily energy use."}
+{"id": "aug_00334", "question": "帮我看看如果 zone_temperature 出现约 -23°C 这样的低值，应如何标注诊断边界？"}
+{"id": "aug_00335", "question": "Analyze the zone_temperature trend in episode_001 zone_a over the last 24 hours, detect if there is an anomaly in the ramp rate, and recommend a policy to smooth temperature changes."}
+{"id": "aug_00336", "question": "帮我看看Use recent zone_temperature evidence before giving the final control policy recommendation."}
+{"id": "aug_00337", "question": "Could you check: 如果 comfort violation 增加但能耗下降，策略建议应如何权衡？"}
+{"id": "aug_00338", "question": "Please analyze: Obtain the comfort_violation metric for episode_001 zone_a over the last week, identify any anomalies in violation occurrences, and recommend a policy to reduce violations."}
+{"id": "aug_00339", "question": "我想知道维护窗口中是否应该激进降低冷却功率？"}
+{"id": "aug_00340", "question": "能不能告诉我为什么数据中心电力设备的热管理不能只照搬 IT 设备进风温度指南？"}
+{"id": "aug_00341", "question": "请问Compare the hvac_power consumption on Mondays versus Fridays over the last 4 weeks in episode_001 zone_a, detect if there is a significant difference, and then retrieve the policy document on day-of-week occupancy schedules."}
+{"id": "aug_00342", "question": "请问Check the trend of zone_temperature setpoint deviations in episode_001 zone_a over the past week, detect any systematic bias (consistently above or below setpoint), and recommend a policy to adjust the setpoint offset."}
+{"id": "aug_00343", "question": "麻烦分析一下请生成 zone_a 温度趋势图所需的数据。"}
+{"id": "aug_00344", "question": "帮我看看冷却系统优化时为什么要同时考虑能耗和舒适度约束？"}
+{"id": "aug_00345", "question": "Please analyze: N+1 redundancy 下降时，温度异常诊断应优先看哪些证据？"}
+{"id": "aug_00346", "question": "rack delta-t return differential alarm evidence 应该看哪些证据？"}
+{"id": "aug_00347", "question": "能不能告诉我Compare the energy consumption (hvac_power) of episode_001 zone_a between the first and last 10 days of the month, detect if there is a significant increase (possible equipment degradation), and then retrieve the policy document on performance degradation monitoring."}
+{"id": "aug_00348", "question": "文档里关于数据中心节能是怎么说的"}
+{"id": "aug_00349", "question": "Could you check: Get the zone_temperature data for episode_001 zone_a during the last heatwave (5 consecutive days with outdoor_temp >95°F), detect any anomalies where cooling failed to maintain setpoint, and then retrieve the policy document for extreme weather protocols."}
+{"id": "aug_00350", "question": "Please analyze: 请先检查最近温度，再判断是否需要把异常解释为数据质量问题而不是 HVAC 故障。"}
+{"id": "aug_00351", "question": "Could you check: Plot the trend of hvac_power and outdoor_temp together in episode_001 zone_a over the last 30 days, detect any periods where hvac_power is unusually high relative to outdoor_temp, and propose a policy to improve system efficiency."}
+{"id": "aug_00352", "question": "先检查最新 zone_temperature，再给出是否增加冷却的策略建议。"}
+{"id": "aug_00353", "question": "我想知道请比较 fan_power 在策略调整前后的变化。"}
+{"id": "aug_00354", "question": "Please analyze: Query the cooling_power metric for episode_001 zone_a over the last 6 hours, then diagnose if there is an anomaly related to outdoor_temp correlation, and recommend a policy to handle extreme weather."}
+{"id": "aug_00355", "question": "最近fan_power 的能耗构成是怎样的"}
+{"id": "aug_00356", "question": "当前轨迹的冷却能耗构成是什么？"}
+{"id": "aug_00357", "question": "麻烦分析一下请查询 fan_power 的平均值和最大值。"}
+{"id": "aug_00358", "question": "full_demo_range control_action 控制动作有没有震荡抖动"}
+{"id": "aug_00359", "question": "Please analyze: 如果温度低于舒适下限，规则策略可能给出什么方向的建议？"}
+{"id": "aug_00360", "question": "Check the trend of comfort_violation rate over the last 3 months in episode_001 zone_a, detect if the rate is increasing (anomaly), and then look up the policy document to see if there is a required corrective action timeline."}
+{"id": "aug_00361", "question": "Please analyze: Check the outdoor_temp trend and its correlation with cooling_power in episode_001 zone_a over the last two weeks, detect anomalies in cooling_power that are not explained by outdoor_temp, and then propose a policy to improve cooling plant control."}
+{"id": "aug_00362", "question": "Could you check: Get the outdoor_temp for episode_001 zone_a for the last 72 hours, detect any anomalous heat spikes, and recommend a policy to protect equipment during extreme temperatures."}
+{"id": "aug_00363", "question": "帮我看看数据中心冷却系统为什么可能出现高能耗？"}
+{"id": "aug_00364", "question": "麻烦分析一下评测集记录为什么要包含 required_tools 和 required_documents？"}
+{"id": "aug_00365", "question": "full_demo_range outdoor_temp 前后两个时段有没有明显变化对比"}
+{"id": "aug_00366", "question": "Please analyze: 为什么 natural language policy advice 不能当成控制器输出？"}
+{"id": "aug_00367", "question": "Could you check: 先判断是否存在异常候选，再结合规则策略给出保守建议，最后说明为什么不能自动执行。"}
+{"id": "aug_00368", "question": "能不能告诉我Compute the energy breakdown of hvac_power and cooling_power in episode_001 zone_a for the last week, then diagnose any anomalies in the breakdown ratio, and recommend a policy to balance the energy usage."}
+{"id": "aug_00369", "question": "麻烦分析一下Uptime Institute 2024 outage 摘要关注 outage 的哪些方面？"}
+{"id": "aug_00370", "question": "最近机房整体 舒适度有没有过热越限风险"}
+{"id": "aug_00371", "question": "我想知道提高 supply temperature setpoint 的节能建议为什么必须保留 comfort violation 和 policy 工具边界？"}
+{"id": "aug_00372", "question": "麻烦分析一下提高送风温度设定值通常如何影响 HVAC 能耗和热风险？"}
+{"id": "aug_00373", "question": "我想知道Analyze the fan_power timeseries in episode_001 zone_a over the last 2 weeks, detect any periods of excessive fan operation at night (when cooling load is low), and then retrieve the policy document on fan scheduling."}
+{"id": "aug_00374", "question": "帮我看看Compute the energy breakdown of hvac_power, cooling_power, and fan_power in episode_001 zone_a for the current week, detect any anomalous distribution, and then propose a policy to shift energy between components for efficiency."}
+{"id": "aug_00375", "question": "Could you check: Check current zone_temperature evidence first, then recommend whether the HVAC control policy should change."}
+{"id": "aug_00376", "question": "最近control_action 的能耗构成是怎样的"}
+{"id": "aug_00377", "question": "Could you check: 如果问题问的是人员热舒适的六类环境/个人因素，应该优先引用 ASHRAE Standard 55 还是 ASHRAE TC9.9？请同时说明为什么另一篇容易被误召回但不是主证据。"}
+{"id": "aug_00378", "question": "last_24_hours internal_load 的平均值和最大值是多少"}
+{"id": "aug_00379", "question": "能不能告诉我Look up the latest cooling_power value before deciding if the control policy needs a change."}
+{"id": "aug_00380", "question": "hybrid cooling 评估中 fan_power 下降能说明什么，不能说明什么？"}
+{"id": "aug_00381", "question": "请问Check the zone_temperature control action frequency in episode_001 zone_a over the last month, detect if there has been an increasing trend (wear indication), and then propose a policy to monitor actuator health."}
+{"id": "aug_00382", "question": "Retrieve the policy document on setpoint adjustments and then analyze the recent zone_temperature data in episode_001 zone_a to see if the current setpoint is appropriate, and recommend an update if needed."}
+{"id": "aug_00383", "question": "帮我看看ASHRAE TC9.9 中 hot aisle、cold aisle、ballroom 和 grey area 的划分为什么对电力设备有意义？"}
+{"id": "aug_00384", "question": "能不能告诉我Compare the control_action pattern between the first and second halves of the current month in episode_001 zone_a, detect if the number of actions has increased significantly, and then retrieve the policy document on actuator lifecycle limits."}
+{"id": "aug_00385", "question": "能不能告诉我Compare the energy consumption (hvac_power) of episode_001 zone_a between weeks with similar average outdoor_temp, detect if consumption is consistent or if there are anomalies, and then propose a policy to normalize consumption data for comparison."}
+{"id": "aug_00386", "question": "我想知道Agent 和控制策略之间应该如何分工？"}
+{"id": "aug_00387", "question": "最近internal_load 的能耗构成是怎样的"}
+{"id": "aug_00388", "question": "帮我看看Analyze the trend of cooling_power in episode_001 zone_a over the past 8 weeks, detect any week with anomalous low cooling_power (possible sensor fault), and then recommend a policy for automatic sensor validation."}
+{"id": "aug_00389", "question": "帮我看看请对比 ASHRAE Standard 55 和 ASHRAE TC9.9：一个关注人员热舒适，一个关注数据中心设备热环境，这个区分应如何表述？"}
+{"id": "aug_00390", "question": "我想知道请检查当前轨迹中 zone_temperature 是否有可用观测值。"}
+{"id": "aug_00391", "question": "请问Check the trend of comfort_violation rate over the last 3 months in episode_001 zone_a, detect if the rate is increasing (anomaly), and then look up the policy document to see if there is a required corrective action timeline."}
+{"id": "aug_00392", "question": "fan_power 最近有没有异常告警"}
+{"id": "aug_00393", "question": "麻烦分析一下OCP 和 Google 文档都谈 PUE；如果问“利用平台功耗遥测把 IT 负载暴露给设施侧”，应引用哪篇？请同时说明 Google 为什么是相近但非主证据。"}
+{"id": "aug_00394", "question": "帮我看看如果只有单个区域出现高温告警，如何判断是否可能是 sensor drift？"}
+{"id": "aug_00395", "question": "zone_temperature 的能耗构成是怎样的"}
+{"id": "aug_00396", "question": "我想知道如果风机或冷却动作变化后温度仍升高，应先看什么时序证据？"}
+{"id": "aug_00397", "question": "我想知道Compare the internal_load between occupied and unoccupied periods in episode_001 zone_a over the last week, detect anomalies where internal_load is high during unoccupied times, and then recommend a policy to schedule load equipment."}
+{"id": "aug_00398", "question": "请问为什么数据中心电力设备的热管理不能只照搬 IT 设备进风温度指南？"}
+{"id": "aug_00399", "question": "Could you check: Agent 和控制策略之间应该如何分工？"}
+{"id": "aug_00400", "question": "Could you check: Compare the fan_power trend in episode_001 zone_a between two consecutive days, detect anomalies in the daily pattern, and propose a policy to optimize fan scheduling."}
+{"id": "aug_00401", "question": "last_24_hours 画一下 zone_temperature 的趋势折线图"}
+{"id": "aug_00402", "question": "internal_load 的能耗构成是怎样的"}
+{"id": "aug_00403", "question": "能不能告诉我Compare the hvac_power consumption on Mondays versus Fridays over the last 4 weeks in episode_001 zone_a, detect if there is a significant difference, and then retrieve the policy document on day-of-week occupancy schedules."}
+{"id": "aug_00404", "question": "请问如果用户问最近 24 小时哪个 zone 平均温度最高，应该调用什么工具并如何说明时间窗口？"}
+{"id": "aug_00405", "question": "请问Compare the control_action patterns between two consecutive weeks in episode_001 zone_a, detect anomalies in the number of control actions, and suggest a policy to reduce excessive actuation."}
+{"id": "aug_00406", "question": "麻烦分析一下如果异常检测器报出接近一半数据点为异常，应该如何解释这个结果的可信度？"}
+{"id": "aug_00407", "question": "液冷混合场景是否可以让 LLM 直接输出 CDU 控制量？"}
+{"id": "aug_00408", "question": "Please analyze: 当前 BEAR rollout 覆盖了多少行样本、多少个 zone、什么时间范围？"}
+{"id": "aug_00409", "question": "full_demo_range control_action 前后两个时段有没有明显变化对比"}
+{"id": "aug_00410", "question": "full_demo_range outdoor_temp 数据有没有缺失或字段质量问题"}
+{"id": "aug_00411", "question": "Could you check: Before policy recommendation, check the latest 3 hour zone_temperature max and then decide whether to adjust the control policy."}
+{"id": "aug_00412", "question": "我想知道offline replay 与 diffusion adapter 的边界是什么？"}
+{"id": "aug_00413", "question": "Please analyze: 过度制冷导致温度过低时，如何用异常工具标记？"}
+{"id": "aug_00414", "question": "Compute the energy breakdown of hvac_power in episode_001 zone_a, then identify if any component shows an anomalous trend compared to last week, and recommend a policy to reduce that component's share."}
+{"id": "aug_00415", "question": "full_demo_range zone_0 舒适度有没有过热越限风险"}
+{"id": "aug_00416", "question": "最近control_action 前后两个时段有没有明显变化对比"}
+{"id": "aug_00417", "question": "如果用户问能耗构成，为什么应该调用 compute_energy_breakdown？"}
+{"id": "aug_00418", "question": "last_24_hours fan_power 最近有没有异常告警"}
+{"id": "aug_00419", "question": "能不能告诉我如果温度低于舒适下限，规则策略可能给出什么方向的建议？"}
+{"id": "aug_00420", "question": "Could you check: Compute the energy breakdown of hvac_power, cooling_power, and fan_power in episode_001 zone_a for the current week, detect any anomalous distribution, and then propose a policy to shift energy between components for efficiency."}
+{"id": "aug_00421", "question": "Check the outdoor_temp trend and its impact on cooling_power in episode_001 zone_a over the last 14 days, detect anomalies where cooling_power is lower than expected for high outdoor_temp (possible undercooling), and recommend a policy to ensure adequate cooling capacity."}
+{"id": "aug_00422", "question": "能不能告诉我先判断是否存在异常候选，再结合规则策略给出保守建议，最后说明为什么不能自动执行。"}
+{"id": "aug_00423", "question": "请查询 internal_load 的统计摘要。"}
+{"id": "aug_00424", "question": "我想知道Analyze the trend of internal_load in episode_001 zone_a during the last month, detect any day where internal_load exceeded the cooling capacity (implicitly cooling_power was maxed out), and then propose a policy to manage internal load peaks."}
+{"id": "aug_00425", "question": "当前 BEAR-like 轨迹中 zone_temperature 的样本数量是多少？"}
+{"id": "aug_00426", "question": "麻烦分析一下为什么只看单点温度不足以判断冷却系统是否健康？"}
+{"id": "aug_00427", "question": "请问Analyze the fan_power timeseries in episode_001 zone_a over the last 2 weeks, detect any periods of excessive fan operation at night (when cooling load is low), and then retrieve the policy document on fan scheduling."}
+{"id": "aug_00428", "question": "ASHRAE Standard 55 fact sheet 的主要目的是什么？"}
+{"id": "aug_00429", "question": "能不能告诉我Check the outdoor_temp trend and its impact on cooling_power in episode_001 zone_a over the last 14 days, detect anomalies where cooling_power is lower than expected for high outdoor_temp (possible undercooling), and recommend a policy to ensure adequate cooling capacity."}
+{"id": "aug_00430", "question": "请问Compare the energy consumption (hvac_power) of episode_001 zone_a during the last three months using monthly averages, detect any month with anomalous consumption, and then retrieve the policy document for annual energy targets."}
+{"id": "aug_00431", "question": "Please analyze: Compare the energy consumption breakdown for episode_001 zone_a between two consecutive months, detect any anomalous change in the proportion of hvac_power vs cooling_power, and then recommend a policy to shift cooling load to off-peak hours."}
+{"id": "aug_00432", "question": "请问如果用户要求把当前建议直接写回设备，回答应如何保持边界？"}
+{"id": "aug_00433", "question": "麻烦分析一下如果温度低于舒适下限，规则策略可能给出什么方向的建议？"}
+{"id": "aug_00434", "question": "Please analyze: Retrieve a policy document about energy savings (doc_004), then compute the energy breakdown of hvac_power in episode_001 zone_a, detect any anomaly in fan energy share, and recommend a policy to meet savings targets."}
+{"id": "aug_00435", "question": "Could you check: 请生成 zone_a 温度趋势图所需的数据。"}
+{"id": "aug_00436", "question": "Please analyze: 提高送风温度设定值通常如何影响 HVAC 能耗和热风险？"}
+{"id": "aug_00437", "question": "帮我看看free cooling 开启后温度波动异常，应先看什么？"}
+{"id": "aug_00438", "question": "Please analyze: 当前轨迹有哪些可用能耗字段可以汇总？"}
+{"id": "aug_00439", "question": "Please analyze: Compute the energy breakdown of hvac_power and cooling_power in episode_001 zone_a for the last week, then diagnose any anomalies in the breakdown ratio, and recommend a policy to balance the energy usage."}
+{"id": "aug_00440", "question": "能不能告诉我OCP 和 Google 文档都谈 PUE；如果问“神经网络预测 PUE 的平均绝对误差约 0.004-0.005”，应引用哪篇？"}
+{"id": "aug_00441", "question": "Compute the energy breakdown of cooling_power and fan_power in episode_001 zone_a for the last two weeks, identify any anomalies in the fan-to-cooling ratio, and retrieve the policy document for fan energy guidelines."}
+{"id": "aug_00442", "question": "Could you check: 如果当前状态接近舒适区间，是否仍需要激进调整？"}
+{"id": "aug_00443", "question": "帮我看看OCP 和 Google 文档都谈 PUE；如果问“神经网络预测 PUE 的平均绝对误差约 0.004-0.005”，应引用哪篇？"}
+{"id": "aug_00444", "question": "last_24_hours internal_load 最近有没有异常告警"}
+{"id": "aug_00445", "question": "麻烦分析一下空气侧 economizer 策略为什么需要说明 humidity 字段边界？"}
+{"id": "aug_00446", "question": "麻烦分析一下Compute the energy breakdown for episode_001 zone_a for each day of the last week, detect any day where fan_power is more than 50% of total HVAC energy (inefficient), and then recommend a policy to enforce a maximum fan energy fraction."}
+{"id": "aug_00447", "question": "我想知道containment 证据为什么还需要结合 zone temperature trend 和 control action？"}
+{"id": "aug_00448", "question": "zone_temperature 最近有没有异常告警"}
+{"id": "aug_00449", "question": "麻烦分析一下传感器漂移和真实热点如何初步区分？"}
+{"id": "aug_00450", "question": "Plot the cumulative energy consumption (hvac_power) for episode_001 zone_a over the current month vs the same month last year, detect if the current month is tracking significantly higher, and then recommend a policy to implement real-time energy dashboards with alarms."}
+{"id": "aug_00451", "question": "我想知道OCP 和 Google 文档都谈 PUE；如果问“利用平台功耗遥测把 IT 负载暴露给设施侧”，应引用哪篇？请同时说明 Google 为什么是相近但非主证据。"}
+{"id": "aug_00452", "question": "维护窗口中的单点高温为什么不能直接判定容量不足？"}
+{"id": "aug_00453", "question": "请问Compare the energy consumption (hvac_power) of episode_001 zone_a between weeks with similar average outdoor_temp, detect if consumption is consistent or if there are anomalies, and then propose a policy to normalize consumption data for comparison."}
+{"id": "aug_00454", "question": "能不能告诉我rack delta-t return differential alarm evidence 应该看哪些证据？"}
+{"id": "aug_00455", "question": "我想知道Compare the zone_temperature setpoint vs actual in episode_001 zone_a over the last 48 hours, detect any persistent offset anomaly, and recommend a policy to calibrate sensors."}
+{"id": "aug_00456", "question": "帮我看看BEAR 论文和 Google 论文都涉及模型；如果问“可配置建筑环境用于 RL/control 算法评测”，应排除哪类 PUE 优化文档？"}
+{"id": "aug_00457", "question": "OCP 冷却效率白皮书为什么强调 platform power telemetry？"}
+{"id": "aug_00458", "question": "请问先检查最新 zone_temperature，再给出是否增加冷却的策略建议。"}
+{"id": "aug_00459", "question": "麻烦分析一下Query fan_power for episode_001 zone_a over the last 4 hours, compare with the same period yesterday, and if there is an anomaly, recommend a policy for fan maintenance."}
+{"id": "aug_00460", "question": "能不能告诉我请画出 zone_temperature 的趋势序列，说明需要返回哪些结构化字段。"}
+{"id": "aug_00461", "question": "zone_2 舒适度有没有过热越限风险"}
+{"id": "aug_00462", "question": "麻烦分析一下Compare the control_action patterns between two consecutive weeks in episode_001 zone_a, detect anomalies in the number of control actions, and suggest a policy to reduce excessive actuation."}
+{"id": "aug_00463", "question": "机房整体 舒适度有没有过热越限风险"}
+{"id": "aug_00464", "question": "Please analyze: 如果只有单个区域出现高温告警，如何判断是否可能是 sensor drift？"}
+{"id": "aug_00465", "question": "麻烦分析一下Plot the trend of internal_load for episode_001 zone_a over the last week, detect any anomalies in the load profile, and recommend a policy to optimize internal load management."}
+{"id": "aug_00466", "question": "Analyze the trend of cooling_power in episode_001 zone_a over the past 8 weeks, detect any week with anomalous low cooling_power (possible sensor fault), and then recommend a policy for automatic sensor validation."}
+{"id": "aug_00467", "question": "Please analyze: Check the zone_temperature derivative over the last 48 hours in episode_001 zone_a, detect any periods where the derivative exceeds 1°F per 5 minutes (potential comfort issue), and then propose a policy to limit temperature change rate through control parameter tuning."}
+{"id": "aug_00468", "question": "Retrieve the policy document on energy efficiency (doc_001) and then check the zone_temperature trend in episode_001 zone_a to recommend a policy update based on current conditions."}
+{"id": "aug_00469", "question": "能不能告诉我Check the zone_temperature control action frequency in episode_001 zone_a over the last month, detect if there has been an increasing trend (wear indication), and then propose a policy to monitor actuator health."}
+{"id": "aug_00470", "question": "Could you check: 上传的 DOE 指南是否包含本项目 rollout 中 zone_5 最新温度的具体观测值？"}
+{"id": "aug_00471", "question": "麻烦分析一下如果问题问的是人员热舒适的六类环境/个人因素，应该优先引用 ASHRAE Standard 55 还是 ASHRAE TC9.9？请同时说明为什么另一篇容易被误召回但不是主证据。"}
+{"id": "aug_00472", "question": "last_24_hours control_action 最近有没有异常告警"}
+{"id": "aug_00473", "question": "Could you check: Retrieve the policy document on energy efficiency (doc_001) and then check the zone_temperature trend in episode_001 zone_a to recommend a policy update based on current conditions."}
+{"id": "aug_00474", "question": "能不能告诉我Compare the cooling_power consumption between similar weather days (outdoor_temp 85-90°F) in episode_001 zone_a, detect any day where cooling_power is significantly lower (possible underperformance), and then retrieve the policy document on cooling system performance benchmarks."}
+{"id": "aug_00475", "question": "我想知道Look up the policy document on anomaly thresholds, analyze the recent anomaly in cooling_power in episode_001 zone_a, and propose a policy update."}
+{"id": "aug_00476", "question": "请问这些上传文档里是否给出了当前某个真实 Google 数据中心今天的实时 PUE？"}
+{"id": "aug_00477", "question": "帮我看看冷通道封闭改善后 Delta-T 上升是否一定是坏事？"}
+{"id": "aug_00478", "question": "能不能告诉我提高送风温度设定值通常如何影响 HVAC 能耗和热风险？"}
+{"id": "aug_00479", "question": "last_24_hours internal_load 数据有没有缺失或字段质量问题"}
+{"id": "aug_00480", "question": "我想知道return air differential 和 rack delta-t 可以提示哪些冷却问题？"}
+{"id": "aug_00481", "question": "full_demo_range control_action 最近有没有异常告警"}
+{"id": "aug_00482", "question": "Analyze the zone_temperature response time to a setpoint change in episode_001 zone_a (assume setpoint change occurred), detect if the response is slower than expected (anomaly), and then recommend a policy to monitor response times and auto-tune control parameters."}
+{"id": "aug_00483", "question": "Query the hvac_power trend in episode_001 zone_a for the last 6 hours, then if an anomaly is detected in the trend slope, recommend a policy to respond to rapid changes."}
+{"id": "aug_00484", "question": "请问如果 comfort violation 增加但能耗下降，策略建议应如何权衡？"}
+{"id": "aug_00485", "question": "我想知道Delta-T 变化与风量不足相关时，应如何定位异常证据？"}
+{"id": "aug_00486", "question": "帮我看看Compare the fan_power trend in episode_001 zone_a between two consecutive days, detect anomalies in the daily pattern, and propose a policy to optimize fan scheduling."}
+{"id": "aug_00487", "question": "BEAR 轨迹中的 PUE、湿度和 IT 负载字段应该如何处理？"}
+{"id": "aug_00488", "question": "Analyze the fan_power timeseries in episode_001 zone_a over the last 2 weeks, detect any periods of excessive fan operation at night (when cooling load is low), and then retrieve the policy document on fan scheduling."}
+{"id": "aug_00489", "question": "帮我看看先检查最新 zone_temperature，再给出是否增加冷却的策略建议。"}
+{"id": "aug_00490", "question": "帮我看看提高 supply temperature setpoint 的节能建议为什么必须保留 comfort violation 和 policy 工具边界？"}
+{"id": "aug_00491", "question": "我想知道ASHRAE TC9.9 白皮书为什么说数据中心热环境变化不仅影响 IT 设备，也会影响电力设备？"}
+{"id": "aug_00492", "question": "zone_0 舒适度有没有过热越限风险"}
+{"id": "aug_00493", "question": "Uptime 报告和 Google 论文都提到 operations；如果问 outage 的原因、成本和后果，应引用哪篇而不是哪篇？"}
+{"id": "aug_00494", "question": "Please analyze: Plot the cumulative energy consumption (hvac_power) for episode_001 zone_a over the current month vs the same month last year, detect if the current month is tracking significantly higher, and then recommend a policy to implement real-time energy dashboards with alarms."}
+{"id": "aug_00495", "question": "我想知道先判断是否存在异常候选，再结合规则策略给出保守建议，最后说明为什么不能自动执行。"}
+{"id": "aug_00496", "question": "请问当前 BEAR rollout 覆盖了多少行样本、多少个 zone、什么时间范围？"}
+{"id": "aug_00497", "question": "麻烦分析一下return air differential 和 rack delta-t 可以提示哪些冷却问题？"}
+{"id": "aug_00498", "question": "我想知道Obtain the comfort_violation metric for episode_001 zone_a over the last week, identify any anomalies in violation occurrences, and recommend a policy to reduce violations."}
+{"id": "aug_00499", "question": "full_demo_range fan_power 的平均值和最大值是多少"}
+{"id": "aug_00500", "question": "请问Compare the energy consumption breakdown for episode_001 zone_a between two consecutive months, detect any anomalous change in the proportion of hvac_power vs cooling_power, and then recommend a policy to shift cooling load to off-peak hours."}
+{"id": "aug_00501", "question": "last_24_hours control_action 控制动作有没有震荡抖动"}
+{"id": "aug_00502", "question": "请问Check latest hvac_power evidence first, then decide whether the policy should keep or adjust cooling."}
+{"id": "aug_00503", "question": "帮我看看Analyze the trend of internal_load in episode_001 zone_a over the past month, detect anomalies, and then look up the policy document to see if load management guidelines exist."}
+{"id": "aug_00504", "question": "Analyze the trend of internal_load in episode_001 zone_a over the past month, detect anomalies, and then look up the policy document to see if load management guidelines exist."}
+{"id": "aug_00505", "question": "outdoor_temp 的平均值和最大值是多少"}
+{"id": "aug_00506", "question": "请问为什么 Uptime outage 报告适合支撑运维风险讨论，而不适合直接给出某个机房的实时故障根因？"}
+{"id": "aug_00507", "question": "Could you check: Plot the energy breakdown of hvac_power for episode_001 zone_a, detect if any component has an anomalous variance over the last 7 days, and recommend a policy to stabilize that component."}
+{"id": "aug_00508", "question": "麻烦分析一下Analyze the trend of cooling_power in episode_001 zone_a over the past 8 weeks, detect any week with anomalous low cooling_power (possible sensor fault), and then recommend a policy for automatic sensor validation."}
+{"id": "aug_00509", "question": "麻烦分析一下设定点上调建议中为什么必须说明 policy 工具来源？"}
+{"id": "aug_00510", "question": "Could you check: 为什么 Agent 不应该直接写回控制动作到 BEAR 环境？"}
+{"id": "aug_00511", "question": "麻烦分析一下如果只有单个区域出现高温告警，如何判断是否可能是 sensor drift？"}
+{"id": "aug_00512", "question": "帮我看看空气侧 economizer 策略为什么需要说明 humidity 字段边界？"}
+{"id": "aug_00513", "question": "帮我看看为什么 Agent 不应该直接写回控制动作到 BEAR 环境？"}
+{"id": "aug_00514", "question": "能不能告诉我液冷和风冷混合场景下，为什么不能把 zone_temperature 当作液路状态？"}
+{"id": "aug_00515", "question": "请问DOE 指南和 ASHRAE TC9.9 都会提到空气/冷却；如果问“空气管理减少 bypass 和 recirculation”，主证据应是哪篇？"}
+{"id": "aug_00516", "question": "帮我看看Compare the internal_load between occupied and unoccupied periods in episode_001 zone_a over the last week, detect anomalies where internal_load is high during unoccupied times, and then recommend a policy to schedule load equipment."}
+{"id": "aug_00517", "question": "帮我看看Compare the control_action pattern between the first and second halves of the current month in episode_001 zone_a, detect if the number of actions has increased significantly, and then retrieve the policy document on actuator lifecycle limits."}
+{"id": "aug_00518", "question": "Could you check: BEAR 论文和 Google 论文都涉及模型；如果问“可配置建筑环境用于 RL/control 算法评测”，应排除哪类 PUE 优化文档？"}
+{"id": "aug_00519", "question": "麻烦分析一下Compare the energy consumption (hvac_power) of episode_001 zone_a to a similar zone (not allowed to mention) but since only zone_a, compare the monthly consumption to itself last year (assume data available), detect if consumption has increased anomalously, and propose a policy for year-over-year benchmarking."}
+{"id": "aug_00520", "question": "Could you check: 请检查 outdoor_temp 的数据覆盖范围。"}
+{"id": "aug_00521", "question": "请问维护窗口前后 zone_temperature 是否升高？"}
+{"id": "aug_00522", "question": "当前轨迹有哪些可用能耗字段可以汇总？"}
+{"id": "aug_00523", "question": "能不能告诉我Using episode_001 zone_a, compute the energy breakdown of hvac_power, then compare the breakdown with last month's data (use compare_period), and recommend a policy to shift energy distribution."}
+{"id": "aug_00524", "question": "请问Compute the energy breakdown for episode_001 zone_a over the last month and then look up the policy document to see if the building meets the required renewable energy fraction (from grid vs local generation)."}
+{"id": "aug_00525", "question": "Please analyze: economizer free cooling 适合在什么证据下讨论？"}
+{"id": "aug_00526", "question": "last_24_hours internal_load 的能耗构成是怎样的"}
+{"id": "aug_00527", "question": "full_demo_range 画一下 zone_temperature 的趋势折线图"}
+{"id": "aug_00528", "question": "液冷相关问题中，哪些字段不能由当前 BEAR adapter 编造？"}
+{"id": "aug_00529", "question": "麻烦分析一下请用 Uptime 和 DOE 两类文档解释：为什么数据中心优化不能只看节能，还要考虑运维韧性？"}
+{"id": "aug_00530", "question": "我想知道请判断当前轨迹是否存在温控波动异常。"}
+{"id": "aug_00531", "question": "什么情况下应将 HVAC 问题从普通问答升级为时序分析任务？"}
+{"id": "aug_00532", "question": "帮我看看Analyze the trend of cooling_power vs cooling setpoint differential over the last month in episode_001 zone_a, detect if there is a correlation breakdown (anomaly) where cooling runs high even when setpoint is not demanding, and then recommend a policy to monitor setpoint compliance."}
+{"id": "aug_00533", "question": "请问Plot the metric trends for fan_power and internal_load together in episode_001 zone_a over the last 10 days to see their correlation, detect any days where internal_load is high but fan_power is low (possible overheating risk), and then retrieve the policy document on ventilation requirements."}
+{"id": "aug_00534", "question": "Could you check: 液冷和风冷混合场景下，为什么不能把 zone_temperature 当作液路状态？"}
+{"id": "aug_00535", "question": "评测集记录为什么要包含 required_tools 和 required_documents？"}
+{"id": "aug_00536", "question": "帮我看看Retrieve a policy document about reactive maintenance (doc_006), then query the control_action count anomaly in episode_001 zone_a over the last week, and recommend a policy to shift to predictive maintenance."}
+{"id": "aug_00537", "question": "cooling_power 的能耗构成是怎样的"}
+{"id": "aug_00538", "question": "cooling_power 数据有没有缺失或字段质量问题"}
+{"id": "aug_00539", "question": "Could you check: 当 outdoor_temp 较低时，是否一定推荐 free cooling？"}
+{"id": "aug_00540", "question": "Please analyze: Look up the policy document on energy budgeting and then analyze the current hvac_power consumption in episode_001 zone_a to see if it is within budget, and recommend adjustments if needed."}
+{"id": "aug_00541", "question": "Please analyze: 传感器漂移导致的高温告警应该怎样验证？"}
+{"id": "aug_00542", "question": "last_24_hours cooling_power 的能耗构成是怎样的"}
+{"id": "aug_00543", "question": "帮我看看如果检索证据不足，系统回答应遵循什么原则？"}
+{"id": "aug_00544", "question": "麻烦分析一下BEAR 轨迹在本项目中应如何表述，为什么不能说成真实生产数据？"}
+{"id": "aug_00545", "question": "麻烦分析一下Plot the trend of comfort_violation events per day in episode_001 zone_a over the last 2 weeks, detect any day with an unusually high number (outlier), and then propose a policy to trigger immediate investigation when daily violations exceed 5."}
+{"id": "aug_00546", "question": "control_action 控制动作有没有震荡抖动"}
+{"id": "aug_00547", "question": "Please analyze: 采样窗口过短会如何影响异常检测？"}
+{"id": "aug_00548", "question": "我想知道请给出 control_action 的趋势序列。"}
+{"id": "aug_00549", "question": "能不能告诉我Plot the trend of hvac_power in episode_001 zone_a for the last 12 hours, detect anomalies, and recommend a policy to optimize energy consumption."}
+{"id": "aug_00550", "question": "full_demo_range internal_load 前后两个时段有没有明显变化对比"}
+{"id": "aug_00551", "question": "supply air reset risk 为什么不能只看平均温度？"}
+{"id": "aug_00552", "question": "能不能告诉我评测集记录为什么要包含 required_tools 和 required_documents？"}
+{"id": "aug_00553", "question": "帮我看看zone_a 的温度数据覆盖了什么时间范围？"}
+{"id": "aug_00554", "question": "full_demo_range zone_2 舒适度有没有过热越限风险"}
+{"id": "aug_00555", "question": "last_24_hours control_action 的能耗构成是怎样的"}
+{"id": "aug_00556", "question": "帮我看看Compare the energy consumption (hvac_power) of episode_001 zone_a during the last three months using monthly averages, detect any month with anomalous consumption, and then retrieve the policy document for annual energy targets."}
+{"id": "aug_00557", "question": "最近画一下 outdoor_temp 的趋势折线图"}
+{"id": "aug_00558", "question": "我想知道传感器缺失时，为什么回答要先说明 count 和时间范围？"}
+{"id": "aug_00559", "question": "麻烦分析一下时序工具回答为什么要保留 zone_id、count 和时间范围？"}
+{"id": "aug_00560", "question": "Could you check: 如果 temperature spike 只出现在单个区域，如何用工具确认？"}
+{"id": "aug_00561", "question": "麻烦分析一下free cooling 开启后温度波动异常，应先看什么？"}
+{"id": "aug_00562", "question": "Could you check: 提高 supply temperature setpoint 的节能建议为什么必须保留 comfort violation 和 policy 工具边界？"}
+{"id": "aug_00563", "question": "cooling_power 最近有没有异常告警"}
+{"id": "aug_00564", "question": "如果当前温度超过舒适上限，是否应该调整控制策略？"}
+{"id": "aug_00565", "question": "Could you check: Plot the monthly trend of hvac_power consumption in episode_001 zone_a over the last year, detect any month with anomalous dip or spike, and then recommend a policy to normalize consumption for weather and occupancy."}
+{"id": "aug_00566", "question": "Please analyze: Compare the fan_power trend in episode_001 zone_a between two consecutive days, detect anomalies in the daily pattern, and propose a policy to optimize fan scheduling."}
+{"id": "aug_00567", "question": "能不能告诉我维护窗口期间冷却告警为什么要结合冗余能力解释？"}
+{"id": "aug_00568", "question": "Compute the energy breakdown of hvac_power and cooling_power in episode_001 zone_a for the last week, then diagnose any anomalies in the breakdown ratio, and recommend a policy to balance the energy usage."}
+{"id": "aug_00569", "question": "能不能告诉我Use recent zone_temperature evidence before giving the final control policy recommendation."}
+{"id": "aug_00570", "question": "帮我看看请同时引用 BEAR、ASHRAE TC9.9 和 DOE，说明本项目为什么只能声称“仿真控制 + 文档知识库评测”，不能声称真实生产优化。"}
+{"id": "aug_00571", "question": "last_24_hours zone_temperature 前后两个时段有没有明显变化对比"}
+{"id": "aug_00572", "question": "能不能告诉我策略推荐回答中必须包含哪些结构化信息？"}
+{"id": "aug_00573", "question": "Compare the control_action pattern between the first and second halves of the current month in episode_001 zone_a, detect if the number of actions has increased significantly, and then retrieve the policy document on actuator lifecycle limits."}
+{"id": "aug_00574", "question": "control_action 的平均值和最大值是多少"}
+{"id": "aug_00575", "question": "Could you check: Get the internal_load metric for episode_001 zone_a over the last 24 hours, diagnose any anomalies in its pattern, and suggest a policy to adjust cooling based on occupancy."}
+{"id": "aug_00576", "question": "这些上传文档里是否给出了当前某个真实 Google 数据中心今天的实时 PUE？"}
+{"id": "aug_00577", "question": "帮我看看液冷相关问题中，哪些字段不能由当前 BEAR adapter 编造？"}
+{"id": "aug_00578", "question": "能不能告诉我Google 论文中的灵敏度分析为什么能帮助寻找 PUE 优化机会？"}
+{"id": "aug_00579", "question": "我想知道维护窗口中的单点高温为什么不能直接判定容量不足？"}
+{"id": "aug_00580", "question": "能不能告诉我Plot the cumulative energy consumption (hvac_power) for episode_001 zone_a over the current month vs the same month last year, detect if the current month is tracking significantly higher, and then recommend a policy to implement real-time energy dashboards with alarms."}
+{"id": "aug_00581", "question": "last_24_hours zone_temperature 数据有没有缺失或字段质量问题"}
+{"id": "aug_00582", "question": "最近outdoor_temp 前后两个时段有没有明显变化对比"}
+{"id": "aug_00583", "question": "请问Look up the latest cooling_power value before deciding if the control policy needs a change."}
+{"id": "aug_00584", "question": "Could you check: Plot the trend of fan_power and control_action together in episode_001 zone_a over the last week to see if high fan_power correlates with high control action, detect any disconnection (anomaly), and then propose a policy to ensure coordinated control."}
+{"id": "aug_00585", "question": "Could you check: 如果异常检测器报出接近一半数据点为异常，应该如何解释这个结果的可信度？"}
+{"id": "aug_00586", "question": "能不能告诉我控制动作频繁变化但温度没有改善，如何判断控制震荡？"}
+{"id": "aug_00587", "question": "请问Delta-T 异常升高并伴随 comfort violation 时应先做什么？"}
+{"id": "aug_00588", "question": "Please analyze: 先判断是否存在异常候选，再结合规则策略给出保守建议，最后说明为什么不能自动执行。"}
+{"id": "aug_00589", "question": "Please analyze: Uptime Institute 2024 outage 摘要关注 outage 的哪些方面？"}
+{"id": "aug_00590", "question": "last_24_hours 画一下 cooling_power 的趋势折线图"}
+{"id": "aug_00591", "question": "Could you check: 什么情况下应将 HVAC 问题从普通问答升级为时序分析任务？"}
+{"id": "aug_00592", "question": "fan_power 数据有没有缺失或字段质量问题"}
+{"id": "aug_00593", "question": "能不能告诉我为什么 Google 论文说预测 plant configuration 对 PUE 的影响很难？"}
+{"id": "aug_00594", "question": "最近画一下 fan_power 的趋势折线图"}
+{"id": "aug_00595", "question": "帮我看看Get the outdoor_temp data for episode_001 zone_a and the cooling_power data, compute the cooling efficiency (cooling_power / outdoor_temp) for each day over the last month, detect any day with efficiency anomaly (low or high), and then look up the policy document on efficiency benchmarks."}
+{"id": "aug_00596", "question": "能不能告诉我为什么平台侧遥测能帮助设施侧更稳地调冷却，而不仅是做 IT 监控？"}
+{"id": "aug_00597", "question": "我想知道Analyze the trend of hvac_power consumption during weekends in episode_001 zone_a over the last two months, detect any weekend where consumption approaches weekday levels (anomaly), and then propose a policy to enforce weekend setback schedules."}
+{"id": "aug_00598", "question": "Could you check: Plot the trend of internal_load for episode_001 zone_a over the last week, detect any anomalies in the load profile, and recommend a policy to optimize internal load management."}
+{"id": "aug_00599", "question": "请问如果要说明“数据中心节能既要靠空气管理，也可用机器学习评估 PUE 配置变化”，应分别引用哪两篇文档？"}
+{"id": "aug_00600", "question": "麻烦分析一下Compute the energy breakdown of hvac_power, cooling_power, and fan_power in episode_001 zone_a for the current week, detect any anomalous distribution, and then propose a policy to shift energy between components for efficiency."}
+{"id": "aug_00601", "question": "能不能告诉我plot_metric_trend 在 demo 中适合回答哪类问题？"}
+{"id": "aug_00602", "question": "我想知道为什么只看单点温度不足以判断冷却系统是否健康？"}
+{"id": "aug_00603", "question": "请问为什么 Agent 不应该直接写回控制动作到 BEAR 环境？"}
+{"id": "aug_00604", "question": "Please analyze: 如果用户问最近 24 小时哪个 zone 平均温度最高，应该调用什么工具并如何说明时间窗口？"}
+{"id": "aug_00605", "question": "Plot the energy breakdown of hvac_power for episode_001 zone_a, detect if any component has an anomalous variance over the last 7 days, and recommend a policy to stabilize that component."}
+{"id": "aug_00606", "question": "传感器漂移和真实热点如何初步区分？"}
+{"id": "aug_00607", "question": "请问First check zone_temperature for the current episode, then produce a bounded policy recommendation."}
+{"id": "aug_00608", "question": "什么问题应该调用 compare_period 而不是 query_metric？"}
+{"id": "aug_00609", "question": "Please analyze: Plot the energy breakdown of hvac_power for episode_001 zone_a, detect if any component has an anomalous variance over the last 7 days, and recommend a policy to stabilize that component."}
+{"id": "aug_00610", "question": "最近zone_2 舒适度有没有过热越限风险"}
+{"id": "aug_00611", "question": "我想知道Analyze the trend of cooling_power in episode_001 zone_a over the past 8 weeks, detect any week with anomalous low cooling_power (possible sensor fault), and then recommend a policy for automatic sensor validation."}
+{"id": "aug_00612", "question": "麻烦分析一下如果 zone_temperature 出现约 -23°C 这样的低值，应如何标注诊断边界？"}
+{"id": "aug_00613", "question": "Check the zone_temperature data for episode_001 zone_a during occupied hours over the last work week, detect if there is a systematic drift away from setpoint over the course of the day, and then recommend a policy to implement a dynamic setpoint schedule."}
+{"id": "aug_00614", "question": "能不能告诉我Get the zone_temperature and outdoor_temp data for episode_001 zone_a over the last 24 hours, detect any periods where the temperature rise rate exceeds 2°F per hour (possible equipment malfunction), and then propose a policy to add rate-of-change alarms."}
+{"id": "aug_00615", "question": "能不能告诉我如果用户要求直接给出风机和冷却动作数值，系统应该怎样保持边界？"}
+{"id": "aug_00616", "question": "最近画一下 control_action 的趋势折线图"}
+{"id": "aug_00617", "question": "能不能告诉我free cooling 为什么不能只凭室外温度判断可行？"}
+{"id": "aug_00618", "question": "我想知道Check latest hvac_power evidence first, then decide whether the policy should keep or adjust cooling."}
+{"id": "aug_00619", "question": "帮我看看请先说明 Google PUE 模型对真实生产优化有什么限制，再说明本项目规则策略只能作为离线建议。"}
+{"id": "aug_00620", "question": "请问Retrieve the policy document on temperature setpoints (doc_002), then query the zone_temperature in episode_001 zone_a, detect any deviation from the policy, and recommend an updated setpoint."}
+{"id": "aug_00621", "question": "Please analyze: 当 supply air reset 有节能潜力但存在热点风险时，Agent 应如何回答？"}
+{"id": "aug_00622", "question": "Could you check: Check the trend of zone_temperature setpoint deviations in episode_001 zone_a over the past week, detect any systematic bias (consistently above or below setpoint), and recommend a policy to adjust the setpoint offset."}
+{"id": "aug_00623", "question": "Get the outdoor_temp data for episode_001 zone_a and the cooling_power data, compute the cooling efficiency (cooling_power / outdoor_temp) for each day over the last month, detect any day with efficiency anomaly (low or high), and then look up the policy document on efficiency benchmarks."}
+{"id": "aug_00624", "question": "Get the outdoor_temp for episode_001 zone_a for the last 72 hours, detect any anomalous heat spikes, and recommend a policy to protect equipment during extreme temperatures."}
+{"id": "aug_00625", "question": "帮我看看policy recommendation 中如何说明 fallback 来源？"}
+{"id": "aug_00626", "question": "internal_load 最近有没有异常告警"}
+{"id": "aug_00627", "question": "我想知道Retrieve the policy document on cooling power limits (doc_003), then analyze the cooling_power trend in episode_001 zone_a over the last day, and recommend if the policy limits need adjustment."}
+{"id": "aug_00628", "question": "麻烦分析一下Check the zone_temperature control action frequency in episode_001 zone_a over the last month, detect if there has been an increasing trend (wear indication), and then propose a policy to monitor actuator health."}
+{"id": "aug_00629", "question": "能不能告诉我Plot the trend of cooling_power and fan_power ratio over the last 2 weeks in episode_001 zone_a, detect any day where the ratio is below 2:1 (inefficient), and then retrieve the policy document on optimal cooling-to-fan ratio."}
+{"id": "aug_00630", "question": "Please analyze: 请对比 ASHRAE Standard 55 和 ASHRAE TC9.9：一个关注人员热舒适，一个关注数据中心设备热环境，这个区分应如何表述？"}
+{"id": "aug_00631", "question": "麻烦分析一下最新状态温度高于舒适上限时，规则策略会给出什么建议？"}
+{"id": "aug_00632", "question": "如果用户问最近 24 小时哪个 zone 平均温度最高，应该调用什么工具并如何说明时间窗口？"}
+{"id": "aug_00633", "question": "哪个区域是最热的 hotspot 排名"}
+{"id": "aug_00634", "question": "帮我看看如果异常检测器报出接近一半数据点为异常，应该如何解释这个结果的可信度？"}
+{"id": "aug_00635", "question": "请用工具判断当前温度序列有没有离群点。"}
+{"id": "aug_00636", "question": "full_demo_range control_action 的平均值和最大值是多少"}
+{"id": "aug_00637", "question": "请问Before policy recommendation, query the current control_action evidence and then explain recommended_action from the policy tool."}
+{"id": "aug_00638", "question": "当 PUE、humidity、it_load 字段在当前 rollout 中为空时，策略建议能否编造这些输入？"}
+{"id": "aug_00639", "question": "麻烦分析一下OCP 冷却效率白皮书为什么强调 platform power telemetry？"}
+{"id": "aug_00640", "question": "Could you check: Get the zone_temperature and outdoor_temp data for episode_001 zone_a over the last 24 hours, detect any periods where the temperature rise rate exceeds 2°F per hour (possible equipment malfunction), and then propose a policy to add rate-of-change alarms."}
+{"id": "aug_00641", "question": "Look up the latest cooling_power value before deciding if the control policy needs a change."}
+{"id": "aug_00642", "question": "帮我看看ASHRAE TC9.9 文档中提到的 A2、A3、A4 冷通道温度范围分别是多少？"}
+{"id": "aug_00643", "question": "我想知道zone_a 的温度数据覆盖了什么时间范围？"}
+{"id": "aug_00644", "question": "请问Retrieve the policy document about comfort violations and then recommend adjustments based on the current comfort_violation trend in episode_001 zone_a."}
+{"id": "aug_00645", "question": "能不能告诉我如果 comfort violation 增加但能耗下降，策略建议应如何权衡？"}
+{"id": "aug_00646", "question": "Compare the zone_temperature setpoint vs actual in episode_001 zone_a over the last 48 hours, detect any persistent offset anomaly, and recommend a policy to calibrate sensors."}
+{"id": "aug_00647", "question": "帮我看看First check zone_temperature for the current episode, then produce a bounded policy recommendation."}
+{"id": "aug_00648", "question": "请问Retrieve the policy document on energy efficiency (doc_001) and then check the zone_temperature trend in episode_001 zone_a to recommend a policy update based on current conditions."}
+{"id": "aug_00649", "question": "Please analyze: 如果当前温度超过舒适上限，是否应该调整控制策略？"}
+{"id": "aug_00650", "question": "Please analyze: 请生成 zone_a 温度趋势图所需的数据。"}
+{"id": "aug_00651", "question": "请问Using episode_001 zone_a, compute the energy breakdown of hvac_power, then compare the breakdown with last month's data (use compare_period), and recommend a policy to shift energy distribution."}
+{"id": "aug_00652", "question": "请问Get the zone_temperature and internal_load data for episode_001 zone_a over the last 10 days, detect if there is a high internal_load day where zone_temperature did not increase (possible cooling overpowering), and then recommend a policy to balance cooling with internal load."}
+{"id": "aug_00653", "question": "麻烦分析一下采样窗口过短时，异常诊断回答应如何保守表达？"}
+{"id": "aug_00654", "question": "full_demo_range 画一下 control_action 的趋势折线图"}
+{"id": "aug_00655", "question": "Please analyze: Analyze the trend of internal_load in episode_001 zone_a over the past month, detect anomalies, and then look up the policy document to see if load management guidelines exist."}
+{"id": "aug_00656", "question": "Analyze the setpoint compliance in episode_001 zone_a over the past month: get the zone_temperature timeseries, detect periods where it deviates from setpoint by more than 2°F, and then recommend a policy to improve compliance."}
+{"id": "aug_00657", "question": "我想知道冷热通道封闭为什么有助于降低回流风险？"}
+{"id": "aug_00658", "question": "麻烦分析一下策略回答中如何避免把仿真结论当成生产控制指令？"}
+{"id": "aug_00659", "question": "Could you check: 如果当前温度超过舒适上限，是否应该调整控制策略？"}
+{"id": "aug_00660", "question": "能不能告诉我Analyze the cooling power trend in episode_001 zone_a over the past 8 hours, detect any anomalies, and recommend a policy adjustment to reduce energy use."}
+{"id": "aug_00661", "question": "能不能告诉我传感器缺失时，为什么回答要先说明 count 和时间范围？"}
+{"id": "aug_00662", "question": "帮我看看传感器漂移导致的高温告警应该怎样验证？"}
+{"id": "aug_00663", "question": "请问当真实 DiffFNO 后端未接入时，策略推荐应如何输出？"}
+{"id": "aug_00664", "question": "最近fan_power 数据有没有缺失或字段质量问题"}
+{"id": "aug_00665", "question": "我想知道Plot the trend of hvac_power in episode_001 zone_a for the last 12 hours, detect anomalies, and recommend a policy to optimize energy consumption."}
+{"id": "aug_00666", "question": "能不能告诉我异常诊断中 alarm false positive 和 sensor drift 有什么关系？"}
+{"id": "aug_00667", "question": "请问Analyze the zone_temperature trend in episode_001 zone_a over the past 7 days, identify any anomalies, and recommend a policy adjustment to maintain comfort."}
+{"id": "aug_00668", "question": "Could you check: Compare the cooling_power between weekdays and weekends in episode_001 zone_a over the last 4 weeks, detect any weekend anomaly, and then look up the policy document for weekend setpoint rules."}
+{"id": "aug_00669", "question": "帮我看看Get the zone_temperature timeseries for episode_001 zone_a for the last month, detect days with highest anomaly score, and then recommend a policy to pre-cool the zone on those days based on weather forecast."}
+{"id": "aug_00670", "question": "麻烦分析一下Delta-T 异常升高并伴随 comfort violation 时应先做什么？"}
+{"id": "aug_00671", "question": "free cooling 开启后温度波动异常，应先看什么？"}
+{"id": "aug_00672", "question": "Please analyze: 最近温度趋势是否适合画折线图展示？"}
+{"id": "aug_00673", "question": "Delta-T 变化与风量不足相关时，应如何定位异常证据？"}
+{"id": "aug_00674", "question": "如果当前状态接近舒适区间，是否仍需要激进调整？"}
+{"id": "aug_00675", "question": "麻烦分析一下Analyze the setpoint compliance in episode_001 zone_a over the past month: get the zone_temperature timeseries, detect periods where it deviates from setpoint by more than 2°F, and then recommend a policy to improve compliance."}
+{"id": "aug_00676", "question": "温度突然上升时，系统应该如何定位异常证据？"}
+{"id": "aug_00677", "question": "Could you check: Before policy recommendation, query the current control_action evidence and then explain recommended_action from the policy tool."}
+{"id": "aug_00678", "question": "最近internal_load 最近有没有异常告警"}
+{"id": "aug_00679", "question": "Could you check: 请判断当前轨迹是否存在温控波动异常。"}
+{"id": "aug_00680", "question": "Could you check: Use recent zone_temperature evidence before giving the final control policy recommendation."}
+{"id": "aug_00681", "question": "我想知道如果要比较前 48 小时和后 48 小时的 zone_temperature，而不是全量前后半段，回答应如何保持可复现？"}
+{"id": "aug_00682", "question": "能不能告诉我采样窗口过短时，异常诊断回答应如何保守表达？"}
+{"id": "aug_00683", "question": "能不能告诉我如果用户要求把当前建议直接写回设备，回答应如何保持边界？"}
+{"id": "aug_00684", "question": "我想知道OCP 和 Google 文档都谈 PUE；如果问“神经网络预测 PUE 的平均绝对误差约 0.004-0.005”，应引用哪篇？"}
+{"id": "aug_00685", "question": "最近zone_temperature 的能耗构成是怎样的"}
+{"id": "aug_00686", "question": "Compare the internal_load between occupied and unoccupied periods in episode_001 zone_a over the last week, detect anomalies where internal_load is high during unoccupied times, and then recommend a policy to schedule load equipment."}
+{"id": "aug_00687", "question": "如果 comfort violation 增加但能耗下降，策略建议应如何权衡？"}
+{"id": "aug_00688", "question": "帮我看看当前轨迹中是否有需要标记为告警候选的温度点？"}
+{"id": "aug_00689", "question": "请问Compare the zone_temperature setpoint vs actual in episode_001 zone_a over the last 48 hours, detect any persistent offset anomaly, and recommend a policy to calibrate sensors."}
+{"id": "aug_00690", "question": "Please analyze: Get the outdoor_temp data for episode_001 zone_a and the cooling_power data, compute the cooling efficiency (cooling_power / outdoor_temp) for each day over the last month, detect any day with efficiency anomaly (low or high), and then look up the policy document on efficiency benchmarks."}
+{"id": "aug_00691", "question": "麻烦分析一下如果要比较前 48 小时和后 48 小时的 zone_temperature，而不是全量前后半段，回答应如何保持可复现？"}
+{"id": "aug_00692", "question": "last_24_hours outdoor_temp 的能耗构成是怎样的"}
+{"id": "aug_00693", "question": "能不能告诉我Compute the energy breakdown for episode_001 zone_a over the last 3 months and look up the policy document to see if the building meets the efficiency target (cooling_power should be less than hvac_power by at least 20%)."}
+{"id": "aug_00694", "question": "能不能告诉我Analyze the trend of internal_load in episode_001 zone_a during the last month, detect any day where internal_load exceeded the cooling capacity (implicitly cooling_power was maxed out), and then propose a policy to manage internal load peaks."}
+{"id": "aug_00695", "question": "麻烦分析一下Query the setpoint and zone_temperature for episode_001 zone_a over the last 12 hours, detect any persistent deviation anomaly, and recommend a policy to align setpoint with actual temperature."}
+{"id": "aug_00696", "question": "能不能告诉我Retrieve policy document on setpoint scheduling (doc_007), then compare current setpoint schedule with actual zone_temperature in episode_001 zone_a, detect anomalies, and recommend updates."}
+{"id": "aug_00697", "question": "帮我看看Delta-T 变化与风量不足相关时，应如何定位异常证据？"}
+{"id": "aug_00698", "question": "Please analyze: Check the zone_temperature data for episode_001 zone_a during occupied hours over the last work week, detect if there is a systematic drift away from setpoint over the course of the day, and then recommend a policy to implement a dynamic setpoint schedule."}
+{"id": "aug_00699", "question": "最近control_action 最近有没有异常告警"}
+{"id": "aug_00700", "question": "containment 证据为什么还需要结合 zone temperature trend 和 control action？"}
+{"id": "aug_00701", "question": "帮我看看Compare the zone_temperature standard deviation between occupied and unoccupied periods in episode_001 zone_a over the last week, detect if unoccupied period has high variability (possible lack of control), and then retrieve the policy document on control stability."}
+{"id": "aug_00702", "question": "我想知道传感器缺失时是否应该输出激进策略建议？"}
+{"id": "aug_00703", "question": "full_demo_range 画一下 internal_load 的趋势折线图"}
+{"id": "aug_00704", "question": "Please analyze: 最近时刻所有 zone 都 comfort_violation 为 True，这是否足以直接下生产控制指令？"}
+{"id": "aug_00705", "question": "麻烦分析一下如果检索证据不足，系统回答应遵循什么原则？"}
+{"id": "aug_00706", "question": "能不能告诉我Compare the energy consumption (hvac_power) of episode_001 zone_a during the last three months using monthly averages, detect any month with anomalous consumption, and then retrieve the policy document for annual energy targets."}
+{"id": "aug_00707", "question": "我想知道Analyze the zone_temperature response time to a setpoint change in episode_001 zone_a (assume setpoint change occurred), detect if the response is slower than expected (anomaly), and then recommend a policy to monitor response times and auto-tune control parameters."}
+{"id": "aug_00708", "question": "如果用户要求把当前建议直接写回设备，回答应如何保持边界？"}
+{"id": "aug_00709", "question": "维护窗口期间出现高温点，应如何判断告警优先级？"}
+{"id": "aug_00710", "question": "帮我看看Get the zone_temperature data for episode_001 zone_a during the last heatwave (5 consecutive days with outdoor_temp >95°F), detect any anomalies where cooling failed to maintain setpoint, and then retrieve the policy document for extreme weather protocols."}
+{"id": "aug_00711", "question": "麻烦分析一下为什么 Uptime outage 报告适合支撑运维风险讨论，而不适合直接给出某个机房的实时故障根因？"}
+{"id": "aug_00712", "question": "能不能告诉我最近窗口内某区域温度是否超过 26 摄氏度？"}
+{"id": "aug_00713", "question": "Could you check: Plot the daily minimum and maximum zone_temperature in episode_001 zone_a over the last month, detect any day where the daily range is below 1°F (possible sensor fault), and then retrieve the policy document on sensor accuracy requirements."}
+{"id": "aug_00714", "question": "我想知道请给出当前区域温度查询的结构化摘要。"}
+{"id": "aug_00715", "question": "Could you check: 请用工具判断当前温度序列有没有离群点。"}
+{"id": "aug_00716", "question": "我想知道请查询 internal_load 的统计摘要。"}
+{"id": "aug_00717", "question": "我想知道Look up the policy document on temperature setpoint guidelines for occupied zones, then analyze the current setpoint usage in episode_001 zone_a to see if it aligns, and recommend updates if necessary."}
+{"id": "aug_00718", "question": "Could you check: 如果用户要求直接给出风机和冷却动作数值，系统应该怎样保持边界？"}
+{"id": "aug_00719", "question": "请问Analyze the energy breakdown of hvac_power and cooling_power in episode_001 zone_a over the last week, detect any night where cooling_power is unusually high (possible nocturnal cooling waste), and then recommend a policy to ensure night setback is enforced."}
+{"id": "aug_00720", "question": "麻烦分析一下请检查 outdoor_temp 的数据覆盖范围。"}
+{"id": "aug_00721", "question": "请问Check the outdoor_temp trend and its impact on cooling_power in episode_001 zone_a over the last 14 days, detect anomalies where cooling_power is lower than expected for high outdoor_temp (possible undercooling), and recommend a policy to ensure adequate cooling capacity."}
+{"id": "aug_00722", "question": "Please analyze: 最新状态温度高于舒适上限时，规则策略会给出什么建议？"}
+{"id": "aug_00723", "question": "Please analyze: 请给出当前区域温度查询的结构化摘要。"}
+{"id": "aug_00724", "question": "最近internal_load 数据有没有缺失或字段质量问题"}
+{"id": "aug_00725", "question": "请问zone_0 的温度序列是否存在异常候选？请给出工具证据并说明检测器敏感性。"}
+{"id": "aug_00726", "question": "能不能告诉我economizer free cooling 适合在什么证据下讨论？"}
+{"id": "aug_00727", "question": "请问Analyze the trend of zone_temperature during unoccupied hours in episode_001 zone_a over the last month, detect if the temperature is drifting too far from setpoint (energy waste), and then recommend a policy to tighten unoccupied deadband."}
+{"id": "aug_00728", "question": "Compute the energy breakdown for episode_001 zone_a for each day of the last week, detect any day where fan_power is more than 50% of total HVAC energy (inefficient), and then recommend a policy to enforce a maximum fan energy fraction."}
+{"id": "aug_00729", "question": "帮我看看为什么只看单点温度不足以判断冷却系统是否健康？"}
+{"id": "aug_00730", "question": "Please analyze: 请比较 control_action 在两个时间窗口中的变化。"}
+{"id": "aug_00731", "question": "Please analyze: Plot the metric trends for fan_power and internal_load together in episode_001 zone_a over the last 10 days to see their correlation, detect any days where internal_load is high but fan_power is low (possible overheating risk), and then retrieve the policy document on ventilation requirements."}
+{"id": "aug_00732", "question": "帮我看看Plot the trend of cooling_power and fan_power ratio over the last 2 weeks in episode_001 zone_a, detect any day where the ratio is below 2:1 (inefficient), and then retrieve the policy document on optimal cooling-to-fan ratio."}
+{"id": "aug_00733", "question": "我想知道Check the zone_temperature control action frequency in episode_001 zone_a over the last month, detect if there has been an increasing trend (wear indication), and then propose a policy to monitor actuator health."}
+{"id": "aug_00734", "question": "帮我看看请检查 outdoor_temp 的数据覆盖范围。"}
+{"id": "aug_00735", "question": "我想知道Query the cooling_power metric for episode_001 zone_a over the last 6 hours, then diagnose if there is an anomaly related to outdoor_temp correlation, and recommend a policy to handle extreme weather."}
+{"id": "aug_00736", "question": "请问如果 zone_temperature 出现约 -23°C 这样的低值，应如何标注诊断边界？"}
+{"id": "aug_00737", "question": "请问OCP 冷却效率白皮书为什么强调 platform power telemetry？"}
+{"id": "aug_00738", "question": "internal_load 前后两个时段有没有明显变化对比"}
+{"id": "aug_00739", "question": "Plot the monthly trend of hvac_power consumption in episode_001 zone_a over the last year, detect any month with anomalous dip or spike, and then recommend a policy to normalize consumption for weather and occupancy."}
+{"id": "aug_00740", "question": "Could you check: Plot the trend of comfort_violation for episode_001 zone_a over the last month, detect if there is a weekly anomaly pattern, and recommend a policy to minimize violations."}
+{"id": "aug_00741", "question": "Compare the internal_load profile in episode_001 zone_a between weekday and weekend, detect anomalies in the weekend pattern, and recommend a policy to optimize weekend HVAC schedules."}
+{"id": "aug_00742", "question": "麻烦分析一下如果用户问最近 24 小时哪个 zone 平均温度最高，应该调用什么工具并如何说明时间窗口？"}
+{"id": "aug_00743", "question": "能不能告诉我什么时候应该使用 offline replay 而不是让模型生成策略？"}
+{"id": "aug_00744", "question": "帮我看看Delta-T 异常升高并伴随 comfort violation 时应先做什么？"}
+{"id": "aug_00745", "question": "麻烦分析一下Plot the trend of comfort_violation events over the last month in episode_001 zone_a, detect if there is a seasonal pattern anomaly, and then propose a policy to adapt comfort thresholds seasonally."}
+{"id": "aug_00746", "question": "能不能告诉我Check current zone_temperature evidence first, then recommend whether the HVAC control policy should change."}
+{"id": "aug_00747", "question": "当 supply air reset 有节能潜力但存在热点风险时，Agent 应如何回答？"}
+{"id": "aug_00748", "question": "帮我看看Check the zone_temperature and control_action correlation in episode_001 zone_a over the last week, detect if there is a period where control actions are frequent but temperature remains stable (possible sensor or controller issue), and then propose a policy to monitor control stability."}
+{"id": "aug_00749", "question": "Please analyze: zone_0 的温度序列是否存在异常候选？请给出工具证据并说明检测器敏感性。"}
+{"id": "aug_00750", "question": "last_24_hours fan_power 前后两个时段有没有明显变化对比"}
+{"id": "aug_00751", "question": "最近control_action 数据有没有缺失或字段质量问题"}
+{"id": "aug_00752", "question": "Please analyze: 请用工具判断当前温度序列有没有离群点。"}
+{"id": "aug_00753", "question": "麻烦分析一下请给出 control_action 的趋势序列。"}
+{"id": "aug_00754", "question": "Could you check: 如果 free cooling 有节能潜力，策略建议应如何保持边界？"}
+{"id": "aug_00755", "question": "请问请对比 ASHRAE Standard 55 和 ASHRAE TC9.9：一个关注人员热舒适，一个关注数据中心设备热环境，这个区分应如何表述？"}
+{"id": "aug_00756", "question": "full_demo_range internal_load 的能耗构成是怎样的"}
+{"id": "aug_00757", "question": "我想知道Compare the internal_load on weekends versus weekdays in episode_001 zone_a for the last 2 months, detect any weekend where internal_load is abnormally high (possible after-hours activity), and then recommend a policy to restrict unoccupied load."}
+{"id": "aug_00758", "question": "Could you check: First check zone_temperature for the current episode, then produce a bounded policy recommendation."}
+{"id": "aug_00759", "question": "Please analyze: 如何确认某个高温片段不是正常负载变化？"}
+{"id": "aug_00760", "question": "麻烦分析一下zone_0 的 zone_temperature 在当前 rollout 中最大值大约是多少？请只要求一位小数量级，不要要求完全相同的小数。"}
+{"id": "aug_00761", "question": "我想知道Compare the zone_temperature standard deviation between occupied and unoccupied periods in episode_001 zone_a over the last week, detect if unoccupied period has high variability (possible lack of control), and then retrieve the policy document on control stability."}
+{"id": "aug_00762", "question": "Please analyze: 采样窗口过短时，异常诊断回答应如何保守表达？"}
+{"id": "aug_00763", "question": "Could you check: Plot the trend of comfort_violation events per day in episode_001 zone_a over the last 2 weeks, detect any day with an unusually high number (outlier), and then propose a policy to trigger immediate investigation when daily violations exceed 5."}
+{"id": "aug_00764", "question": "麻烦分析一下Compare the cooling_power consumption between similar weather days (outdoor_temp 85-90°F) in episode_001 zone_a, detect any day where cooling_power is significantly lower (possible underperformance), and then retrieve the policy document on cooling system performance benchmarks."}
+{"id": "aug_00765", "question": "最近cooling_power 前后两个时段有没有明显变化对比"}
+{"id": "aug_00766", "question": "当前 rollout 的全局 zone_temperature 最小值、平均值和最大值大致落在哪些范围？回答时必须说明这是仿真/导出数值。"}
+{"id": "aug_00767", "question": "Please analyze: 数据中心冷却系统为什么可能出现高能耗？"}
+{"id": "aug_00768", "question": "请问free cooling 开启后温度波动异常，应先看什么？"}
+{"id": "aug_00769", "question": "帮我看看异常诊断中 alarm false positive 和 sensor drift 有什么关系？"}
+{"id": "aug_00770", "question": "internal_load 的平均值和最大值是多少"}
+{"id": "aug_00771", "question": "帮我看看episode_001 中 zone_a 在最近 3 小时的温度最大值是多少？"}
+{"id": "aug_00772", "question": "请问Plot the trend of hvac_power in episode_001 zone_a for the last 12 hours, detect anomalies, and recommend a policy to optimize energy consumption."}
+{"id": "aug_00773", "question": "full_demo_range zone_temperature 的平均值和最大值是多少"}
+{"id": "aug_00774", "question": "Plot the trend of hvac_power for episode_001 zone_a over the last month, detect any anomalies in the power consumption, and recommend a policy to optimize HVAC scheduling."}
+{"id": "aug_00775", "question": "麻烦分析一下Plot the trend of comfort_violation for episode_001 zone_a over the last month, detect if there is a weekly anomaly pattern, and recommend a policy to minimize violations."}
+{"id": "aug_00776", "question": "Could you check: 当前 rollout 是否有全局温度异常候选？不要只做主观判断。"}
+{"id": "aug_00777", "question": "Could you check: Obtain the comfort_violation metric for episode_001 zone_a over the last week, identify any anomalies in violation occurrences, and recommend a policy to reduce violations."}
+{"id": "aug_00778", "question": "画一下 cooling_power 的趋势折线图"}
+{"id": "aug_00779", "question": "我想知道Google 论文中的灵敏度分析为什么能帮助寻找 PUE 优化机会？"}
+{"id": "aug_00780", "question": "Could you check: Compute the energy breakdown for episode_001 zone_a over the last month and then look up the policy document to see if the building meets the required renewable energy fraction (from grid vs local generation)."}
+{"id": "aug_00781", "question": "Please analyze: Compare the internal_load profile in episode_001 zone_a between weekday and weekend, detect anomalies in the weekend pattern, and recommend a policy to optimize weekend HVAC schedules."}
+{"id": "aug_00782", "question": "请问如何确认某个高温片段不是正常负载变化？"}
+{"id": "aug_00783", "question": "麻烦分析一下请查询当前轨迹中 zone_temperature 的最小值和平均值。"}
+{"id": "aug_00784", "question": "麻烦分析一下请给出当前状态的节能控制建议，并说明其来源。"}
+{"id": "aug_00785", "question": "帮我看看Look up the policy document on energy budgeting and then analyze the current hvac_power consumption in episode_001 zone_a to see if it is within budget, and recommend adjustments if needed."}
+{"id": "aug_00786", "question": "请问Retrieve a policy document about energy savings (doc_004), then compute the energy breakdown of hvac_power in episode_001 zone_a, detect any anomaly in fan energy share, and recommend a policy to meet savings targets."}
+{"id": "aug_00787", "question": "Please analyze: Compute the energy breakdown for episode_001 zone_a over the last 3 months and look up the policy document to see if the building meets the efficiency target (cooling_power should be less than hvac_power by at least 20%)."}
+{"id": "aug_00788", "question": "full_demo_range internal_load 的平均值和最大值是多少"}
+{"id": "aug_00789", "question": "Could you check: 维护窗口前后 zone_temperature 是否升高？"}
+{"id": "aug_00790", "question": "full_demo_range 画一下 cooling_power 的趋势折线图"}
+{"id": "aug_00791", "question": "能不能告诉我如果用户问最近温度最高点，应调用什么工具并返回哪些字段？"}
+{"id": "aug_00792", "question": "我想知道当前 BEAR-like 轨迹中 zone_temperature 的样本数量是多少？"}
+{"id": "aug_00793", "question": "Could you check: BEAR 论文为什么适合作为本项目 HVAC 控制与强化学习基准的来源？"}
+{"id": "aug_00794", "question": "Please analyze: Check the trend of comfort_violation episodes in episode_001 zone_a over the past month, detect if the frequency is increasing anomalously, and then retrieve the policy document on compliance targets."}
+{"id": "aug_00795", "question": "我想知道当 outdoor_temp 较低时，是否一定推荐 free cooling？"}
+{"id": "aug_00796", "question": "我想知道Compare the energy consumption breakdown for episode_001 zone_a between two consecutive months, detect any anomalous change in the proportion of hvac_power vs cooling_power, and then recommend a policy to shift cooling load to off-peak hours."}
+{"id": "aug_00797", "question": "能不能告诉我Compare the internal_load profile in episode_001 zone_a between weekday and weekend, detect anomalies in the weekend pattern, and recommend a policy to optimize weekend HVAC schedules."}
+{"id": "aug_00798", "question": "麻烦分析一下当前轨迹有哪些可用能耗字段可以汇总？"}
+{"id": "aug_00799", "question": "请问Compare the zone_temperature standard deviation between occupied and unoccupied periods in episode_001 zone_a over the last week, detect if unoccupied period has high variability (possible lack of control), and then retrieve the policy document on control stability."}
+{"id": "aug_00800", "question": "请问请查询 fan_power 的平均值和最大值。"}
+{"id": "aug_00801", "question": "Please analyze: ASHRAE TC9.9 中 hot aisle、cold aisle、ballroom 和 grey area 的划分为什么对电力设备有意义？"}
+{"id": "aug_00802", "question": "麻烦分析一下Analyze the trend of internal_load in episode_001 zone_a during the last month, detect any day where internal_load exceeded the cooling capacity (implicitly cooling_power was maxed out), and then propose a policy to manage internal load peaks."}
+{"id": "aug_00803", "question": "麻烦分析一下异常诊断中 alarm false positive 和 sensor drift 有什么关系？"}
+{"id": "aug_00804", "question": "last_24_hours cooling_power 的平均值和最大值是多少"}
+{"id": "aug_00805", "question": "帮我看看Analyze the fan_power and cooling_power relationship in episode_001 zone_a over the last 24 hours, detect if the ratio is anomalous, and recommend a policy to balance them."}
+{"id": "aug_00806", "question": "last_24_hours fan_power 的能耗构成是怎样的"}
+{"id": "aug_00807", "question": "Could you check: ASHRAE TC9.9 或 Standard 55 是否能证明本项目里的 BEAR rollout 是真实机房传感器数据？"}
+{"id": "aug_00808", "question": "我想知道Plot the trend of control_action frequency over the last week in episode_001 zone_a, detect any periods of excessive cycling, and then retrieve the policy document on actuator maintenance cycles."}
+{"id": "aug_00809", "question": "last_24_hours 机房整体 舒适度有没有过热越限风险"}
+{"id": "aug_00810", "question": "帮我看看Examine the trend of control_action for episode_001 zone_a over 24 hours, diagnose any repeating anomaly pattern, and suggest a policy to stabilize control actions."}
+{"id": "aug_00811", "question": "帮我看看过度制冷导致温度过低时，如何用异常工具标记？"}
+{"id": "aug_00812", "question": "麻烦分析一下传感器漂移导致的高温告警应该怎样验证？"}
+{"id": "aug_00813", "question": "Could you check: Analyze the trend of internal_load in episode_001 zone_a over the past month, detect anomalies, and then look up the policy document to see if load management guidelines exist."}
+{"id": "aug_00814", "question": "full_demo_range cooling_power 最近有没有异常告警"}
+{"id": "aug_00815", "question": "full_demo_range zone_temperature 的能耗构成是怎样的"}
+{"id": "aug_00816", "question": "Could you check: Plot the trend of hvac_power in episode_001 zone_a for the last 12 hours, detect anomalies, and recommend a policy to optimize energy consumption."}
+{"id": "aug_00817", "question": "能不能告诉我如果 temperature spike 只出现在单个区域，如何用工具确认？"}
+{"id": "aug_00818", "question": "能不能告诉我Plot the trend of outdoor_temp and zone_temperature together for episode_001 zone_a over the last 3 days, detect any correlation anomalies, and then suggest a policy to optimize setpoint reset based on outdoor conditions."}
+{"id": "aug_00819", "question": "Check the zone_temperature and control_action correlation in episode_001 zone_a over the last week, detect if there is a period where control actions are frequent but temperature remains stable (possible sensor or controller issue), and then propose a policy to monitor control stability."}
+{"id": "aug_00820", "question": "我想知道当前 rollout 是否有全局温度异常候选？不要只做主观判断。"}
+{"id": "aug_00821", "question": "帮我看看什么时候应该使用 offline replay 而不是让模型生成策略？"}
+{"id": "aug_00822", "question": "我想知道最近温度趋势是否适合画折线图展示？"}
+{"id": "aug_00823", "question": "能不能告诉我Plot the energy breakdown of hvac_power for episode_001 zone_a, detect if any component has an anomalous variance over the last 7 days, and recommend a policy to stabilize that component."}
+{"id": "aug_00824", "question": "最近zone_temperature 前后两个时段有没有明显变化对比"}
+{"id": "aug_00825", "question": "我想知道判断 Delta-T 变化原因时，为什么要同时看 fan_power 或 control_action？"}
+{"id": "aug_00826", "question": "能不能告诉我冷却系统优化时为什么要同时考虑能耗和舒适度约束？"}
+{"id": "aug_00827", "question": "麻烦分析一下Plot the trend of fan_power and control_action together in episode_001 zone_a over the last week to see if high fan_power correlates with high control action, detect any disconnection (anomaly), and then propose a policy to ensure coordinated control."}
+{"id": "aug_00828", "question": "能不能告诉我Uptime 报告和 Google 论文都提到 operations；如果问 outage 的原因、成本和后果，应引用哪篇而不是哪篇？"}
+{"id": "aug_00829", "question": "麻烦分析一下请把 OCP 的平台功耗遥测和 Google 的 PUE 模型放在一起解释：二者怎样从不同层面支持冷却优化？"}
+{"id": "aug_00830", "question": "Could you check: Query the setpoint and zone_temperature for episode_001 zone_a over the last 12 hours, detect any persistent deviation anomaly, and recommend a policy to align setpoint with actual temperature."}
+{"id": "aug_00831", "question": "麻烦分析一下ASHRAE TC9.9 或 Standard 55 是否能证明本项目里的 BEAR rollout 是真实机房传感器数据？"}
+{"id": "aug_00832", "question": "能不能告诉我维护窗口中的单点高温为什么不能直接判定容量不足？"}
+{"id": "aug_00833", "question": "麻烦分析一下请比较当前 control_action 的前半段和后半段平均值变化。"}
+{"id": "aug_00834", "question": "请问Compare the internal_load on weekends versus weekdays in episode_001 zone_a for the last 2 months, detect any weekend where internal_load is abnormally high (possible after-hours activity), and then recommend a policy to restrict unoccupied load."}
+{"id": "aug_00835", "question": "最近画一下 zone_temperature 的趋势折线图"}
+{"id": "aug_00836", "question": "麻烦分析一下ASHRAE TC9.9 白皮书为什么说数据中心热环境变化不仅影响 IT 设备，也会影响电力设备？"}
+{"id": "aug_00837", "question": "Please analyze: 请比较 fan_power 在策略调整前后的变化。"}
+{"id": "aug_00838", "question": "我想知道如果检索证据不足，系统回答应遵循什么原则？"}
+{"id": "aug_00839", "question": "能不能告诉我Examine the trend of control_action for episode_001 zone_a over 24 hours, diagnose any repeating anomaly pattern, and suggest a policy to stabilize control actions."}
+{"id": "aug_00840", "question": "last_24_hours zone_temperature 的能耗构成是怎样的"}
+{"id": "aug_00841", "question": "Could you check: 请给出当前状态的节能控制建议，并说明其来源。"}
+{"id": "aug_00842", "question": "能不能告诉我为什么 Uptime outage 报告适合支撑运维风险讨论，而不适合直接给出某个机房的实时故障根因？"}
+{"id": "aug_00843", "question": "如果 free cooling 有节能潜力，策略建议应如何保持边界？"}
+{"id": "aug_00844", "question": "last_24_hours zone_2 舒适度有没有过热越限风险"}
+{"id": "aug_00845", "question": "采样窗口过短会如何影响异常检测？"}
+{"id": "aug_00846", "question": "能不能告诉我Analyze the trend of control_action counts during the night (10 PM-6 AM) in episode_001 zone_a over the last month, detect any night with excessive actions (possible equipment cycling), and then propose a policy to increase night deadband."}
+{"id": "aug_00847", "question": "能不能告诉我液冷混合场景是否可以让 LLM 直接输出 CDU 控制量？"}
+{"id": "aug_00848", "question": "Could you check: Query the cooling_power metric for episode_001 zone_a over the last 6 hours, then diagnose if there is an anomaly related to outdoor_temp correlation, and recommend a policy to handle extreme weather."}
+{"id": "aug_00849", "question": "麻烦分析一下当 outdoor_temp 较低时，是否一定推荐 free cooling？"}
+{"id": "aug_00850", "question": "last_24_hours control_action 前后两个时段有没有明显变化对比"}
+{"id": "aug_00851", "question": "我想知道economizer free cooling 适合在什么证据下讨论？"}
+{"id": "aug_00852", "question": "我想知道Get the zone_temperature timeseries for episode_001 zone_a for the last 7 days, detect any period of flatline (sensor stuck) where temperature did not change for more than 2 hours, and then propose a policy for sensor health monitoring."}
+{"id": "aug_00853", "question": "full_demo_range fan_power 前后两个时段有没有明显变化对比"}
+{"id": "aug_00854", "question": "麻烦分析一下Get the zone_temperature data for episode_001 zone_a during the last heatwave (5 consecutive days with outdoor_temp >95°F), detect any anomalies where cooling failed to maintain setpoint, and then retrieve the policy document for extreme weather protocols."}
+{"id": "aug_00855", "question": "帮我看看Retrieve the policy document on temperature setpoints (doc_002), then query the zone_temperature in episode_001 zone_a, detect any deviation from the policy, and recommend an updated setpoint."}
+{"id": "aug_00856", "question": "Check the trend of zone_temperature setpoint deviations in episode_001 zone_a over the past week, detect any systematic bias (consistently above or below setpoint), and recommend a policy to adjust the setpoint offset."}
+{"id": "aug_00857", "question": "last_24_hours 画一下 outdoor_temp 的趋势折线图"}
+{"id": "aug_00858", "question": "最近fan_power 最近有没有异常告警"}
+{"id": "aug_00859", "question": "Could you check: Analyze the zone_temperature in episode_001 zone_a for the last 24 hours, detect any time periods where it violates the setpoint by more than 2°F, and then recommend a policy to automatically adjust setpoint based on occupancy patterns."}
+{"id": "aug_00860", "question": "麻烦分析一下Using episode_001 zone_a, compute the energy breakdown of hvac_power, detect any anomaly in fan_power consumption, and recommend a policy to improve fan efficiency."}
+{"id": "aug_00861", "question": "full_demo_range 画一下 outdoor_temp 的趋势折线图"}
+{"id": "aug_00862", "question": "空气侧 economizer 策略为什么需要说明 humidity 字段边界？"}
+{"id": "aug_00863", "question": "Please analyze: Analyze the energy breakdown of hvac_power and cooling_power in episode_001 zone_a over the last week, detect any night where cooling_power is unusually high (possible nocturnal cooling waste), and then recommend a policy to ensure night setback is enforced."}
+{"id": "aug_00864", "question": "full_demo_range 机房整体 舒适度有没有过热越限风险"}
+{"id": "aug_00865", "question": "麻烦分析一下如果用户要求把当前建议直接写回设备，回答应如何保持边界？"}
+{"id": "aug_00866", "question": "帮我看看Compare the internal_load profile in episode_001 zone_a between weekday and weekend, detect anomalies in the weekend pattern, and recommend a policy to optimize weekend HVAC schedules."}
+{"id": "aug_00867", "question": "Uptime outage 摘要能否直接判断当前 BEAR rollout 的 comfort_violation 是真实故障？"}
+{"id": "aug_00868", "question": "Could you check: 为什么 Uptime outage 报告适合支撑运维风险讨论，而不适合直接给出某个机房的实时故障根因？"}
+{"id": "aug_00869", "question": "能不能告诉我当前轨迹中是否有需要标记为告警候选的温度点？"}
+{"id": "aug_00870", "question": "能不能告诉我OCP 冷却效率白皮书为什么强调 platform power telemetry？"}
+{"id": "aug_00871", "question": "我想知道Compare the hvac_power consumption on Mondays versus Fridays over the last 4 weeks in episode_001 zone_a, detect if there is a significant difference, and then retrieve the policy document on day-of-week occupancy schedules."}
+{"id": "aug_00872", "question": "麻烦分析一下Get the outdoor_temp for episode_001 zone_a for the last 72 hours, detect any anomalous heat spikes, and recommend a policy to protect equipment during extreme temperatures."}
+{"id": "aug_00873", "question": "请问液冷混合场景中风侧温度异常能否证明 CDU 故障？"}
+{"id": "aug_00874", "question": "Could you check: Analyze the trend of zone_temperature during unoccupied hours in episode_001 zone_a over the last month, detect if the temperature is drifting too far from setpoint (energy waste), and then recommend a policy to tighten unoccupied deadband."}
+{"id": "aug_00875", "question": "请问Compare the cooling_power consumption between similar weather days (outdoor_temp 85-90°F) in episode_001 zone_a, detect any day where cooling_power is significantly lower (possible underperformance), and then retrieve the policy document on cooling system performance benchmarks."}
+{"id": "aug_00876", "question": "Please analyze: 如果冷却冗余下降且温度持续升高，应使用什么工具？"}
+{"id": "aug_00877", "question": "能不能告诉我Compare the zone_temperature standard deviation between occupied and unoccupied periods in episode_001 zone_a over the last week, detect if unoccupied period has high variability (possible lack of control), and then retrieve the policy document on control stability."}
+{"id": "aug_00878", "question": "请问冷却系统优化时为什么要同时考虑能耗和舒适度约束？"}
+{"id": "aug_00879", "question": "我想知道supply air reset risk 为什么不能只看平均温度？"}
+{"id": "aug_00880", "question": "画一下 control_action 的趋势折线图"}
+{"id": "aug_00881", "question": "能不能告诉我如果 compare_period 显示维护后能耗上升，策略建议应如何给出？"}
+{"id": "aug_00882", "question": "Plot the trend of control_action frequency over the last week in episode_001 zone_a, detect any periods of excessive cycling, and then retrieve the policy document on actuator maintenance cycles."}
+{"id": "aug_00883", "question": "Could you check: 数据中心空气管理中，为什么减少冷热气流混合比单纯降低送风温度更关键？"}
+{"id": "aug_00884", "question": "Could you check: 请给出当前区域温度查询的结构化摘要。"}
+{"id": "aug_00885", "question": "Please analyze: containment 证据为什么还需要结合 zone temperature trend 和 control action？"}
+{"id": "aug_00886", "question": "麻烦分析一下Compare the hvac_power consumption of episode_001 zone_a during the first and third weeks of the month, detect an anomaly if the third week is more than 10% higher, and then retrieve the policy document on weekly energy review procedures."}
+{"id": "aug_00887", "question": "能不能告诉我zone_a 的温度数据覆盖了什么时间范围？"}
+{"id": "aug_00888", "question": "我想知道如果问题问的是 IT 设备 A2/A3/A4 允许温度范围，ASHRAE Standard 55 表面上也谈温度，但正确引用应是哪篇？"}
+{"id": "aug_00889", "question": "Please analyze: 异常诊断中 alarm false positive 和 sensor drift 有什么关系？"}
+{"id": "aug_00890", "question": "Please analyze: 请同时引用 BEAR、ASHRAE TC9.9 和 DOE，说明本项目为什么只能声称“仿真控制 + 文档知识库评测”，不能声称真实生产优化。"}
+{"id": "aug_00891", "question": "冷通道封闭改善后 Delta-T 上升是否一定是坏事？"}
+{"id": "aug_00892", "question": "麻烦分析一下上传的 DOE 指南是否包含本项目 rollout 中 zone_5 最新温度的具体观测值？"}
+{"id": "aug_00893", "question": "Please analyze: Analyze the zone_temperature trend in episode_001 zone_a over the past 7 days, identify any anomalies, and recommend a policy adjustment to maintain comfort."}
+{"id": "aug_00894", "question": "帮我看看维护窗口中的单点高温为什么不能直接判定容量不足？"}
+{"id": "aug_00895", "question": "请问zone_a 是否存在温度异常升高？"}
+{"id": "aug_00896", "question": "Please analyze: Compare the cooling_power and outdoor_temp correlation in episode_001 zone_a for the last 3 days with a baseline period, detect anomaly in the correlation coefficient, and recommend a policy to improve cooling efficiency."}
+{"id": "aug_00897", "question": "我想知道提高送风温度设定值通常如何影响 HVAC 能耗和热风险？"}
+{"id": "aug_00898", "question": "麻烦分析一下Retrieve the policy document on energy efficiency (doc_001) and then check the zone_temperature trend in episode_001 zone_a to recommend a policy update based on current conditions."}
+{"id": "aug_00899", "question": "缺失观测值会怎样影响告警候选判断？"}
+{"id": "aug_00900", "question": "帮我看看如果用户要求 estimated_energy，系统应从哪里取得？"}
+{"id": "aug_00901", "question": "能不能告诉我策略回答中如何避免把仿真结论当成生产控制指令？"}
+{"id": "aug_00902", "question": "last_24_hours outdoor_temp 的平均值和最大值是多少"}
+{"id": "aug_00903", "question": "麻烦分析一下如果用户问最近温度最高点，应调用什么工具并返回哪些字段？"}
+{"id": "aug_00904", "question": "Could you check: 当 PUE、humidity、it_load 字段在当前 rollout 中为空时，策略建议能否编造这些输入？"}
+{"id": "aug_00905", "question": "麻烦分析一下Compare the cooling_power between weekdays and weekends in episode_001 zone_a over the last 4 weeks, detect any weekend anomaly, and then look up the policy document for weekend setpoint rules."}
+{"id": "aug_00906", "question": "麻烦分析一下Plot the trend of zone_temperature and setpoint together for episode_001 zone_a over the last 3 days to visualize deviations, detect the longest continuous violation period, and then retrieve the policy document on violation response."}
+{"id": "aug_00907", "question": "当 outdoor_temp 较低时，是否一定推荐 free cooling？"}
+{"id": "aug_00908", "question": "Compare the cooling_power and outdoor_temp correlation in episode_001 zone_a for the last 3 days with a baseline period, detect anomaly in the correlation coefficient, and recommend a policy to improve cooling efficiency."}
+{"id": "aug_00909", "question": "Please analyze: 当前 rollout 的全局 zone_temperature 最小值、平均值和最大值大致落在哪些范围？回答时必须说明这是仿真/导出数值。"}
+{"id": "aug_00910", "question": "我想知道什么情况下应将 HVAC 问题从普通问答升级为时序分析任务？"}
+{"id": "aug_00911", "question": "麻烦分析一下N+1 redundancy 下降时，温度异常诊断应优先看哪些证据？"}
+{"id": "aug_00912", "question": "麻烦分析一下Analyze the cooling power trend in episode_001 zone_a over the past 8 hours, detect any anomalies, and recommend a policy adjustment to reduce energy use."}
+{"id": "aug_00913", "question": "帮我看看Check the trend of comfort_violation rate over the last 3 months in episode_001 zone_a, detect if the rate is increasing (anomaly), and then look up the policy document to see if there is a required corrective action timeline."}
+{"id": "aug_00914", "question": "我想知道如果用户要求 estimated_energy，系统应从哪里取得？"}
+{"id": "aug_00915", "question": "Please analyze: 如果 free cooling 有节能潜力，策略建议应如何保持边界？"}
+{"id": "aug_00916", "question": "我想知道Compare the hvac_power consumption of episode_001 zone_a during the first and third weeks of the month, detect an anomaly if the third week is more than 10% higher, and then retrieve the policy document on weekly energy review procedures."}
+{"id": "aug_00917", "question": "control_action 前后两个时段有没有明显变化对比"}
+{"id": "aug_00918", "question": "文档里关于冷通道封闭是怎么说的"}
+{"id": "aug_00919", "question": "我想知道当 PUE、humidity、it_load 字段在当前 rollout 中为空时，策略建议能否编造这些输入？"}
+{"id": "aug_00920", "question": "帮我看看如果风机或冷却动作变化后温度仍升高，应先看什么时序证据？"}
+{"id": "aug_00921", "question": "帮我看看Before policy recommendation, query the current control_action evidence and then explain recommended_action from the policy tool."}
+{"id": "aug_00922", "question": "能不能告诉我Plot the monthly trend of hvac_power consumption in episode_001 zone_a over the last year, detect any month with anomalous dip or spike, and then recommend a policy to normalize consumption for weather and occupancy."}
+{"id": "aug_00923", "question": "能不能告诉我zone_0 的 zone_temperature 在当前 rollout 中最大值大约是多少？请只要求一位小数量级，不要要求完全相同的小数。"}
+{"id": "aug_00924", "question": "Please analyze: 提高 supply temperature setpoint 的节能建议为什么必须保留 comfort violation 和 policy 工具边界？"}
+{"id": "aug_00925", "question": "full_demo_range control_action 的能耗构成是怎样的"}
+{"id": "aug_00926", "question": "full_demo_range outdoor_temp 的平均值和最大值是多少"}
+{"id": "aug_00927", "question": "能不能告诉我如果 free cooling 有节能潜力，策略建议应如何保持边界？"}
+{"id": "aug_00928", "question": "Please analyze: BEAR 和直接使用真实楼宇生产数据相比，作为评测数据源的边界是什么？"}
+{"id": "aug_00929", "question": "请问Compute the energy breakdown of hvac_power and cooling_power in episode_001 zone_a for the last week, then diagnose any anomalies in the breakdown ratio, and recommend a policy to balance the energy usage."}
+{"id": "aug_00930", "question": "画一下 fan_power 的趋势折线图"}
+{"id": "aug_00931", "question": "帮我看看Analyze the zone_temperature trend in episode_001 zone_a over the last 24 hours, detect if there is an anomaly in the ramp rate, and recommend a policy to smooth temperature changes."}
+{"id": "aug_00932", "question": "帮我看看BEAR 轨迹在本项目中应如何表述，为什么不能说成真实生产数据？"}
+{"id": "aug_00933", "question": "麻烦分析一下当真实 DiffFNO 后端未接入时，策略推荐应如何输出？"}
+{"id": "aug_00934", "question": "请问Plot the daily minimum and maximum zone_temperature in episode_001 zone_a over the last month, detect any day where the daily range is below 1°F (possible sensor fault), and then retrieve the policy document on sensor accuracy requirements."}
+{"id": "aug_00935", "question": "Please analyze: 数据中心空气管理中，为什么减少冷热气流混合比单纯降低送风温度更关键？"}
+{"id": "aug_00936", "question": "zone_0 的 zone_temperature 在当前 rollout 中最大值大约是多少？请只要求一位小数量级，不要要求完全相同的小数。"}
+{"id": "aug_00937", "question": "麻烦分析一下请用工具判断当前温度序列有没有离群点。"}
+{"id": "aug_00938", "question": "控制动作频繁变化但温度没有改善，如何判断控制震荡？"}
+{"id": "aug_00939", "question": "我想知道什么问题应该调用 compare_period 而不是 query_metric？"}
+{"id": "aug_00940", "question": "请生成 zone_a 温度趋势图所需的数据。"}
+{"id": "aug_00941", "question": "Could you check: 如果要说明“数据中心节能既要靠空气管理，也可用机器学习评估 PUE 配置变化”，应分别引用哪两篇文档？"}
+{"id": "aug_00942", "question": "我想知道请比较 zone_temperature 在前半段和后半段的平均值变化。"}
+{"id": "aug_00943", "question": "帮我看看Retrieve the policy document about comfort violations and then recommend adjustments based on the current comfort_violation trend in episode_001 zone_a."}
+{"id": "aug_00944", "question": "last_24_hours 画一下 control_action 的趋势折线图"}
+{"id": "aug_00945", "question": "能不能告诉我Get the outdoor_temp and zone_temperature for episode_001 zone_a for the last 48 hours, detect if there is an anomaly in the temperature difference, and recommend a policy to improve insulation effectiveness."}
+{"id": "aug_00946", "question": "zone_temperature 前后两个时段有没有明显变化对比"}
+{"id": "aug_00947", "question": "请查询当前轨迹中 zone_temperature 的最小值和平均值。"}
+{"id": "aug_00948", "question": "帮我看看请用 Uptime 和 DOE 两类文档解释：为什么数据中心优化不能只看节能，还要考虑运维韧性？"}
+{"id": "aug_00949", "question": "Analyze the trend of cooling_power vs cooling setpoint differential over the last month in episode_001 zone_a, detect if there is a correlation breakdown (anomaly) where cooling runs high even when setpoint is not demanding, and then recommend a policy to monitor setpoint compliance."}
+{"id": "aug_00950", "question": "请问请比较 fan_power 在策略调整前后的变化。"}
+{"id": "aug_00951", "question": "请问Plot the trend of hvac_power and outdoor_temp together in episode_001 zone_a over the last 30 days, detect any periods where hvac_power is unusually high relative to outdoor_temp, and propose a policy to improve system efficiency."}
+{"id": "aug_00952", "question": "Could you check: 液冷混合场景是否可以让 LLM 直接输出 CDU 控制量？"}
+{"id": "aug_00953", "question": "能不能告诉我如果冷却冗余下降且温度持续升高，应使用什么工具？"}
+{"id": "aug_00954", "question": "请问请用 Uptime 和 DOE 两类文档解释：为什么数据中心优化不能只看节能，还要考虑运维韧性？"}
+{"id": "aug_00955", "question": "请问Retrieve the policy document on cooling power limits (doc_003), then analyze the cooling_power trend in episode_001 zone_a over the last day, and recommend if the policy limits need adjustment."}
+{"id": "aug_00956", "question": "请问Google 论文中的灵敏度分析为什么能帮助寻找 PUE 优化机会？"}
+{"id": "aug_00957", "question": "Could you check: 请给出 control_action 的趋势序列。"}
+{"id": "aug_00958", "question": "请问Obtain the comfort_violation metric for episode_001 zone_a over the last week, identify any anomalies in violation occurrences, and recommend a policy to reduce violations."}
+{"id": "aug_00959", "question": "Get the internal_load metric for episode_001 zone_a over the last 24 hours, diagnose any anomalies in its pattern, and suggest a policy to adjust cooling based on occupancy."}
+{"id": "aug_00960", "question": "我想知道Compare zone_temperature of episode_001 zone_a between last week and this week, identify if there is an anomaly in comfort_violation rate, and suggest a policy to maintain comfort."}
+{"id": "aug_00961", "question": "最近control_action 的平均值和最大值是多少"}
+{"id": "aug_00962", "question": "我想知道当前 BEAR rollout 覆盖了多少行样本、多少个 zone、什么时间范围？"}
+{"id": "aug_00963", "question": "fan_power 的能耗构成是怎样的"}
+{"id": "aug_00964", "question": "Could you check: free cooling 为什么不能只凭室外温度判断可行？"}
+{"id": "aug_00965", "question": "Could you check: Get the zone_temperature and internal_load data for episode_001 zone_a over the last 10 days, detect if there is a high internal_load day where zone_temperature did not increase (possible cooling overpowering), and then recommend a policy to balance cooling with internal load."}
+{"id": "aug_00966", "question": "最近zone_temperature 最近有没有异常告警"}
+{"id": "aug_00967", "question": "能不能告诉我Look up the policy document on energy budgeting and then analyze the current hvac_power consumption in episode_001 zone_a to see if it is within budget, and recommend adjustments if needed."}
+{"id": "aug_00968", "question": "Could you check: Examine the trend of control_action for episode_001 zone_a over 24 hours, diagnose any repeating anomaly pattern, and suggest a policy to stabilize control actions."}
+{"id": "aug_00969", "question": "请问如果只有单个区域出现高温告警，如何判断是否可能是 sensor drift？"}
+{"id": "aug_00970", "question": "请问Get the zone_temperature timeseries for episode_001 zone_a for the last 7 days, detect any period of flatline (sensor stuck) where temperature did not change for more than 2 hours, and then propose a policy for sensor health monitoring."}
+{"id": "aug_00971", "question": "free cooling 为什么不能只凭室外温度判断可行？"}
+{"id": "aug_00972", "question": "Could you check: 当前轨迹的冷却能耗构成是什么？"}
+{"id": "aug_00973", "question": "请问Analyze the trend of cooling_power vs cooling setpoint differential over the last month in episode_001 zone_a, detect if there is a correlation breakdown (anomaly) where cooling runs high even when setpoint is not demanding, and then recommend a policy to monitor setpoint compliance."}
+{"id": "aug_00974", "question": "麻烦分析一下为什么平台侧遥测能帮助设施侧更稳地调冷却，而不仅是做 IT 监控？"}
+{"id": "aug_00975", "question": "最近fan_power 的平均值和最大值是多少"}
+{"id": "aug_00976", "question": "帮我看看Compare the energy consumption (hvac_power) of episode_001 zone_a between the first and last 10 days of the month, detect if there is a significant increase (possible equipment degradation), and then retrieve the policy document on performance degradation monitoring."}
+{"id": "aug_00977", "question": "能不能告诉我请查询 fan_power 的平均值和最大值。"}
+{"id": "aug_00978", "question": "帮我看看supply air reset risk 为什么不能只看平均温度？"}
+{"id": "aug_00979", "question": "Could you check: 液冷混合场景中风侧温度异常能否证明 CDU 故障？"}
+{"id": "aug_00980", "question": "能不能告诉我supply air reset risk 为什么不能只看平均温度？"}
+{"id": "aug_00981", "question": "帮我看看当 PUE、humidity、it_load 字段在当前 rollout 中为空时，策略建议能否编造这些输入？"}
+{"id": "aug_00982", "question": "如果用户要求直接给出风机和冷却动作数值，系统应该怎样保持边界？"}
+{"id": "aug_00983", "question": "Could you check: 冷热通道封闭为什么有助于降低回流风险？"}
+{"id": "aug_00984", "question": "请先说明 Google PUE 模型对真实生产优化有什么限制，再说明本项目规则策略只能作为离线建议。"}
+{"id": "aug_00985", "question": "麻烦分析一下Look up the policy document on temperature setpoint guidelines for occupied zones, then analyze the current setpoint usage in episode_001 zone_a to see if it aligns, and recommend updates if necessary."}
+{"id": "aug_00986", "question": "请问温度突然上升时，系统应该如何定位异常证据？"}
+{"id": "aug_00987", "question": "full_demo_range cooling_power 前后两个时段有没有明显变化对比"}
+{"id": "aug_00988", "question": "能不能告诉我episode_001 中 zone_a 在最近 3 小时的温度最大值是多少？"}
+{"id": "aug_00989", "question": "full_demo_range 制冷能效和 power 效率如何"}
+{"id": "aug_00990", "question": "能不能告诉我Plot the trend of hvac_power and outdoor_temp together in episode_001 zone_a over the last 30 days, detect any periods where hvac_power is unusually high relative to outdoor_temp, and propose a policy to improve system efficiency."}
+{"id": "aug_00991", "question": "Could you check: Analyze the cooling power trend in episode_001 zone_a over the past 8 hours, detect any anomalies, and recommend a policy adjustment to reduce energy use."}
+{"id": "aug_00992", "question": "帮我看看containment 证据为什么还需要结合 zone temperature trend 和 control action？"}
+{"id": "aug_00993", "question": "麻烦分析一下当前 rollout 的全局 zone_temperature 最小值、平均值和最大值大致落在哪些范围？回答时必须说明这是仿真/导出数值。"}
+{"id": "aug_00994", "question": "最近internal_load 前后两个时段有没有明显变化对比"}
+{"id": "aug_00995", "question": "麻烦分析一下Agent 和控制策略之间应该如何分工？"}
+{"id": "aug_00996", "question": "请问最近窗口内某区域温度是否超过 26 摄氏度？"}
+{"id": "aug_00997", "question": "Could you check: 时序工具回答为什么要保留 zone_id、count 和时间范围？"}
+{"id": "aug_00998", "question": "full_demo_range cooling_power 的能耗构成是怎样的"}
+{"id": "aug_00999", "question": "Please analyze: Plot the trend of outdoor_temp and zone_temperature together for episode_001 zone_a over the last 3 days, detect any correlation anomalies, and then suggest a policy to optimize setpoint reset based on outdoor conditions."}
+{"id": "aug_01000", "question": "Please analyze: 评测集记录为什么要包含 required_tools 和 required_documents？"}
+{"id": "aug_01001", "question": "我想知道Retrieve policy document on setpoint scheduling (doc_007), then compare current setpoint schedule with actual zone_temperature in episode_001 zone_a, detect anomalies, and recommend updates."}
+{"id": "aug_01002", "question": "Could you check: 冷通道封闭改善后 Delta-T 上升是否一定是坏事？"}
+{"id": "aug_01003", "question": "帮我看看Retrieve the policy document on setpoint adjustments and then analyze the recent zone_temperature data in episode_001 zone_a to see if the current setpoint is appropriate, and recommend an update if needed."}
+{"id": "aug_01004", "question": "我想知道上传的 DOE 指南是否包含本项目 rollout 中 zone_5 最新温度的具体观测值？"}
+{"id": "aug_01005", "question": "能不能告诉我维护窗口期间出现高温点，应如何判断告警优先级？"}
+{"id": "aug_01006", "question": "麻烦分析一下如果风机或冷却动作变化后温度仍升高，应先看什么时序证据？"}
+{"id": "aug_01007", "question": "帮我看看Plot the cumulative energy consumption (hvac_power) for episode_001 zone_a over the current month vs the same month last year, detect if the current month is tracking significantly higher, and then recommend a policy to implement real-time energy dashboards with alarms."}
+{"id": "aug_01008", "question": "请问Compare the internal_load between occupied and unoccupied periods in episode_001 zone_a over the last week, detect anomalies where internal_load is high during unoccupied times, and then recommend a policy to schedule load equipment."}
+{"id": "aug_01009", "question": "Could you check: Check the zone_temperature and setpoint values in episode_001 zone_a over the last 48 hours, detect any comfort violation anomalies, and then retrieve the policy document to confirm the violation criteria."}
+{"id": "aug_01010", "question": "帮我看看Compute the energy breakdown of hvac_power in episode_001 zone_a, then identify if any component shows an anomalous trend compared to last week, and recommend a policy to reduce that component's share."}
+{"id": "aug_01011", "question": "Please analyze: 传感器缺失时，为什么回答要先说明 count 和时间范围？"}
+{"id": "aug_01012", "question": "Could you check: Analyze the energy breakdown of hvac_power and cooling_power in episode_001 zone_a over the last week, detect any night where cooling_power is unusually high (possible nocturnal cooling waste), and then recommend a policy to ensure night setback is enforced."}
+{"id": "aug_01013", "question": "Please analyze: 如果问题问的是 IT 设备 A2/A3/A4 允许温度范围，ASHRAE Standard 55 表面上也谈温度，但正确引用应是哪篇？"}
+{"id": "aug_01014", "question": "帮我看看请给出 control_action 的趋势序列。"}
+{"id": "aug_01015", "question": "能不能告诉我Check the outdoor_temp trend and its correlation with cooling_power in episode_001 zone_a over the last two weeks, detect anomalies in cooling_power that are not explained by outdoor_temp, and then propose a policy to improve cooling plant control."}
+{"id": "aug_01016", "question": "cooling_power 前后两个时段有没有明显变化对比"}
+{"id": "aug_01017", "question": "Could you check: 如果温度低于舒适下限，规则策略可能给出什么方向的建议？"}
+{"id": "aug_01018", "question": "Could you check: 传感器漂移和真实热点如何初步区分？"}
+{"id": "aug_01019", "question": "full_demo_range 哪个区域是最热的 hotspot 排名"}
+{"id": "aug_01020", "question": "能不能告诉我如何确认某个高温片段不是正常负载变化？"}
+{"id": "aug_01021", "question": "请问空气侧 economizer 策略为什么需要说明 humidity 字段边界？"}
+{"id": "aug_01022", "question": "帮我看看Get the zone_temperature and outdoor_temp data for episode_001 zone_a over the last 24 hours, detect any periods where the temperature rise rate exceeds 2°F per hour (possible equipment malfunction), and then propose a policy to add rate-of-change alarms."}
+{"id": "aug_01023", "question": "维护窗口前后 zone_temperature 是否升高？"}
+{"id": "aug_01024", "question": "last_24_hours outdoor_temp 前后两个时段有没有明显变化对比"}
+{"id": "aug_01025", "question": "麻烦分析一下液冷相关问题中，哪些字段不能由当前 BEAR adapter 编造？"}
+{"id": "aug_01026", "question": "麻烦分析一下Compare the internal_load on weekends versus weekdays in episode_001 zone_a for the last 2 months, detect any weekend where internal_load is abnormally high (possible after-hours activity), and then recommend a policy to restrict unoccupied load."}
+{"id": "aug_01027", "question": "fan_power 前后两个时段有没有明显变化对比"}
+{"id": "aug_01028", "question": "我想知道ASHRAE Standard 55 fact sheet 的主要目的是什么？"}
+{"id": "aug_01029", "question": "Could you check: 什么问题应该调用 compare_period 而不是 query_metric？"}
+{"id": "aug_01030", "question": "请问Delta-T 变化与风量不足相关时，应如何定位异常证据？"}
+{"id": "aug_01031", "question": "Analyze the trend of control_action counts during the night (10 PM-6 AM) in episode_001 zone_a over the last month, detect any night with excessive actions (possible equipment cycling), and then propose a policy to increase night deadband."}
+{"id": "aug_01032", "question": "fan_power 的平均值和最大值是多少"}
+{"id": "aug_01033", "question": "Please analyze: Check the zone_temperature and control_action correlation in episode_001 zone_a over the last week, detect if there is a period where control actions are frequent but temperature remains stable (possible sensor or controller issue), and then propose a policy to monitor control stability."}
+{"id": "aug_01034", "question": "last_24_hours control_action 数据有没有缺失或字段质量问题"}
+{"id": "aug_01035", "question": "能不能告诉我return air differential 和 rack delta-t 可以提示哪些冷却问题？"}
+{"id": "aug_01036", "question": "Could you check: Retrieve a policy document about energy savings (doc_004), then compute the energy breakdown of hvac_power in episode_001 zone_a, detect any anomaly in fan energy share, and recommend a policy to meet savings targets."}
+{"id": "aug_01037", "question": "麻烦分析一下episode_001 中 zone_a 在最近 3 小时的温度最大值是多少？"}
+{"id": "aug_01038", "question": "帮我看看Uptime outage 摘要能否直接判断当前 BEAR rollout 的 comfort_violation 是真实故障？"}
+{"id": "aug_01039", "question": "请问如果检索证据不足，系统回答应遵循什么原则？"}
+{"id": "aug_01040", "question": "帮我看看冷热通道封闭为什么有助于降低回流风险？"}
+{"id": "aug_01041", "question": "最近cooling_power 的能耗构成是怎样的"}
+{"id": "aug_01042", "question": "能不能告诉我时序工具回答为什么要保留 zone_id、count 和时间范围？"}
+{"id": "aug_01043", "question": "请问Check the zone_temperature and control_action correlation in episode_001 zone_a over the last week, detect if there is a period where control actions are frequent but temperature remains stable (possible sensor or controller issue), and then propose a policy to monitor control stability."}
+{"id": "aug_01044", "question": "我想知道这些上传文档里是否给出了当前某个真实 Google 数据中心今天的实时 PUE？"}
+{"id": "aug_01045", "question": "DOE 指南和 ASHRAE TC9.9 都会提到空气/冷却；如果问“空气管理减少 bypass 和 recirculation”，主证据应是哪篇？"}
+{"id": "aug_01046", "question": "请问如果 temperature spike 只出现在单个区域，如何用工具确认？"}
+{"id": "aug_01047", "question": "请问策略推荐回答中必须包含哪些结构化信息？"}
+{"id": "aug_01048", "question": "请问Compare the energy consumption (hvac_power) of episode_001 zone_a to a similar zone (not allowed to mention) but since only zone_a, compare the monthly consumption to itself last year (assume data available), detect if consumption has increased anomalously, and propose a policy for year-over-year benchmarking."}
+{"id": "aug_01049", "question": "Please analyze: Check current zone_temperature evidence first, then recommend whether the HVAC control policy should change."}
+{"id": "aug_01050", "question": "Retrieve policy document on energy audit (doc_008), then compute the energy breakdown for episode_001 zone_a, identify the biggest anomaly in consumption, and recommend a policy to address it."}
+{"id": "aug_01051", "question": "我想知道Plot the trend of comfort_violation events per day in episode_001 zone_a over the last 2 weeks, detect any day with an unusually high number (outlier), and then propose a policy to trigger immediate investigation when daily violations exceed 5."}
+{"id": "aug_01052", "question": "请问BEAR 论文为什么适合作为本项目 HVAC 控制与强化学习基准的来源？"}
+{"id": "aug_01053", "question": "麻烦分析一下采样窗口过短会如何影响异常检测？"}
+{"id": "aug_01054", "question": "请问ASHRAE TC9.9 白皮书为什么说数据中心热环境变化不仅影响 IT 设备，也会影响电力设备？"}
+{"id": "aug_01055", "question": "Please analyze: Plot the trend of zone_temperature and setpoint together for episode_001 zone_a over the last 3 days to visualize deviations, detect the longest continuous violation period, and then retrieve the policy document on violation response."}
+{"id": "aug_01056", "question": "last_24_hours control_action 的平均值和最大值是多少"}
+{"id": "aug_01057", "question": "我想知道Analyze the zone_temperature in episode_001 zone_a for the last 24 hours, detect any time periods where it violates the setpoint by more than 2°F, and then recommend a policy to automatically adjust setpoint based on occupancy patterns."}
+{"id": "aug_01058", "question": "我想知道Get the internal_load metric for episode_001 zone_a over the last 24 hours, diagnose any anomalies in its pattern, and suggest a policy to adjust cooling based on occupancy."}
+{"id": "aug_01059", "question": "最近outdoor_temp 的平均值和最大值是多少"}
+{"id": "aug_01060", "question": "为什么只看单点温度不足以判断冷却系统是否健康？"}
+{"id": "aug_01061", "question": "帮我看看Analyze the zone_temperature in episode_001 zone_a for the last 24 hours, detect any time periods where it violates the setpoint by more than 2°F, and then recommend a policy to automatically adjust setpoint based on occupancy patterns."}
+{"id": "aug_01062", "question": "Could you check: 当前轨迹中是否有需要标记为告警候选的温度点？"}
+{"id": "aug_01063", "question": "Could you check: Compute the energy breakdown of cooling_power and fan_power in episode_001 zone_a for the last two weeks, identify any anomalies in the fan-to-cooling ratio, and retrieve the policy document for fan energy guidelines."}
+{"id": "aug_01064", "question": "请问请把 OCP 的平台功耗遥测和 Google 的 PUE 模型放在一起解释：二者怎样从不同层面支持冷却优化？"}
+{"id": "aug_01065", "question": "帮我看看当前策略建议是否可以直接由 LLM 编造控制动作？"}
+{"id": "aug_01066", "question": "能不能告诉我请给出当前状态的节能控制建议，并说明其来源。"}
+{"id": "aug_01067", "question": "Please analyze: Plot the daily minimum and maximum zone_temperature in episode_001 zone_a over the last month, detect any day where the daily range is below 1°F (possible sensor fault), and then retrieve the policy document on sensor accuracy requirements."}
+{"id": "aug_01068", "question": "full_demo_range zone_temperature 前后两个时段有没有明显变化对比"}
+{"id": "aug_01069", "question": "last_24_hours 制冷能效和 power 效率如何"}
+{"id": "aug_01070", "question": "Please analyze: Get the outdoor_temp and zone_temperature for episode_001 zone_a for the last 48 hours, detect if there is an anomaly in the temperature difference, and recommend a policy to improve insulation effectiveness."}
+{"id": "aug_01071", "question": "请问rack delta-t return differential alarm evidence 应该看哪些证据？"}
+{"id": "aug_01072", "question": "帮我看看当前 rollout 的全局 zone_temperature 最小值、平均值和最大值大致落在哪些范围？回答时必须说明这是仿真/导出数值。"}
+{"id": "aug_01073", "question": "能不能告诉我如果用户问能耗构成，为什么应该调用 compute_energy_breakdown？"}
+{"id": "aug_01074", "question": "full_demo_range internal_load 最近有没有异常告警"}
+{"id": "aug_01075", "question": "帮我看看Plot the monthly trend of hvac_power consumption in episode_001 zone_a over the last year, detect any month with anomalous dip or spike, and then recommend a policy to normalize consumption for weather and occupancy."}
+{"id": "aug_01076", "question": "请问Examine the trend of control_action for episode_001 zone_a over 24 hours, diagnose any repeating anomaly pattern, and suggest a policy to stabilize control actions."}
+{"id": "aug_01077", "question": "Please analyze: Plot the trend of comfort_violation events per day in episode_001 zone_a over the last 2 weeks, detect any day with an unusually high number (outlier), and then propose a policy to trigger immediate investigation when daily violations exceed 5."}
+{"id": "aug_01078", "question": "麻烦分析一下Plot the trend of hvac_power and outdoor_temp together in episode_001 zone_a over the last 30 days, detect any periods where hvac_power is unusually high relative to outdoor_temp, and propose a policy to improve system efficiency."}
+{"id": "aug_01079", "question": "请问采样窗口过短时，异常诊断回答应如何保守表达？"}
+{"id": "aug_01080", "question": "麻烦分析一下Analyze the trend of hvac_power consumption during weekends in episode_001 zone_a over the last two months, detect any weekend where consumption approaches weekday levels (anomaly), and then propose a policy to enforce weekend setback schedules."}
+{"id": "aug_01081", "question": "如果 compare_period 显示维护后能耗上升，策略建议应如何给出？"}
+{"id": "aug_01082", "question": "return air differential 和 rack delta-t 可以提示哪些冷却问题？"}
+{"id": "aug_01083", "question": "帮我看看如果 compare_period 显示维护后能耗上升，策略建议应如何给出？"}
+{"id": "aug_01084", "question": "last_24_hours cooling_power 前后两个时段有没有明显变化对比"}
+{"id": "aug_01085", "question": "Please analyze: Analyze the setpoint compliance in episode_001 zone_a over the past month: get the zone_temperature timeseries, detect periods where it deviates from setpoint by more than 2°F, and then recommend a policy to improve compliance."}
+{"id": "aug_01086", "question": "麻烦分析一下请检查当前轨迹中 zone_temperature 是否有可用观测值。"}
+{"id": "aug_01087", "question": "麻烦分析一下ASHRAE TC9.9 中 hot aisle、cold aisle、ballroom 和 grey area 的划分为什么对电力设备有意义？"}
+{"id": "aug_01088", "question": "Please analyze: Query fan_power for episode_001 zone_a over the last 4 hours, compare with the same period yesterday, and if there is an anomaly, recommend a policy for fan maintenance."}
+{"id": "aug_01089", "question": "帮我看看如果 temperature spike 只出现在单个区域，如何用工具确认？"}
+{"id": "aug_01090", "question": "能不能告诉我Get the zone_temperature timeseries for episode_001 zone_a for the last month, detect days with highest anomaly score, and then recommend a policy to pre-cool the zone on those days based on weather forecast."}
+{"id": "aug_01091", "question": "帮我看看Plot the trend of internal_load for episode_001 zone_a over the last week, detect any anomalies in the load profile, and recommend a policy to optimize internal load management."}
+{"id": "aug_01092", "question": "麻烦分析一下数据中心冷却系统为什么可能出现高能耗？"}
+{"id": "aug_01093", "question": "Could you check: Query fan_power for episode_001 zone_a over the last 4 hours, compare with the same period yesterday, and if there is an anomaly, recommend a policy for fan maintenance."}
+{"id": "aug_01094", "question": "麻烦分析一下液冷混合场景中风侧温度异常能否证明 CDU 故障？"}
+{"id": "aug_01095", "question": "请问如果要比较前 48 小时和后 48 小时的 zone_temperature，而不是全量前后半段，回答应如何保持可复现？"}
+{"id": "aug_01096", "question": "Please analyze: Uptime outage 摘要能否直接判断当前 BEAR rollout 的 comfort_violation 是真实故障？"}
+{"id": "aug_01097", "question": "能不能告诉我最新状态温度高于舒适上限时，规则策略会给出什么建议？"}
+{"id": "aug_01098", "question": "能不能告诉我请把 OCP 的平台功耗遥测和 Google 的 PUE 模型放在一起解释：二者怎样从不同层面支持冷却优化？"}
+{"id": "aug_01099", "question": "请问维护窗口期间出现高温点，应如何判断告警优先级？"}
+{"id": "aug_01100", "question": "能不能告诉我Retrieve the policy document on cooling power limits (doc_003), then analyze the cooling_power trend in episode_001 zone_a over the last day, and recommend if the policy limits need adjustment."}
+{"id": "aug_01101", "question": "我想知道Get the outdoor_temp and zone_temperature for episode_001 zone_a for the last 48 hours, detect if there is an anomaly in the temperature difference, and recommend a policy to improve insulation effectiveness."}
+{"id": "aug_01102", "question": "请问液冷和风冷混合场景下，为什么不能把 zone_temperature 当作液路状态？"}
+{"id": "aug_01103", "question": "full_demo_range 画一下 fan_power 的趋势折线图"}
+{"id": "aug_01104", "question": "Could you check: 温度突然上升时，系统应该如何定位异常证据？"}
+{"id": "aug_01105", "question": "BEAR 论文和 Google 论文都涉及模型；如果问“可配置建筑环境用于 RL/control 算法评测”，应排除哪类 PUE 优化文档？"}
+{"id": "aug_01106", "question": "能不能告诉我为什么长篇 cooling airflow 噪声文档不应压过更具体的 supply air reset 文档？"}
+{"id": "aug_01107", "question": "能不能告诉我Compute the energy breakdown for episode_001 zone_a for each day of the last week, detect any day where fan_power is more than 50% of total HVAC energy (inefficient), and then recommend a policy to enforce a maximum fan energy fraction."}
+{"id": "aug_01108", "question": "请问最近时刻所有 zone 都 comfort_violation 为 True，这是否足以直接下生产控制指令？"}
+{"id": "aug_01109", "question": "麻烦分析一下Compute the energy breakdown of cooling_power and fan_power in episode_001 zone_a for the last two weeks, identify any anomalies in the fan-to-cooling ratio, and retrieve the policy document for fan energy guidelines."}
+{"id": "aug_01110", "question": "我想知道Analyze the setpoint compliance in episode_001 zone_a over the past month: get the zone_temperature timeseries, detect periods where it deviates from setpoint by more than 2°F, and then recommend a policy to improve compliance."}
+{"id": "aug_01111", "question": "请问时序工具回答为什么要保留 zone_id、count 和时间范围？"}
+{"id": "aug_01112", "question": "请问传感器缺失时是否应该输出激进策略建议？"}
+{"id": "aug_01113", "question": "最近control_action 控制动作有没有震荡抖动"}
+{"id": "aug_01114", "question": "帮我看看请比较 zone_temperature 在前半段和后半段的平均值变化。"}
+{"id": "aug_01115", "question": "能不能告诉我Plot the trend of comfort_violation events over the last month in episode_001 zone_a, detect if there is a seasonal pattern anomaly, and then propose a policy to adapt comfort thresholds seasonally."}
+{"id": "aug_01116", "question": "请问Analyze the trend of hvac_power consumption during weekends in episode_001 zone_a over the last two months, detect any weekend where consumption approaches weekday levels (anomaly), and then propose a policy to enforce weekend setback schedules."}
+{"id": "aug_01117", "question": "Check the zone_temperature and setpoint values in episode_001 zone_a over the last 48 hours, detect any comfort violation anomalies, and then retrieve the policy document to confirm the violation criteria."}
+{"id": "aug_01118", "question": "Could you check: 当真实 DiffFNO 后端未接入时，策略推荐应如何输出？"}
+{"id": "aug_01119", "question": "能不能告诉我BEAR 轨迹中的 PUE、湿度和 IT 负载字段应该如何处理？"}
+{"id": "aug_01120", "question": "请问控制动作频繁变化但温度没有改善，如何判断控制震荡？"}
+{"id": "aug_01121", "question": "麻烦分析一下请对比 ASHRAE Standard 55 和 ASHRAE TC9.9：一个关注人员热舒适，一个关注数据中心设备热环境，这个区分应如何表述？"}
+{"id": "aug_01122", "question": "请问ASHRAE TC9.9 中 hot aisle、cold aisle、ballroom 和 grey area 的划分为什么对电力设备有意义？"}
+{"id": "aug_01123", "question": "last_24_hours internal_load 前后两个时段有没有明显变化对比"}
+{"id": "aug_01124", "question": "最近outdoor_temp 的能耗构成是怎样的"}
+{"id": "aug_01125", "question": "我想知道Compare the energy consumption (hvac_power) of episode_001 zone_a during the last three months using monthly averages, detect any month with anomalous consumption, and then retrieve the policy document for annual energy targets."}
+{"id": "aug_01126", "question": "麻烦分析一下如果问题问的是 IT 设备 A2/A3/A4 允许温度范围，ASHRAE Standard 55 表面上也谈温度，但正确引用应是哪篇？"}
+{"id": "aug_01127", "question": "麻烦分析一下冷却系统优化时为什么要同时考虑能耗和舒适度约束？"}
+{"id": "aug_01128", "question": "能不能告诉我判断 Delta-T 变化原因时，为什么要同时看 fan_power 或 control_action？"}
+{"id": "aug_01129", "question": "我想知道如果当前温度超过舒适上限，是否应该调整控制策略？"}
+{"id": "aug_01130", "question": "请问判断 Delta-T 变化原因时，为什么要同时看 fan_power 或 control_action？"}
+{"id": "aug_01131", "question": "outdoor_temp 前后两个时段有没有明显变化对比"}
+{"id": "aug_01132", "question": "Could you check: Analyze the zone_temperature trend in episode_001 zone_a over the last 24 hours, detect if there is an anomaly in the ramp rate, and recommend a policy to smooth temperature changes."}
+{"id": "aug_01133", "question": "帮我看看维护窗口中是否应该激进降低冷却功率？"}
+{"id": "aug_01134", "question": "Please analyze: Plot the trend of comfort_violation for episode_001 zone_a over the last month, detect if there is a weekly anomaly pattern, and recommend a policy to minimize violations."}
+{"id": "aug_01135", "question": "Could you check: 为什么数据中心电力设备的热管理不能只照搬 IT 设备进风温度指南？"}
+{"id": "aug_01136", "question": "帮我看看DOE 指南和 ASHRAE TC9.9 都会提到空气/冷却；如果问“空气管理减少 bypass 和 recirculation”，主证据应是哪篇？"}
+{"id": "aug_01137", "question": "帮我看看请查询 fan_power 的平均值和最大值。"}
+{"id": "aug_01138", "question": "Could you check: Compare the energy consumption (hvac_power) of episode_001 zone_a to a similar zone (not allowed to mention) but since only zone_a, compare the monthly consumption to itself last year (assume data available), detect if consumption has increased anomalously, and propose a policy for year-over-year benchmarking."}
+{"id": "aug_01139", "question": "我想知道Before giving a policy recommendation, inspect the latest zone_temperature summary and then return the policy_result boundary."}
+{"id": "aug_01140", "question": "请问数据中心冷却系统为什么可能出现高能耗？"}
+{"id": "aug_01141", "question": "Analyze the cooling power trend in episode_001 zone_a over the past 8 hours, detect any anomalies, and recommend a policy adjustment to reduce energy use."}
+{"id": "aug_01142", "question": "帮我看看Compare zone_temperature of episode_001 zone_a between last week and this week, identify if there is an anomaly in comfort_violation rate, and suggest a policy to maintain comfort."}
+{"id": "aug_01143", "question": "internal_load 数据有没有缺失或字段质量问题"}
+{"id": "aug_01144", "question": "帮我看看Check current zone_temperature evidence first, then recommend whether the HVAC control policy should change."}
+{"id": "aug_01145", "question": "Please analyze: Before giving a policy recommendation, inspect the latest zone_temperature summary and then return the policy_result boundary."}
+{"id": "aug_01146", "question": "我想知道如果用户问最近温度最高点，应调用什么工具并返回哪些字段？"}
+{"id": "aug_01147", "question": "cooling_power 的平均值和最大值是多少"}
+{"id": "aug_01148", "question": "Please analyze: Uptime 报告和 Google 论文都提到 operations；如果问 outage 的原因、成本和后果，应引用哪篇而不是哪篇？"}
+{"id": "aug_01149", "question": "帮我看看设定点上调建议中为什么必须说明 policy 工具来源？"}
+{"id": "aug_01150", "question": "我想知道BEAR 轨迹在本项目中应如何表述，为什么不能说成真实生产数据？"}
+{"id": "aug_01151", "question": "我想知道为什么数据中心电力设备的热管理不能只照搬 IT 设备进风温度指南？"}
+{"id": "aug_01152", "question": "Could you check: ASHRAE TC9.9 文档中提到的 A2、A3、A4 冷通道温度范围分别是多少？"}
+{"id": "aug_01153", "question": "帮我看看offline replay 与 diffusion adapter 的边界是什么？"}
+{"id": "aug_01154", "question": "Please analyze: Get the outdoor_temp for episode_001 zone_a for the last 72 hours, detect any anomalous heat spikes, and recommend a policy to protect equipment during extreme temperatures."}
+{"id": "aug_01155", "question": "我想知道Retrieve the policy document on temperature setpoints (doc_002), then query the zone_temperature in episode_001 zone_a, detect any deviation from the policy, and recommend an updated setpoint."}
+{"id": "aug_01156", "question": "Please analyze: 请检查当前轨迹中 zone_temperature 是否有可用观测值。"}
+{"id": "aug_01157", "question": "请问BEAR 和直接使用真实楼宇生产数据相比，作为评测数据源的边界是什么？"}
+{"id": "aug_01158", "question": "请问Plot the trend of fan_power and control_action together in episode_001 zone_a over the last week to see if high fan_power correlates with high control action, detect any disconnection (anomaly), and then propose a policy to ensure coordinated control."}
+{"id": "aug_01159", "question": "最近cooling_power 数据有没有缺失或字段质量问题"}
+{"id": "aug_01160", "question": "Could you check: zone_0 的温度序列是否存在异常候选？请给出工具证据并说明检测器敏感性。"}
+{"id": "aug_01161", "question": "offline replay 与 diffusion adapter 的边界是什么？"}
+{"id": "aug_01162", "question": "帮我看看维护窗口前后 zone_temperature 是否升高？"}
+{"id": "aug_01163", "question": "Check latest hvac_power evidence first, then decide whether the policy should keep or adjust cooling."}
+{"id": "aug_01164", "question": "请问ASHRAE TC9.9 或 Standard 55 是否能证明本项目里的 BEAR rollout 是真实机房传感器数据？"}
+{"id": "aug_01165", "question": "zone_temperature 数据有没有缺失或字段质量问题"}
+{"id": "aug_01166", "question": "我想知道如果异常检测器报出接近一半数据点为异常，应该如何解释这个结果的可信度？"}
+{"id": "aug_01167", "question": "Compare the energy consumption (hvac_power) of episode_001 zone_a between weeks with similar average outdoor_temp, detect if consumption is consistent or if there are anomalies, and then propose a policy to normalize consumption data for comparison."}
+{"id": "aug_01168", "question": "麻烦分析一下最近时刻所有 zone 都 comfort_violation 为 True，这是否足以直接下生产控制指令？"}
+{"id": "aug_01169", "question": "能不能告诉我Check latest hvac_power evidence first, then decide whether the policy should keep or adjust cooling."}
+{"id": "aug_01170", "question": "能不能告诉我当真实 DiffFNO 后端未接入时，策略推荐应如何输出？"}
+{"id": "aug_01171", "question": "帮我看看Check the trend of comfort_violation episodes in episode_001 zone_a over the past month, detect if the frequency is increasing anomalously, and then retrieve the policy document on compliance targets."}
+{"id": "aug_01172", "question": "Uptime Institute 2024 outage 摘要关注 outage 的哪些方面？"}
+{"id": "aug_01173", "question": "最近zone_1 舒适度有没有过热越限风险"}
+{"id": "aug_01174", "question": "最近cooling_power 的平均值和最大值是多少"}
+{"id": "aug_01175", "question": "麻烦分析一下Check the trend of comfort_violation rate over the last 3 months in episode_001 zone_a, detect if the rate is increasing (anomaly), and then look up the policy document to see if there is a required corrective action timeline."}
+{"id": "aug_01176", "question": "针对当前情况给出降温策略建议"}
+{"id": "aug_01177", "question": "请同时引用 BEAR、ASHRAE TC9.9 和 DOE，说明本项目为什么只能声称“仿真控制 + 文档知识库评测”，不能声称真实生产优化。"}
+{"id": "aug_01178", "question": "last_24_hours zone_1 舒适度有没有过热越限风险"}
+{"id": "aug_01179", "question": "Get the zone_temperature and setpoint timeseries for episode_001 zone_a for the last 48 hours, detect any period where the temperature crosses setpoint more than once per hour (hunting), and then recommend a policy to increase deadband to prevent hunting."}
+{"id": "aug_01180", "question": "我想知道hybrid cooling 评估中 fan_power 下降能说明什么，不能说明什么？"}
+{"id": "aug_01181", "question": "麻烦分析一下Plot the daily minimum and maximum zone_temperature in episode_001 zone_a over the last month, detect any day where the daily range is below 1°F (possible sensor fault), and then retrieve the policy document on sensor accuracy requirements."}
+{"id": "aug_01182", "question": "请问Get the zone_temperature timeseries for episode_001 zone_a for the last month, detect days with highest anomaly score, and then recommend a policy to pre-cool the zone on those days based on weather forecast."}
+{"id": "aug_01183", "question": "Could you check: 策略回答中如何避免把仿真结论当成生产控制指令？"}
+{"id": "aug_01184", "question": "最近画一下 internal_load 的趋势折线图"}
+{"id": "aug_01185", "question": "麻烦分析一下Compare the energy consumption (hvac_power) of episode_001 zone_a between weeks with similar average outdoor_temp, detect if consumption is consistent or if there are anomalies, and then propose a policy to normalize consumption data for comparison."}
+{"id": "aug_01186", "question": "帮我看看采样窗口过短会如何影响异常检测？"}
+{"id": "aug_01187", "question": "请问Retrieve a policy document about reactive maintenance (doc_006), then query the control_action count anomaly in episode_001 zone_a over the last week, and recommend a policy to shift to predictive maintenance."}
+{"id": "aug_01188", "question": "麻烦分析一下请先检查最近温度，再判断是否需要把异常解释为数据质量问题而不是 HVAC 故障。"}
+{"id": "aug_01189", "question": "Could you check: OCP 和 Google 文档都谈 PUE；如果问“利用平台功耗遥测把 IT 负载暴露给设施侧”，应引用哪篇？请同时说明 Google 为什么是相近但非主证据。"}
+{"id": "aug_01190", "question": "full_demo_range zone_temperature 数据有没有缺失或字段质量问题"}
+{"id": "aug_01191", "question": "我想知道Plot the trend of outdoor_temp and zone_temperature together for episode_001 zone_a over the last 3 days, detect any correlation anomalies, and then suggest a policy to optimize setpoint reset based on outdoor conditions."}
+{"id": "aug_01192", "question": "帮我看看策略推荐回答中必须包含哪些结构化信息？"}
+{"id": "aug_01193", "question": "请问Look up the policy document on temperature setpoint guidelines for occupied zones, then analyze the current setpoint usage in episode_001 zone_a to see if it aligns, and recommend updates if necessary."}
+{"id": "aug_01194", "question": "Could you check: 过度制冷导致温度过低时，如何用异常工具标记？"}
+{"id": "aug_01195", "question": "Look up the policy document on anomaly thresholds, analyze the recent anomaly in cooling_power in episode_001 zone_a, and propose a policy update."}
+{"id": "aug_01196", "question": "帮我看看Analyze the trend of zone_temperature during unoccupied hours in episode_001 zone_a over the last month, detect if the temperature is drifting too far from setpoint (energy waste), and then recommend a policy to tighten unoccupied deadband."}
+{"id": "aug_01197", "question": "画一下 zone_temperature 的趋势折线图"}
+{"id": "aug_01198", "question": "文档里关于机房送风温度是怎么说的"}
+{"id": "aug_01199", "question": "帮我看看缺失观测值会怎样影响告警候选判断？"}
+{"id": "aug_01200", "question": "麻烦分析一下维护窗口期间冷却告警为什么要结合冗余能力解释？"}
+{"id": "aug_01201", "question": "Retrieve policy document on setpoint scheduling (doc_007), then compare current setpoint schedule with actual zone_temperature in episode_001 zone_a, detect anomalies, and recommend updates."}
+{"id": "aug_01202", "question": "Please analyze: Compute the energy breakdown for episode_001 zone_a over the last month and then look up the policy document to see if the building meets the required renewable energy fraction (from grid vs local generation)."}
+{"id": "aug_01203", "question": "我想知道rack delta-t return differential alarm evidence 应该看哪些证据？"}
+{"id": "aug_01204", "question": "能不能告诉我Get the zone_temperature and internal_load data for episode_001 zone_a over the last 10 days, detect if there is a high internal_load day where zone_temperature did not increase (possible cooling overpowering), and then recommend a policy to balance cooling with internal load."}
+{"id": "aug_01205", "question": "帮我看看Before policy recommendation, check the latest 3 hour zone_temperature max and then decide whether to adjust the control policy."}
+{"id": "aug_01206", "question": "能不能告诉我DOE 指南和 ASHRAE TC9.9 都会提到空气/冷却；如果问“空气管理减少 bypass 和 recirculation”，主证据应是哪篇？"}
+{"id": "aug_01207", "question": "Get the outdoor_temp and zone_temperature for episode_001 zone_a for the last 48 hours, detect if there is an anomaly in the temperature difference, and recommend a policy to improve insulation effectiveness."}
+{"id": "aug_01208", "question": "帮我看看zone_0 的温度序列是否存在异常候选？请给出工具证据并说明检测器敏感性。"}
+{"id": "aug_01209", "question": "帮我看看Compare the cooling_power and outdoor_temp correlation in episode_001 zone_a for the last 3 days with a baseline period, detect anomaly in the correlation coefficient, and recommend a policy to improve cooling efficiency."}
