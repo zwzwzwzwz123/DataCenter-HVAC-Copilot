@@ -27,3 +27,4 @@ data/memory/*
 distill/checkpoints/*/*
 !distill/checkpoints/*/sft_train_card.json
 distill/checkpoints/*.tar.gz
+distill/data/eval_pred_*.jsonl
