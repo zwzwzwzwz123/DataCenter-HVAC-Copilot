@@ -5,13 +5,12 @@ QLoRA so it reproduces the route planner's decisions, using the hand-labeled
 + teacher-generated ``{messages, completion}`` data from stage 1.
 
 Design choices (see distillation_plan.md, stage 2):
-- **Chat template alignment**: prompts are rendered with the model's own
-  ``tokenizer.apply_chat_template`` so the student trains on exactly the format
-  it will see at inference. The label is the ``completion`` JSON rendered as the
-  assistant turn.
-- **Completion-only loss**: loss is masked to the assistant response via TRL's
-  ``DataCollatorForCompletionOnlyLM``, so the model is not trained to reproduce
-  the (fixed) system/user prompt.
+- **Chat template alignment**: data uses TRL's prompt/completion format;
+  SFTTrainer applies the model's own chat template, so the student trains on
+  exactly the format it will see at inference.
+- **Completion-only loss**: ``SFTConfig(completion_only_loss=True)`` masks the
+  prompt so loss is computed only over the assistant answer (TRL >=1.x built-in;
+  replaces the older DataCollatorForCompletionOnlyLM).
 - **QLoRA (4-bit)** by default for single 12-16G GPU; ``--no-quantize`` for
   full-precision LoRA when memory allows.
 - **Model is configurable** (``--model``) so the same script trains 1.5B now
@@ -46,9 +45,6 @@ from pathlib import Path
 
 
 DEFAULT_MODEL = "Qwen/Qwen2.5-1.5B-Instruct"
-# Qwen chat responses are wrapped as <|im_start|>assistant\n ... ; this marker
-# is what the completion-only collator uses to locate the label span.
-ASSISTANT_RESPONSE_TEMPLATE = "<|im_start|>assistant\n"
 
 
 @dataclass
@@ -103,19 +99,6 @@ def load_records(path: str) -> list[dict]:
     if not records:
         raise SystemExit(f"no samples found in {path}")
     return records
-
-
-def build_text(record: dict, tokenizer) -> str:
-    """Render one sample to a full chat string ending with the assistant label.
-
-    Uses the tokenizer's own chat template so the student sees exactly the
-    inference-time format. The completion (assistant turn) is appended so the
-    completion-only collator can mask everything before it.
-    """
-    messages = list(record["messages"]) + [
-        {"role": "assistant", "content": record["completion"]}
-    ]
-    return tokenizer.apply_chat_template(messages, tokenize=False)
 
 
 def measure_val_legality(model, tokenizer, val_records: list[dict], max_new_tokens: int = 256) -> dict:
@@ -182,7 +165,7 @@ def train(cfg: TrainConfig) -> None:
         AutoTokenizer,
         BitsAndBytesConfig,
     )
-    from trl import DataCollatorForCompletionOnlyLM, SFTConfig, SFTTrainer
+    from trl import SFTConfig, SFTTrainer
 
     torch.manual_seed(cfg.seed)
 
@@ -219,17 +202,19 @@ def train(cfg: TrainConfig) -> None:
 
     train_records = load_records(cfg.train_path)
     val_records = load_records(cfg.val_path)
-    train_ds = Dataset.from_dict(
-        {"text": [build_text(r, tokenizer) for r in train_records]}
-    )
-    val_ds = Dataset.from_dict(
-        {"text": [build_text(r, tokenizer) for r in val_records]}
-    )
 
-    collator = DataCollatorForCompletionOnlyLM(
-        response_template=ASSISTANT_RESPONSE_TEMPLATE,
-        tokenizer=tokenizer,
-    )
+    # TRL >=1.x prompt/completion format: SFTTrainer applies the model's chat
+    # template itself and, with completion_only_loss=True, masks the prompt so
+    # loss is computed only over the assistant answer. `prompt` is the list of
+    # system/user messages; `completion` is the single assistant-turn message.
+    def to_pc(rec: dict) -> dict:
+        return {
+            "prompt": rec["messages"],
+            "completion": [{"role": "assistant", "content": rec["completion"]}],
+        }
+
+    train_ds = Dataset.from_list([to_pc(r) for r in train_records])
+    val_ds = Dataset.from_list([to_pc(r) for r in val_records])
 
     sft_config = SFTConfig(
         output_dir=cfg.output_dir,
@@ -245,8 +230,8 @@ def train(cfg: TrainConfig) -> None:
         save_total_limit=2,
         bf16=True,
         gradient_checkpointing=True,
-        max_seq_length=cfg.max_seq_len,
-        dataset_text_field="text",
+        max_length=cfg.max_seq_len,
+        completion_only_loss=True,
         report_to="none",
         seed=cfg.seed,
     )
@@ -257,7 +242,7 @@ def train(cfg: TrainConfig) -> None:
         train_dataset=train_ds,
         eval_dataset=val_ds,
         peft_config=lora_config,
-        data_collator=collator,
+        processing_class=tokenizer,
     )
 
     trainer.train()

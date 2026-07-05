@@ -1,7 +1,12 @@
 # Handoff — Planner 蒸馏 阶段 1（数据）+ 阶段 2（SFT 脚本）
 
-**日期**：2026-07-04
-**范围**：`distillation_plan.md` 的阶段 1（精标数据扩充）与阶段 2（SFT 训练脚本）。阶段 3（DPO）**未开始**，应用户要求暂停。
+**日期**：2026-07-04（末次更新：手册提交后同步）
+**范围**：`distillation_plan.md` 的阶段 1（精标数据扩充）与阶段 2（SFT 训练脚本），外加 SFT 训练操作手册的编写。阶段 3（DPO）**未开始**，应用户要求暂停。
+
+**当前 git 状态**：工作区干净，全部产物已提交。相关 commit：
+- `36532e1` 重构 planner（抽出 `build_planner_messages` / `serialize_plan_steps`）
+- `83aa39d` 阶段 1+2：600 条精标数据 + SFT 脚本 + 测试
+- `4594405` 生成 SFT 操作手册（PDF + 生成脚本）
 
 ---
 
@@ -9,9 +14,10 @@
 
 | 阶段 | 状态 | 产物 |
 | --- | --- | --- |
-| 1 数据构造 | ✅ 完成 | `distill/data/gold_labeled.jsonl`（600 条精标）+ train/val + data card |
+| 1 数据构造 | ✅ 完成（已提交 `83aa39d`） | `distill/data/gold_labeled.jsonl`（600 条精标）+ train/val + data card |
 | 2 SFT 脚本 | ✅ 脚本完成，**未在 GPU 上实跑** | `distill/train_sft.py` |
 | 2 SFT 训练 | ⏳ 待办 | 需租 GPU 执行 |
+| — 训练操作手册 | ✅ 完成（已提交 `4594405`） | `distill/SFT_训练操作手册.pdf` / `_v2.pdf` + `make_manual_pdf.py` |
 | 3 DPO | ⛔ 未开始（暂停） | — |
 | 4 接回评测 | ⛔ 未开始 | — |
 
@@ -44,18 +50,14 @@
 
 ## 3. ⚠️ 接手前必读的风险与前提
 
-### 3.1 【关键】distill 脚本依赖工作区**未提交**的 planner 改动
+### 3.1 distill 脚本依赖的 planner 函数（已提交，风险已消除）
 `distill/build_gold_sft.py` 和 `distill/build_sft_data.py` 依赖：
 - `src.agent.planner.build_planner_messages`
 - `src.agent.planner.serialize_plan_steps`
 
-**这两个函数在 git HEAD 版本中不存在**，只存在于当前工作区的未提交改动里（`git status` 显示 `M src/agent/planner.py` 等 3 个 .py 文件被修改但未提交）。
+**这两个函数已在 commit `36532e1`（"重构 planner：抽出可复用的消息构建与计划序列化函数"）提交进 `src/agent/planner.py`**（现位于第 338、363 行）。阶段 1+2 的全部产物（gold 数据、脚本、测试）也已在 `83aa39d` 提交，git 现为干净稳定基线。**原先"函数只在未提交工作区"的风险已不存在。**
 
-**后果**：如果从干净 HEAD 检出、或误 `git stash` 掉未提交改动，这些脚本会 `ImportError`。
-
-**行动项**：
-- 在跑任何 distill 数据脚本前，确认 `src/agent/planner.py` 工作区版本包含上述两个函数（`grep -n "def build_planner_messages\|def serialize_plan_steps" src/agent/planner.py` 应各命中一次）。
-- 建议尽快把这些未提交的 planner/bounded_react/langgraph 改动**单独提交**，让 distill 依赖有稳定基线。（注意：这些改动**不是本次蒸馏会话产生的**，是接手前工作区里已有的，提交前应先确认其来源与正确性。）
+**如需自检**（无害）：`grep -n "def build_planner_messages\|def serialize_plan_steps" src/agent/planner.py` 应各命中一次。
 
 ### 3.2 训练脚本尚未在真实 GPU 上跑过
 `train_sft.py` 在**无 GPU 的本地**做了充分静态验证（见 §4），但 TRL API 版本差异可能需微调。已知需注意：
@@ -123,8 +125,14 @@ python -m distill.train_sft \
 | 文件 | 作用 |
 | --- | --- |
 | `distill/data/gold_labeled.jsonl` | 600 条精标源数据（可继续扩充） |
+| `distill/augment_questions.py` | 问题扩充（生成 `data/questions.jsonl`） |
+| `distill/build_sft_data.py` | 教师产出 → SFT 数据（`data/sft_*.jsonl`） |
 | `distill/build_gold_sft.py` | gold → train/val + data card（依赖 §3.1 函数） |
-| `distill/train_sft.py` | 阶段 2 SFT 训练（本次新增） |
-| `tests/test_distill_gold.py` | 保护 gold 数据 100% 合法（本次新增） |
+| `distill/train_sft.py` | 阶段 2 SFT 训练 |
+| `distill/make_manual_pdf.py` | 生成 SFT 训练操作手册 PDF |
+| `distill/SFT_训练操作手册.pdf` / `_v2.pdf` | 训练操作手册（v2 为最新版） |
+| `tests/test_distill_gold.py` | 保护 gold 数据 100% 合法 |
+| `tests/test_distill_augment.py` | 问题扩充测试 |
+| `tests/test_distill_sft_data.py` | SFT 数据构造测试 |
 | `distillation_plan.md` | 五阶段总计划 |
 | `pyproject.toml` | 新增 `[train]` extra |
