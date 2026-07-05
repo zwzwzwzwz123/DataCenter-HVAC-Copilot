@@ -79,6 +79,10 @@ def run_predict(args) -> None:
     # (per-item timing is meaningless when a whole batch decodes together).
     if args.fast and args.planner == "distilled":
         rows = _predict_distilled_batched(planner, records, args.batch_size)
+    elif args.concurrency > 1:
+        # API planners (env/deepseek) are network-bound and safe to run in
+        # parallel — a thread pool cuts wall-clock ~Nx without touching results.
+        rows = _predict_concurrent(planner, records, args.concurrency)
     else:
         rows = _predict_sequential(planner, records)
 
@@ -97,6 +101,16 @@ def run_predict(args) -> None:
     print(f"[write] {out}")
 
 
+def _row_from_decision(rec_id: str, decision, latency_s: float) -> dict:
+    return {
+        "id": rec_id,
+        "planned_steps": [_plan_step_to_dict(s) for s in decision.steps],
+        "planner": decision.planner,
+        "fallback_used": decision.fallback_used,
+        "latency_s": round(latency_s, 4),
+    }
+
+
 def _predict_sequential(planner, records) -> list[dict]:
     rows = []
     for rec in records:
@@ -104,18 +118,35 @@ def _predict_sequential(planner, records) -> list[dict]:
         # Do NOT pass task_type: we want the planner to route from the question
         # alone (compound tasks have no single task_type shortcut anyway).
         decision = planner.plan(rec.question)
-        dt = time.perf_counter() - t0
-        planned_steps = [_plan_step_to_dict(s) for s in decision.steps]
-        rows.append(
-            {
-                "id": rec.id,
-                "planned_steps": planned_steps,
-                "planner": decision.planner,
-                "fallback_used": decision.fallback_used,
-                "latency_s": round(dt, 4),
-            }
-        )
+        rows.append(_row_from_decision(rec.id, decision, time.perf_counter() - t0))
     return rows
+
+
+def _predict_concurrent(planner, records, concurrency: int) -> list[dict]:
+    """Run an API planner over the eval set with a thread pool.
+
+    For network-bound planners (env/deepseek) each ``plan`` call is a blocking
+    HTTP request, so threads overlap the waits and cut wall-clock roughly by
+    ``concurrency``. Results are re-sorted into the original record order, so
+    output is identical to the sequential path aside from ``latency_s`` (which
+    becomes per-call wall time, now overlapped with other calls).
+    """
+    from concurrent.futures import ThreadPoolExecutor
+
+    def _one(rec):
+        t0 = time.perf_counter()
+        decision = planner.plan(rec.question)
+        return rec.id, _row_from_decision(rec.id, decision, time.perf_counter() - t0)
+
+    done = 0
+    by_id: dict[str, dict] = {}
+    with ThreadPoolExecutor(max_workers=concurrency) as pool:
+        for rec_id, row in pool.map(_one, records):
+            by_id[rec_id] = row
+            done += 1
+            print(f"[predict] {done}/{len(records)} done", flush=True)
+    # Preserve original eval order.
+    return [by_id[rec.id] for rec in records]
 
 
 def _predict_distilled_batched(planner, records, batch_size: int) -> list[dict]:
@@ -233,6 +264,13 @@ def main() -> None:
         "latency reported as wall-clock/n)",
     )
     pp.add_argument("--batch-size", type=int, default=16, help="batch size for --fast")
+    pp.add_argument(
+        "--concurrency",
+        type=int,
+        default=1,
+        help="parallel requests for API planners (env/deepseek); network-bound "
+        "so >1 cuts wall-clock. Ignored by the distilled --fast path.",
+    )
     pp.add_argument(
         "--max-new-tokens",
         type=int,
