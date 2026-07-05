@@ -21,3 +21,9 @@ data/bear_processed/*
 data/eval/*_predictions.jsonl
 data/memory/*
 !data/memory/.gitkeep
+
+# SFT/DPO training artifacts: ignore large binaries (LoRA weights, tokenizer,
+# archives), keep the tiny text train card so the result stays versioned.
+distill/checkpoints/*/*
+!distill/checkpoints/*/sft_train_card.json
+distill/checkpoints/*.tar.gz
