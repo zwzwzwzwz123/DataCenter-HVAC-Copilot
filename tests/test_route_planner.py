@@ -6,6 +6,8 @@ from src.agent.planner import (
     DeterministicRoutePlanner,
     LLMRoutePlanner,
     build_route_planner_from_env,
+    _is_supported_time_window,
+    _normalize_time_window,
     _system_prompt,
 )
 from src.tools.registry import TOOL_REGISTRY
@@ -361,3 +363,83 @@ def test_system_prompt_includes_tools_from_registry() -> None:
     for tool_name in ["data_quality_check", "comfort_risk_assessment", "policy_runner"]:
         assert tool_name in TOOL_REGISTRY
         assert tool_name in prompt
+
+
+def test_normalize_time_window_passes_through_canonical_values() -> None:
+    for value in ["last_24_hours", "last_30_minutes", "full_demo_range", "latest", "recent"]:
+        assert _normalize_time_window(value) == value
+
+
+def test_normalize_time_window_folds_natural_language_into_hours() -> None:
+    # Days/weeks/months fold into hours (matching the gold vocabulary, which
+    # never uses larger units) so train/inference formats stay consistent.
+    assert _normalize_time_window("past 7 days") == "last_168_hours"
+    assert _normalize_time_window("last 2 hours") == "last_2_hours"
+    assert _normalize_time_window("last 30 minutes") == "last_30_minutes"
+    assert _normalize_time_window("last month") == "last_720_hours"
+    assert _normalize_time_window("last 3 months") == "last_2160_hours"
+    assert _normalize_time_window("last two weeks") == "last_336_hours"
+    assert _normalize_time_window("today") == "last_24_hours"
+    assert _normalize_time_window("all data") == "full_demo_range"
+
+
+def test_normalize_time_window_handles_compact_and_range_forms() -> None:
+    assert _normalize_time_window("7d") == "last_168_hours"
+    assert _normalize_time_window("last_24h") == "last_24_hours"
+    assert _normalize_time_window("last_48h") == "last_48_hours"
+    assert _normalize_time_window("now-12h to now") == "last_12_hours"
+
+
+def test_normalize_time_window_leaves_unmappable_values_for_the_guard() -> None:
+    # Episode IDs, structured dicts, and truly ambiguous phrases must NOT be
+    # coerced into a valid window. They pass through unchanged so the guard
+    # still rejects them (forcing a deterministic fallback) rather than being
+    # silently rescued into a wrong value.
+    assert _normalize_time_window(None) is None
+    for value in ["episode_001", "garbage nonsense", "last_24", "weekends vs weekdays"]:
+        result = _normalize_time_window(value)
+        assert result == value
+        assert not _is_supported_time_window(result)
+
+
+def test_llm_planner_normalizes_natural_language_time_window() -> None:
+    # A window the model naturally emits ("past 7 days") used to be rejected by
+    # the guard and forced a deterministic fallback; it should now normalize and
+    # keep the LLM plan.
+    transport = FakePlannerTransport(
+        response={
+            "choices": [
+                {
+                    "message": {
+                        "content": json.dumps(
+                            {
+                                "steps": [
+                                    {
+                                        "route": "timeseries_query",
+                                        "reason": "Look at the recent trend.",
+                                        "tool": "query_metric",
+                                        "metric_name": "zone_temperature",
+                                        "time_window": "past 7 days",
+                                    }
+                                ]
+                            }
+                        )
+                    }
+                }
+            ]
+        }
+    )
+    planner = LLMRoutePlanner(
+        provider="deepseek",
+        api_key="test-key",
+        base_url="https://example.deepseek.test",
+        model="planner-test",
+        transport=transport,
+    )
+
+    decision = planner.plan("Show the zone_temperature trend over the past week.")
+
+    assert decision.fallback_used is False
+    assert decision.planner == "llm:deepseek:planner-test"
+    assert decision.steps[0].time_window == "last_168_hours"
+

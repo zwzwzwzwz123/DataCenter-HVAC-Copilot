@@ -404,7 +404,8 @@ def _step_from_llm_item(item: dict[str, Any]) -> PlanStep:
         tool=_optional_string(item.get("tool")) or _default_tool_for_route(route),
         metric_name=_optional_string(item.get("metric_name")) or _default_metric_for_route(route),
         zone_id=_optional_string(item.get("zone_id")),
-        time_window=_optional_string(item.get("time_window")) or _default_time_window_for_route(route),
+        time_window=_normalize_time_window(_optional_string(item.get("time_window")))
+        or _default_time_window_for_route(route),
     )
 
 
@@ -542,6 +543,108 @@ def validate_plan_steps(steps: list[PlanStep]) -> list[PlanStep]:
 def _is_supported_time_window(value: str) -> bool:
     normalized = value.strip().lower().replace("-", "_")
     return bool(TIME_WINDOW_PATTERN.fullmatch(normalized))
+
+
+# Natural-language time windows a model tends to emit ("past 7 days") that the
+# strict guard rejects, mapped to the canonical vocabulary the gold data uses.
+# Duration units are folded into hours/minutes (days*24, weeks*168, months*720)
+# because the training labels never use larger units — keeping inference
+# consistent with training.
+_HOURS_PER_UNIT = {
+    "minute": None,  # handled as minutes, not hours
+    "min": None,
+    "m": None,
+    "hour": 1,
+    "hr": 1,
+    "h": 1,
+    "day": 24,
+    "d": 24,
+    "week": 168,
+    "w": 168,
+    "month": 720,
+}
+# "last 7 days", "past 90 minutes", "7d", "last_24h", "now-12h to now" ...
+_RELATIVE_WINDOW_RE = re.compile(
+    r"(?:last|past|previous|prior|recent|now\s*-)?\s*"
+    r"(\d+)\s*"
+    r"(minutes?|mins?|hours?|hrs?|days?|weeks?|months?|m|h|hr|d|w)\b"
+)
+_WORD_WINDOW_MAP = {
+    "latest": "latest",
+    "now": "latest",
+    "current": "latest",
+    "currently": "latest",
+    "recent": "recent",
+    "recently": "recent",
+    "today": "last_24_hours",
+    "past day": "last_24_hours",
+    "last day": "last_24_hours",
+    "current week": "last_168_hours",
+    "past week": "last_168_hours",
+    "last week": "last_168_hours",
+    "current month": "last_720_hours",
+    "past month": "last_720_hours",
+    "last month": "last_720_hours",
+    "all": "full_demo_range",
+    "all data": "full_demo_range",
+    "entire": "full_demo_range",
+    "entire range": "full_demo_range",
+    "whole": "full_demo_range",
+    "full": "full_demo_range",
+    "full range": "full_range",
+    "everything": "full_demo_range",
+}
+# Spelled-out small numbers occasionally appear ("last two weeks").
+_WORD_NUMBERS = {
+    "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
+    "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
+}
+
+
+def _normalize_time_window(value: str | None) -> str | None:
+    """Coerce a free-form time window into the canonical guard vocabulary.
+
+    Returns the normalized string if it is (or can be mapped to) a supported
+    window, else ``None`` so the caller can fall back to the route default.
+    Already-valid values pass through unchanged.
+    """
+    if value is None:
+        return None
+    raw = value.strip().lower().replace("-", "_")
+    if not raw:
+        return None
+    # Already canonical (e.g. "last_24_hours", "full_demo_range").
+    if _is_supported_time_window(raw):
+        return raw
+
+    text = raw.replace("_", " ").strip()
+    # Word-level phrases ("last month", "today", "all data") — check before the
+    # numeric regex so "current week" isn't mis-read.
+    mapped = _WORD_WINDOW_MAP.get(text)
+    if mapped and _is_supported_time_window(mapped):
+        return mapped
+
+    # Spelled-out numbers -> digits ("last two weeks" -> "last 2 weeks").
+    for word, digit in _WORD_NUMBERS.items():
+        text = re.sub(rf"\b{word}\b", str(digit), text)
+
+    # "last N days/hours/minutes/weeks/months", "7d", "now-12h to now" ...
+    match = _RELATIVE_WINDOW_RE.search(text)
+    if match:
+        amount = int(match.group(1))
+        unit = match.group(2).rstrip("s")
+        if unit in {"minute", "min", "m"}:
+            candidate = f"last_{amount}_minutes"
+        else:
+            hours = _HOURS_PER_UNIT.get(unit)
+            candidate = f"last_{amount * hours}_hours" if hours else None
+        if candidate and _is_supported_time_window(candidate):
+            return candidate
+
+    # Not a recognizable natural-language window. Return the value unchanged so
+    # the guard still validates (and rejects) it — we only rescue windows we can
+    # confidently map, never silently coerce a confused/garbage value.
+    return value
 
 
 def _bounded_confidence(value: Any) -> float:
