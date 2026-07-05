@@ -51,7 +51,7 @@ from src.evaluation.metrics import (
 DEFAULT_EVAL = "data/eval/compound_task_eval.jsonl"
 
 
-def build_planner(name: str, adapter: str | None, no_quantize: bool):
+def build_planner(name: str, adapter: str | None, no_quantize: bool, max_new_tokens: int = 256):
     if name == "deterministic":
         return DeterministicRoutePlanner()
     if name == "distilled":
@@ -59,7 +59,9 @@ def build_planner(name: str, adapter: str | None, no_quantize: bool):
             raise SystemExit("--adapter is required for --planner distilled")
         from distill.distilled_planner import DistilledRoutePlanner
 
-        return DistilledRoutePlanner(adapter_dir=adapter, quantize=not no_quantize)
+        return DistilledRoutePlanner(
+            adapter_dir=adapter, quantize=not no_quantize, max_new_tokens=max_new_tokens
+        )
     if name == "env":
         # DeepSeek / whatever LANGGRAPH_PLANNER_PROVIDER points at (teacher).
         from src.agent.planner import build_route_planner_from_env
@@ -70,10 +72,33 @@ def build_planner(name: str, adapter: str | None, no_quantize: bool):
 
 def run_predict(args) -> None:
     records = load_eval_dataset(args.eval_path)
-    planner = build_planner(args.planner, args.adapter, args.no_quantize)
+    planner = build_planner(args.planner, args.adapter, args.no_quantize, args.max_new_tokens)
 
+    # Fast path: distilled planner supports batched GPU decode, which is far
+    # faster than the per-item loop. Latency is reported as wall-clock / n
+    # (per-item timing is meaningless when a whole batch decodes together).
+    if args.fast and args.planner == "distilled":
+        rows = _predict_distilled_batched(planner, records, args.batch_size)
+    else:
+        rows = _predict_sequential(planner, records)
+
+    out = Path(args.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with out.open("w", encoding="utf-8") as fh:
+        for r in rows:
+            fh.write(json.dumps(r, ensure_ascii=False) + "\n")
+
+    n = len(rows)
+    legal = sum(1 for r in rows if not r["fallback_used"] and r["planned_steps"])
+    avg_lat = sum(r["latency_s"] for r in rows) / n if n else 0.0
+    print(f"[predict] planner={args.planner} n={n}")
+    print(f"[predict] non-fallback plans: {legal}/{n} ({legal / n:.1%})" if n else "")
+    print(f"[predict] avg latency: {avg_lat:.3f}s")
+    print(f"[write] {out}")
+
+
+def _predict_sequential(planner, records) -> list[dict]:
     rows = []
-    legal = 0
     for rec in records:
         t0 = time.perf_counter()
         # Do NOT pass task_type: we want the planner to route from the question
@@ -81,10 +106,6 @@ def run_predict(args) -> None:
         decision = planner.plan(rec.question)
         dt = time.perf_counter() - t0
         planned_steps = [_plan_step_to_dict(s) for s in decision.steps]
-        # A non-empty, parsed plan means it passed validate_plan_steps inside
-        # the planner (both LLM and distilled paths validate before returning).
-        if planned_steps and not decision.fallback_used:
-            legal += 1
         rows.append(
             {
                 "id": rec.id,
@@ -94,19 +115,32 @@ def run_predict(args) -> None:
                 "latency_s": round(dt, 4),
             }
         )
+    return rows
 
-    out = Path(args.out)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    with out.open("w", encoding="utf-8") as fh:
-        for r in rows:
-            fh.write(json.dumps(r, ensure_ascii=False) + "\n")
 
-    n = len(rows)
-    avg_lat = sum(r["latency_s"] for r in rows) / n if n else 0.0
-    print(f"[predict] planner={args.planner} n={n}")
-    print(f"[predict] non-fallback plans: {legal}/{n} ({legal / n:.1%})" if n else "")
-    print(f"[predict] avg latency: {avg_lat:.3f}s")
-    print(f"[write] {out}")
+def _predict_distilled_batched(planner, records, batch_size: int) -> list[dict]:
+    questions = [rec.question for rec in records]
+    n = len(questions)
+
+    def _progress(done: int, total: int) -> None:
+        print(f"[predict] {done}/{total} done", flush=True)
+
+    t0 = time.perf_counter()
+    decisions = planner.plan_batch(questions, batch_size=batch_size, progress=_progress)
+    per_item = (time.perf_counter() - t0) / n if n else 0.0
+
+    rows = []
+    for rec, decision in zip(records, decisions):
+        rows.append(
+            {
+                "id": rec.id,
+                "planned_steps": [_plan_step_to_dict(s) for s in decision.steps],
+                "planner": decision.planner,
+                "fallback_used": decision.fallback_used,
+                "latency_s": round(per_item, 4),
+            }
+        )
+    return rows
 
 
 def _load_predictions(path: str) -> tuple[str, dict[str, dict]]:
@@ -192,6 +226,20 @@ def main() -> None:
     pp.add_argument("--planner", required=True, choices=["deterministic", "distilled", "env"])
     pp.add_argument("--adapter", default=None, help="LoRA adapter dir (for --planner distilled)")
     pp.add_argument("--no-quantize", action="store_true")
+    pp.add_argument(
+        "--fast",
+        action="store_true",
+        help="batched GPU decode for --planner distilled (much faster; "
+        "latency reported as wall-clock/n)",
+    )
+    pp.add_argument("--batch-size", type=int, default=16, help="batch size for --fast")
+    pp.add_argument(
+        "--max-new-tokens",
+        type=int,
+        default=256,
+        help="cap on generated tokens; plans are ~130 tokens max so 160 is safe "
+        "and cuts decode time on cap-bound batches",
+    )
     pp.add_argument("--eval-path", default=DEFAULT_EVAL)
     pp.add_argument("--out", required=True)
     pp.set_defaults(func=run_predict)

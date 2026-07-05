@@ -73,6 +73,9 @@ class DistilledRoutePlanner:
         tokenizer = AutoTokenizer.from_pretrained(self.base_model, trust_remote_code=True)
         if tokenizer.pad_token is None:
             tokenizer.pad_token = tokenizer.eos_token
+        # Left-pad for batched decode: generation must continue from the last
+        # real token of each row, so padding has to sit on the left.
+        tokenizer.padding_side = "left"
 
         quant_config = None
         if self.quantize:
@@ -90,6 +93,15 @@ class DistilledRoutePlanner:
             trust_remote_code=True,
         )
         model = PeftModel.from_pretrained(base, self.adapter_dir)
+        # Fold the LoRA adapter into the base weights so inference runs a single
+        # fused matmul per layer instead of base + adapter. Only possible on the
+        # unquantized path (4-bit weights can't be merged in place); big speedup
+        # for the eval loop. Falls back gracefully if merge is unavailable.
+        if not self.quantize:
+            try:
+                model = model.merge_and_unload()
+            except Exception:  # pragma: no cover - defensive, keep adapter form
+                pass
         model.eval()
         self._model = model
         self._tokenizer = tokenizer
@@ -150,3 +162,91 @@ class DistilledRoutePlanner:
                 confidence=fb.confidence,
                 fallback_used=True,
             )
+
+    def _fallback_decision(self, question: str, exc: Exception) -> PlanDecision:
+        """Wrap the deterministic fallback, tagging the failure reason."""
+        fb = self.fallback.plan(question)
+        return PlanDecision(
+            steps=[
+                PlanStep(
+                    route=s.route,
+                    reason=f"distilled planning failed ({exc}); {s.reason}",
+                    tool=s.tool,
+                    metric_name=s.metric_name,
+                    zone_id=s.zone_id,
+                    time_window=s.time_window,
+                )
+                for s in fb.steps
+            ],
+            planner=fb.planner,
+            confidence=fb.confidence,
+            fallback_used=True,
+        )
+
+    def plan_batch(
+        self,
+        questions: list[str],
+        batch_size: int = 16,
+        progress: Any = None,
+    ) -> list[PlanDecision]:
+        """Plan many questions with batched GPU decode.
+
+        Equivalent to calling ``plan(q)`` per question but generates
+        ``batch_size`` prompts in one ``model.generate`` call, which is far
+        faster than the one-at-a-time loop on GPU (decode is bandwidth-bound;
+        batching amortises the per-step overhead). Prompt construction and
+        output parsing reuse the same online functions, so results match the
+        single-item path. Any per-row failure falls back to deterministic.
+
+        ``progress`` is an optional callable ``(done, total) -> None`` for
+        incremental reporting so a long run is observable.
+        """
+        import torch
+
+        self._ensure_loaded()
+        total = len(questions)
+        decisions: list[PlanDecision] = []
+        for start in range(0, total, batch_size):
+            chunk = questions[start : start + batch_size]
+            prompts = [
+                self._tokenizer.apply_chat_template(
+                    build_planner_messages(q, None),
+                    tokenize=False,
+                    add_generation_prompt=True,
+                )
+                for q in chunk
+            ]
+            try:
+                inputs = self._tokenizer(
+                    prompts, return_tensors="pt", padding=True
+                ).to(self._model.device)
+                with torch.no_grad():
+                    out = self._model.generate(
+                        **inputs,
+                        max_new_tokens=self.max_new_tokens,
+                        do_sample=False,
+                        pad_token_id=self._tokenizer.pad_token_id
+                        or self._tokenizer.eos_token_id,
+                    )
+                gen = out[:, inputs["input_ids"].shape[1] :]
+                texts = self._tokenizer.batch_decode(gen, skip_special_tokens=True)
+            except Exception as exc:  # whole-batch failure -> per-row fallback
+                for q in chunk:
+                    decisions.append(self._fallback_decision(q, exc))
+                if progress:
+                    progress(len(decisions), total)
+                continue
+
+            for q, text in zip(chunk, texts):
+                try:
+                    decisions.append(
+                        _decision_from_llm_payload(
+                            content=text.strip(),
+                            planner=f"distilled:{self.adapter_dir}",
+                        )
+                    )
+                except Exception as exc:
+                    decisions.append(self._fallback_decision(q, exc))
+            if progress:
+                progress(len(decisions), total)
+        return decisions
