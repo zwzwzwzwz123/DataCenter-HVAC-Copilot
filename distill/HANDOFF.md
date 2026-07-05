@@ -1,12 +1,14 @@
-# Handoff — Planner 蒸馏 阶段 1（数据）+ 阶段 2（SFT）+ 阶段 4（评测）+ A2 优化
+# Handoff — Planner 蒸馏 阶段 1（数据）+ 阶段 2（SFT）+ 阶段 4（评测）+ A2/A1 优化
 
-**日期**：2026-07-04（末次更新：2026-07-05，阶段4评测跑通 + A2 归一化优化完成后同步）
-**范围**：`distillation_plan.md` 的阶段 1（精标数据）、阶段 2（SFT 训练脚本 + 实际训练）、阶段 4（接回评测，三方对比），外加 SFT 操作手册 + **A2（time_window 归一化，推理层优化）**。阶段 3（DPO）**未开始**，应用户要求暂停,待 A1/A2 优化后再启动。
+**日期**：2026-07-04（末次更新：2026-07-05，A1 补数据 + 重训 + 四方评测完成后同步）
+**范围**：`distillation_plan.md` 的阶段 1（精标数据）、阶段 2（SFT 训练脚本 + 实际训练）、阶段 4（接回评测，四方对比），外加 SFT 操作手册 + **A2（time_window 归一化，推理层）+ A1（补 100 条 gold，治本，已重训重评）**。阶段 3（DPO）**未开始**，A1 已完成故可启动。
 
-**当前 git 状态**：`0fa7e18`（A2 归一化 + 阶段4报告）已 push 到远程。**工作区还有未提交改动**：
-- `distill/eval_planners.py`（`--concurrency` 并发预测，已本地改好，commit 曾被 auto 模式拦下，**待重新提交**）
-- `docs/distillation_report.md`（A2 后三方报告，**待提交**）
-- ⚠️ 之前尝试的并发 commit 因 auto 模式拦截主分支推送未成功，接手需 `git add distill/eval_planners.py docs/distillation_report.md && git commit && git push`。
+**当前 git 状态**：A1 数据已提交（`54bf21d` 增加 timewindow 训练数据：gold 600→700、train/val 630/70、`build_a1_additions.py`、测试）。**工作区还有未提交改动**：
+- `distill/HANDOFF.md`（本文件，A1 后同步）
+- `docs/distillation_report.md`（A1 四方报告）
+- `distill/checkpoints/sft-qwen1.5b/sft_train_card.json`（新模型 train card：train 630/val 70）
+- 未跟踪：`distill/checkpoints/sft-qwen1.5b-600base/`（旧版 600 条模型备份，gitignore 会挡大文件，仅其 train_card 可进版本库）
+- ⚠️ 直推 main 会被 auto 模式拦截；接手 `git add -A && git commit` 后，push 可能需要用户本地 `! git push`。
 
 相关 commit：
 - `36532e1` 重构 planner（抽出 `build_planner_messages` / `serialize_plan_steps`）
@@ -15,23 +17,31 @@
 - `6b2783e` 适配服务器训练配置（TRL 1.7.1 API 迁移，见 §3.2）
 - `69b97ec` 阶段4：评测脚本就绪 + deterministic 基线
 - `70b927d` 阶段4加速：批量 GPU 推理 + 合并 adapter + `--fast`
-- `0fa7e18` **A2：time_window 归一化 + 阶段4三方评测报告**
+- `0fa7e18` A2：time_window 归一化 + 阶段4三方评测报告
+- `54bf21d` **A1：补 100 条 gold（自然语言时间窗直接标合法词表 + 工具消歧 + 多步复合）**
 
-**训练结果（2026-07-05，AutoDL GPU）**：SFT val legality=100% / exact_match=96.67%（n=60），约 2 分钟。产物 `distill/checkpoints/sft-qwen1.5b/`（LoRA adapter，gitignore 排除大文件，仅 `sft_train_card.json` 进版本库）。
+**训练结果**：
+- 旧版（600 条，A2）：val legality=100% / exact_match=96.67%（n=60）。
+- **新版（700 条，A1）：val legality=100% / exact_match=97.14%（n=70）**，约 2 分钟。产物 `distill/checkpoints/sft-qwen1.5b/`（LoRA adapter，gitignore 排除大文件，仅 `sft_train_card.json` 进版本库）。旧版留档 `distill/checkpoints/sft-qwen1.5b-600base/`。
 
-**阶段4评测结果（最终，A2 归一化后）**：三方对比闭环完成——
+**阶段4评测结果（最终，A1 补数据后）**：四方对比闭环完成——
 
 | planner | step_acc | order_acc | req_recall | policy_final | 非fallback | 延迟 |
 | --- | --- | --- | --- | --- | --- | --- |
 | deterministic 基线 | 14.0% | 14.0% | 56.3% | 72.7% | 100/100 | ~0s |
-| **蒸馏 1.5B (A2)** | **68.0%** | **68.0%** | 85.5% | 93.5% | 74/100 | 0.8s |
-| DeepSeek 教师 (A2) | 63.0% | 63.0% | 85.7% | 93.5% | 72/100 | 18s |
+| 蒸馏 1.5B (A2, 600条) | 68.0% | 68.0% | 85.5% | 93.5% | 74/100 | 0.8s |
+| **蒸馏 1.5B (A1, 700条)** | **84.0%** | **84.0%** | **93.0%** | **96.1%** | **90/100** | 0.8s |
+| DeepSeek 云端 planner（对照） | 63.0% | 63.0% | 85.7% | 93.5% | 72/100 | 18s |
 
-**核心结论**：蒸馏 1.5B 达到 **68% step_acc**，是规则基线（14%）的近 5 倍，**追平云端 DeepSeek 教师**（63%），且本地运行、延迟仅教师 1/23、零 API 成本。
+> ⚠️ **术语澄清（重要，勿写错）**：最终模型是**纯 SFT，训练标签 100% 人工手标 gold**（数据卡 `teacher: hand_labeled`）。DeepSeek 在本项目里是**阶段4 评测的对照基线**（线上另一条 planner 路线），**不是**训练数据的来源。`build_sft_data.py` 虽支持"用线上 planner / DeepSeek 当 teacher 生成 SFT 数据"的路径，但**最终模型没用它**。因此对外表述应说"把 planner 路由能力 SFT 进小模型"，**不要说"蒸馏了 DeepSeek"**——那会被理解成用 DeepSeek 输出当标签。下文"教师"一词若出现，均指评测对照，非训练教师。
 
-**A2 优化（推理层，不用重训）**：解析层加 `_normalize_time_window`，把模型爱输出的自然语言时间窗（`past 7 days` / `last month` / `7d`）映射回守卫词表。蒸馏 step_acc 47%→68%，教师 21%→63%。详见 §9。
+**核心结论**：A1 补 100 条 gold 后重训，蒸馏 1.5B 达到 **84% step_acc**，是规则基线（14%）的 6 倍，**反超作为对照的云端 DeepSeek planner**（63%）21 个点，本地运行、延迟仅其 1/23、零 API 成本。反超的原因是小模型用 700 条经守卫校验的 gold 专门训练、天生产出合规计划，而未针对本项目 schema 微调的 DeepSeek 大量输出被守卫拒——不是小模型"更聪明"。A1 相对 A2（68%）+16 个点，逐条看修复了旧版 26 条 fallback 中的 20 条（新引入 4 条、两版都失败 6 条），净减 16 条回退（26→10）。
 
-**下一步**：见 §10。建议顺序：**提交未推送改动 → A1（补 gold 数据）→ 阶段3 DPO**。
+**A2 优化（推理层，不用重训）**：解析层加 `_normalize_time_window`，把自然语言时间窗（`past 7 days` / `last month` / `7d`）映射回守卫词表。蒸馏 47%→68%，DeepSeek 对照 21%→63%。详见 §9。
+
+**A1 优化（补数据，治本）**：补 100 条经守卫校验的 gold（自然语言时间窗直接标成合法小时词表 + 8 工具消歧 + 多步复合），把归一化/工具选择能力固化进模型权重。gold 600→700，train/val 630/70，val exact_match 96.67%→97.14%。残余 10 条 fallback 全是最难的 3 步复合任务（多指标同图、绝对时段 10PM-6AM、episode/多文档引用），属阶段3 DPO 目标。详见 §10。
+
+**下一步**：**提交未推送改动 → 阶段3 DPO**（A1 已完成，治本数据缺陷已补）。
 
 ---
 
@@ -39,28 +49,26 @@
 
 | 阶段 | 状态 | 产物 |
 | --- | --- | --- |
-| 1 数据构造 | ✅ 完成（`83aa39d`） | `distill/data/gold_labeled.jsonl`（600 条）+ train/val + data card |
+| 1 数据构造 | ✅ 完成（`83aa39d` 600 条 + `54bf21d` A1 补至 700 条） | `distill/data/gold_labeled.jsonl`（700 条）+ train/val（630/70）+ data card |
 | 2 SFT 脚本 | ✅ 完成（`83aa39d`，TRL 适配 `6b2783e`） | `distill/train_sft.py` |
-| 2 SFT 训练 | ✅ 已跑通（legality 100% / exact 96.67%） | `distill/checkpoints/sft-qwen1.5b/`（大文件 gitignore） |
+| 2 SFT 训练 | ✅ 已跑通两版（旧 600 exact 96.67% / 新 700 exact 97.14%） | `distill/checkpoints/sft-qwen1.5b/`（新）+ `-600base/`（旧备份）（大文件 gitignore） |
 | — 操作手册 / 技术方案 | ✅ 完成（`4594405` / `0b07d5d`） | `SFT_训练操作手册.pdf` / `SFT_技术方案.md` |
-| 4 接回评测 | ✅ **完成**：三方对比闭环，蒸馏 68% 追平教师 63% | `distilled_planner.py` / `eval_planners.py` / `docs/distillation_report.md` |
-| — A2 time_window 归一化 | ✅ **完成**（推理层，不用重训） | `_normalize_time_window`（`src/agent/planner.py`）+ 6 单测 |
-| — A2/并发 提交 | ⚠️ **待提交**：`eval_planners.py`（并发）+ 报告 | — |
-| A1 补数据 | ⛔ 未开始（建议下一步，见 §10） | — |
-| 3 DPO | ⛔ 未开始（A1 后再做） | — |
+| 4 接回评测 | ✅ **完成**：四方对比闭环，蒸馏 A1 84% 反超 DeepSeek 对照 63% | `distilled_planner.py` / `eval_planners.py` / `docs/distillation_report.md` |
+| — A2 time_window 归一化 | ✅ 完成（推理层，不用重训） | `_normalize_time_window`（`src/agent/planner.py`）+ 6 单测 |
+| — A1 补数据（治本） | ✅ **完成**（`54bf21d`，已重训重评，step_acc 68%→84%） | `build_a1_additions.py` + 100 条 gold |
+| — 报告/HANDOFF/train_card 提交 | ⚠️ **待提交**：本文件 + 报告 + 新 train_card | — |
+| 3 DPO | ⛔ 未开始（A1 已完成，可启动，见 §6/§10） | — |
 
 ---
 
-## 2. 本次会话做了什么
+## 2. 各阶段做了什么
 
-### 2.1 精标数据：300 → 600 条
-- `distill/data/gold_labeled.jsonl` 从 300 扩到 **600 条**手标 `{question, steps}`。
-- **全部 600/600 通过 `validate_plan_steps` 校验**（线上同一个 guard）。
-- 步数分布（应用户"多步为主"的要求调整后）：
-  - 1步 258 (43%) / 2步 173 (28%) / 3步 135 (22%) / 4步 34 (5%)
-  - **多步（≥2）占比从原来的 29% 提升到 57%**。
-- 覆盖：11 个工具全覆盖；14 个 metric_name **全部是 `bear_rollout.csv` 的真实列**（零脏数据）；中英文混合、口语化、抗干扰、多轮指代。
-- 运行 `python -m distill.build_gold_sft` 生成 `gold_sft_train.jsonl`（540）/ `gold_sft_val.jsonl`（60）/ `gold_sft_data_card.json`。
+### 2.1 精标数据：300 → 600 → 700 条
+- `distill/data/gold_labeled.jsonl` 从 300 扩到 600（阶段1），A1 再补 100 条到 **700 条**手标 `{question, steps}`。
+- **全部 700/700 通过 `validate_plan_steps` 校验**（线上同一个 guard）。
+- 步数分布（700 条）：1步 308 (44%) / 2步 187 (27%) / 3步 170 (24%) / 4步 35 (5%)；**多步（≥2）占 56%**。
+- 覆盖：**12 个工具全覆盖**（含 `rag_retrieval`）；14 个 metric_name **全部是 `bear_rollout.csv` 的真实列**（零脏数据）；中英文混合、口语化、抗干扰、多轮指代。
+- 运行 `python -m distill.build_gold_sft` 生成 `gold_sft_train.jsonl`（630）/ `gold_sft_val.jsonl`（70）/ `gold_sft_data_card.json`。
 
 ### 2.2 SFT 训练脚本 `distill/train_sft.py`
 - 基座默认 **Qwen2.5-1.5B-Instruct**，`--model` 可配置（换 3B/8B 无需改代码）。
@@ -71,8 +79,16 @@
 - `pyproject.toml` 新增 `[train]` extra 记录训练依赖。
 
 ### 2.3 测试
-- 新增 `tests/test_distill_gold.py`，含硬断言"线上 600 条永远 100% 合法"，防数据劣化。
-- 蒸馏 + route planner 全部相关测试通过（28 个）。
+- `tests/test_distill_gold.py`，含硬断言"线上 gold 全部 100% 合法"（数字随 gold 扩充更新：现为 **700 条**），防数据劣化。
+- 蒸馏 + route planner 全部相关测试通过（33 个）。
+
+### 2.4 A1 补数据（`54bf21d`，治本优化）
+- 针对阶段4 残余 fallback 的两个根因（time_window 无法归一化 + tool 选错），用 `distill/build_a1_additions.py` 补了 **100 条**经守卫校验的 gold：
+  - **时间窗归一化样本**：question 用自然语言窗（`过去一周` / `last month` / `past 3 days`），label 直接标成合法小时词表（`last_168_hours` 等，天/周/月折算成小时），让模型**自身**学会归一化，不再只靠 A2 推理层兜底。
+  - **工具消歧样本**：把 `timeseries_query` 下 8 个工具的边界讲清（单值→`query_metric`、两期→`compare_period`、画图→`plot_metric_trend`、能耗→`compute_energy_breakdown`、热点→`zone_hotspot_rank`、效率→`cooling_efficiency_summary`、审计→`control_action_audit`、质量→`data_quality_check`）。
+  - **多步复合样本**：因评测集全是复合任务，补了大量 2-4 步、含自然语言窗的复合任务，在真实失败条件下演练归一化。
+- builder 内置双重校验：每行过 `validate_plan_steps`，且**授权步数 == 校验后步数**（守卫按 route 去重，两个同 route 步骤会静默丢工具——此检查防止 label 与问题不符）。100/100 通过守卫、通过线上解析器零 fallback、无重复 ID/问题。
+- 重训后 step_acc 68%→84%，详见头部与 §10。
 
 ---
 
@@ -108,21 +124,27 @@
 ## 4. 已验证清单
 
 **数据与脚本（本地）**：
-- ✅ 600 条 gold 全部过 `validate_plan_steps`
-- ✅ ID 唯一、问题唯一（修掉了 1 条重复 gold_0479）、train/val 无 ID 泄漏、train+val 覆盖全部
-- ✅ 全部 600 条 completion 可被线上 `_decision_from_llm_payload` 解析（含 markdown 围栏兼容）
+- ✅ 700 条 gold 全部过 `validate_plan_steps`（含 A1 补的 100 条）
+- ✅ ID 唯一、问题唯一、train/val（630/70）无 ID 泄漏、train+val 覆盖全部
+- ✅ 全部 700 条 completion 可被线上 `_decision_from_llm_payload` 解析（含 markdown 围栏兼容）；A1 的 100 条额外验证零 fallback
+- ✅ A1 的 100 条无 route 塌缩（授权步数==校验后步数）、无 policy 错位、time_window 全合法、metric 全是真实列
 - ✅ 14 个 metric_name 全是真实数据列
 - ✅ `train_sft.py` 可 import、lint 通过、依赖缺失时给可操作提示、`load_records` 正常
-- ✅ 蒸馏 + route planner 测试全绿
+- ✅ 蒸馏 + route planner 测试全绿（33 个）
 
-**训练（AutoDL GPU，2026-07-05）**：
-- ✅ SFT 训练收敛：train_loss 0.60→0.058，eval_loss 0.144→0.108（无过拟合反弹），约 2 分钟
-- ✅ **val legality 100%**（60/60 生成计划全部通过线上 guard）——远高于未微调基座
-- ✅ **exact_match 96.67%**（58/60 route 序列与 gold 完全一致）
+**训练（GPU，2026-07-05）**：
+- ✅ 旧版（600）：train_loss 0.60→0.058，eval_loss 0.144→0.108（无过拟合反弹），val legality 100% / exact_match 96.67%（n=60）
+- ✅ **新版（700，A1）：val legality 100% / exact_match 97.14%（n=70）**，约 2 分钟
 - ✅ TRL 1.7.1 + transformers 5.13.0 下 API 兼容（`6b2783e` 迁移后）
 
-**仍待办**：
-- ⏳ 把服务器上的 `distill/checkpoints/sft-qwen1.5b/` 下载留存（LoRA adapter + train_card）
+**评测（四方，2026-07-05）**：
+- ✅ deterministic 14% / 蒸馏A2 68% / **蒸馏A1 84%** / DeepSeek 对照 63%（step_acc）
+- ✅ 新旧 adapter 用同一套 `eval_planners score` 对比，可比
+
+**产物留存**：
+- ✅ 新版 `distill/checkpoints/sft-qwen1.5b/`（adapter 37M + tokenizer + train_card）
+- ✅ 旧版备份 `distill/checkpoints/sft-qwen1.5b-600base/`
+- ✅ 精简备份包 `distill/checkpoints/sft-qwen1.5b-a1.tar.gz`（30M，已剔除训练 checkpoint/optimizer 冗余）
 
 ---
 
@@ -148,21 +170,22 @@ python -m distill.train_sft \
     --output distill/checkpoints/sft-qwen1.5b
 ```
 
-结束会打印 `[eval] val legality=100.00% exact_match=96.67% (n=60)`，并写 `sft_train_card.json`。
+结束会打印 `[eval] val legality=100.00% exact_match=97.14% (n=70)`（700 条数据版；旧 600 条版是 96.67% / n=60），并写 `sft_train_card.json`。
 
-**踩过的两个坑（已记录）**：
+**踩过的坑（已记录）**：
 1. TRL API 版本不匹配 → 见 §3.2。
 2. 模型下载速度为 0 → 学术加速代理（`http_proxy`）与国内镜像 `hf-mirror` 冲突；用镜像时先 `unset http_proxy https_proxy`。
+3. **xet 下载 401 Unauthorized** → 新版 `huggingface_hub` 默认用 xet 后端，绕过 `hf-mirror` 直连 `cas-server.xethub.hf.co` 导致 401。解决：`export HF_HUB_DISABLE_XET=1`（仍不行就 `pip uninstall -y hf_xet hf-xet`，或先用 `huggingface-cli download` 预拉到本地再 `--model <本地目录>` 训练）。
 
 **下一步**：产物下载留存后关机停计费。是否继续阶段 3/4 见 §6。
 
 ---
 
-## 6. 阶段 3（DPO）预备（暂停中，未来做）
+## 6. 阶段 3（DPO）预备（可启动，A1 已完成）
 
-计划见 `distillation_plan.md` 阶段 3。**建议先把 SFT 在云端跑通再启动 DPO**，因为：
-- DPO 以 SFT 模型为起点（policy）+ SFT 冻结副本为 reference。
-- DPO 偏好数据的 `rejected` 最好用 **SFT 初版模型的真实错误**构造，比人工编造的负例更真实。
+计划见 `distillation_plan.md` 阶段 3。SFT（含 A1 重训）已在云端跑通，可启动 DPO：
+- DPO 以 SFT 模型为起点（policy）+ SFT 冻结副本为 reference——起点用新版 `distill/checkpoints/sft-qwen1.5b/`（A1，84% step_acc）。
+- DPO 偏好数据的 `rejected` 最好用 **SFT A1 版模型的真实错误**构造（那 10 条 fallback + exact_match 未命中样本），比人工编造的负例更真实。A1 已把数据缺陷补掉，DPO 不再跟同一缺陷较劲。
 - 待写脚本：`distill/build_dpo_data.py`（用项目 guard 信号构造偏好对）+ `distill/train_dpo.py`（TRL `DPOTrainer`）。
 
 ---
@@ -171,17 +194,18 @@ python -m distill.train_sft \
 
 | 文件 | 作用 |
 | --- | --- |
-| `distill/data/gold_labeled.jsonl` | 600 条精标源数据（可继续扩充） |
+| `distill/data/gold_labeled.jsonl` | 700 条精标源数据（阶段1 600 + A1 100，可继续扩充） |
 | `distill/augment_questions.py` | 问题扩充（生成 `data/questions.jsonl`） |
-| `distill/build_sft_data.py` | 教师产出 → SFT 数据（`data/sft_*.jsonl`） |
+| `distill/build_sft_data.py` | 备选：用线上 planner/DeepSeek 当 teacher 生成 SFT 数据（`data/sft_*.jsonl`）——**最终模型未用此路径**，用的是手标 gold |
 | `distill/build_gold_sft.py` | gold → train/val + data card（依赖 §3.1 函数） |
+| `distill/build_a1_additions.py` | **A1：把 100 条新样本过守卫校验后增量追加进 gold（幂等 + 双重校验）** |
 | `distill/train_sft.py` | 阶段 2 SFT 训练 |
 | `distill/distilled_planner.py` | 阶段 4：蒸馏模型的 RoutePlanner 封装 |
-| `distill/eval_planners.py` | 阶段 4：predict/score 评测入口 |
+| `distill/eval_planners.py` | 阶段 4：predict/score 评测入口（`--fast` GPU 批量 / `--concurrency` API 并发） |
 | `distill/make_manual_pdf.py` | 生成 SFT 训练操作手册 PDF |
 | `distill/SFT_训练操作手册.pdf` / `_v2.pdf` | 训练操作手册（面向操作，v2 为最新版） |
 | `distill/SFT_技术方案.md` | SFT 技术方案手册（面向理解，讲原理与设计取舍） |
-| `tests/test_distill_gold.py` | 保护 gold 数据 100% 合法 |
+| `tests/test_distill_gold.py` | 保护 gold 数据 100% 合法（硬断言 700 条） |
 | `tests/test_distill_augment.py` | 问题扩充测试 |
 | `tests/test_distill_sft_data.py` | SFT 数据构造测试 |
 | `distillation_plan.md` | 五阶段总计划 |
@@ -189,83 +213,64 @@ python -m distill.train_sft \
 
 ---
 
-## 8. 阶段 4（接回评测）——进行中，接手请从这里开始
+## 8. 阶段 4（接回评测）——✅ 已完成（四方对比闭环）
 
-目标：把蒸馏 SFT 模型接进现有评测，与 `deterministic`（规则基线）和 `env`（DeepSeek 云端教师）做**三方对比**，产出对比表 + `docs/distillation_report.md`。这是整条蒸馏链的闭环。
+目标：把蒸馏 SFT 模型接进现有评测，与 `deterministic`（规则基线）和 `env`（DeepSeek 云端 planner，作**评测对照**、非训练教师）做**四方对比**（deterministic / 蒸馏A2旧 / 蒸馏A1新 / DeepSeek对照），产出对比表 + `docs/distillation_report.md`。这是整条蒸馏链的闭环，**已完成**（结果见头部表格）。以下步骤留作复现/重跑参考。
 
-### 8.1 已完成（脚本就绪 + 本地已验证）
+### 8.1 脚本与产物
 - **`distill/distilled_planner.py`**：`DistilledRoutePlanner`，实现 `RoutePlanner` 协议。加载基座 + LoRA adapter，复用线上同一套 `build_planner_messages`（构造 prompt）和 `_decision_from_llm_payload`（解析+校验），失败回退 deterministic。重依赖惰性加载，无 GPU 也能 import。
 - **`distill/eval_planners.py`**：评测入口，`predict` / `score` 两段解耦。`predict` 跑一个 planner 产出 `predictions.jsonl`；`score` 读一或多个 predictions 出指标对比表（纯 Python，复用 `src/evaluation/metrics.py`）。
-- **deterministic 基线已跑出**（100 条 `data/eval/compound_task_eval.jsonl`）：step_acc **14.0%** / order 14.0% / req_recall 56.3% / policy_final 72.7% / 100 条全非 fallback。产物 `distill/data/eval_pred_deterministic.jsonl`。
-  - 解读：规则 planner 靠关键词匹配单路由，多步复合任务拆解弱，只有 14%。**这是给蒸馏模型立的低基线对照**——蒸馏 1.5B 若大幅超过 14%，即证明 SFT 学到了规则学不到的多步规划能力。
+- **现有预测文件**（`distill/data/`，均 gitignore）：`eval_pred_deterministic.jsonl`（基线）/ `eval_pred_distilledA2.jsonl`（旧600）/ `eval_pred_distilled_a1.jsonl`（新700）/ `eval_pred_teacher.jsonl`（DeepSeek）。A2 前的对照快照 `eval_pred_distilled.jsonl` / `eval_pred_teacher_preA2.jsonl` / `eval_pred_teacher_t20.jsonl` 仅留档。
 
-### 8.2 方案 B：三方对比完整步骤（接手直接照做）
+### 8.2 复现命令（在 GPU 机器上）
 
-**环境**：需要一台 GPU 机器（AutoDL，参照 `SFT_训练操作手册.pdf` 租卡/装依赖），且要有 **DeepSeek API key**（教师那一列用）。
+**环境**：GPU 机器（AutoDL，参照 `SFT_训练操作手册.pdf`）+ DeepSeek API key（仅重跑教师那列时需要）。模型下载见 §5（`unset http_proxy` + `HF_ENDPOINT=hf-mirror` + `HF_HUB_DISABLE_XET=1`）。LoRA adapter：`distill/checkpoints/sft-qwen1.5b/` 未进 git，需上传本地已训好的目录，或在服务器重训一次。
 
-**步骤 1 — 拉代码 + 装依赖 + 放好 LoRA adapter**
 ```bash
-cd ~/autodl-tmp && git clone <repo> && cd DataCenter-HVAC-Copilot
-pip install -e '.[train]'
-# LoRA adapter：本地 distill/checkpoints/sft-qwen1.5b/ 未进 git（大文件）。
-# 需从本地上传该目录到服务器同路径，或重新训练一次（train_sft，约2分钟）。
-```
-> ⚠️ `distill/checkpoints/` 已被 gitignore（只保留 `sft_train_card.json`）。git clone **不会**带下 LoRA 权重，必须单独上传本地已下载的 `adapter_model.safetensors` 等文件到 `distill/checkpoints/sft-qwen1.5b/`；或直接在服务器重跑 `python -m distill.train_sft` 重新生成。
-
-**步骤 2 — 配置 DeepSeek 教师**（否则 `env` 那列会退回 deterministic，白跑）
-```bash
-cp .env.example .env
-# 编辑 .env：填 DEEPSEEK_API_KEY=sk-...；把 LANGGRAPH_PLANNER_PROVIDER 设为 deepseek
-```
-
-**步骤 3 — 模型下载走镜像，别开学术加速代理**（见 §5 踩坑）
-```bash
-unset http_proxy https_proxy
-export HF_ENDPOINT=https://hf-mirror.com
-```
-
-**步骤 4 — 三个 planner 各跑一次 predict**
-```bash
-# 蒸馏模型（需 GPU + adapter）
+# 蒸馏 A1（新版，GPU 批量解码，~1 分钟）
 python -m distill.eval_planners predict --planner distilled \
     --adapter distill/checkpoints/sft-qwen1.5b \
-    --out distill/data/eval_pred_distilled.jsonl
+    --out distill/data/eval_pred_distilled_a1.jsonl \
+    --fast --batch-size 16 --max-new-tokens 160
 
-# DeepSeek 教师（需 .env 配好，会真实调 API，100 条有少量费用）
+# DeepSeek 教师（需 .env 配好，真实调 API，线程池并发压缩墙钟时间）
 python -m distill.eval_planners predict --planner env \
-    --out distill/data/eval_pred_teacher.jsonl
+    --out distill/data/eval_pred_teacher.jsonl --concurrency 8
 
-# deterministic 基线（已有 eval_pred_deterministic.jsonl；重跑也可）
+# deterministic 基线（已有，重跑也可）
 python -m distill.eval_planners predict --planner deterministic \
     --out distill/data/eval_pred_deterministic.jsonl
 ```
 
-**步骤 5 — 三方对比 + 出报告**
+**四方对比 + 出报告**：
 ```bash
 python -m distill.eval_planners score \
     distill/data/eval_pred_deterministic.jsonl \
-    distill/data/eval_pred_distilled.jsonl \
+    distill/data/eval_pred_distilledA2.jsonl \
+    distill/data/eval_pred_distilled_a1.jsonl \
     distill/data/eval_pred_teacher.jsonl \
     --report docs/distillation_report.md
 ```
-终端会打印对比表，并写出 `docs/distillation_report.md`（含指标说明）。
 
-### 8.3 完成后（4.4 收尾）
-- 核对 `docs/distillation_report.md` 的对比表，确认核心结论：**蒸馏 1.5B 的 step_acc/order_acc 显著高于 deterministic，且接近 DeepSeek 教师，但本地运行、延迟/成本低**。
-- 若蒸馏模型某指标明显弱于教师，如实写进报告「局限」，不要粉饰。
-- 把关键数字回写 README / 简历（可参照 `SFT_技术方案.md` 的措辞）。
+### 8.3 已完成的收尾
+- ✅ `docs/distillation_report.md` 已更新为 A1 四方对比领先、A2 降为附录留档。
+- ✅ 残余局限如实记录（10 条 fallback 全是最难 3 步复合任务，见 §10），不粉饰。
+- ⏳ 关键数字回写 README / 简历（可参照 `SFT_技术方案.md` 措辞）：**蒸馏 1.5B 达 84% step_acc，6 倍于规则基线，反超作为对照的 DeepSeek 云端 planner 21 个点，本地延迟仅 1/23**。（措辞用"SFT/反超对照"，勿写"蒸馏了 DeepSeek"，见头部术语澄清）
 
 ### 8.4 已知注意点
 - `env` planner 由 `build_route_planner_from_env()` 构造，依赖 `.env` 的 `LANGGRAPH_PLANNER_PROVIDER=deepseek` + `DEEPSEEK_API_KEY`；配错会静默退回 deterministic（表现为 `env` 那列 = deterministic）。跑完看 `predictions` 里的 `planner` 字段确认是否真的走了 `llm:deepseek:...`。
 - `predict` 对每条不传 `task_type`，让 planner 从问题自行路由（compound 任务本来也没单一 task_type）。
-- 三个 predictions 文件都基于同一 `--eval-path`（默认 `data/eval/compound_task_eval.jsonl`），score 时才可比。
-- **加速开关**（`70b927d` 加）：蒸馏用 `--fast --batch-size 16 --max-new-tokens 160`（批量 GPU 解码 + 合并 adapter，快数倍）；教师/API 用 `--concurrency 8`（线程池并发，100 条从 ~40 分钟压到 ~3 分钟）。**注意本地这台机器 `model.safetensors` 曾没下全导致奇慢，蒸馏推理请在权重齐全的服务器上跑。**
+- 所有 predictions 文件都基于同一 `--eval-path`（默认 `data/eval/compound_task_eval.jsonl`，100 条），score 时才可比。
+- **加速开关**：蒸馏用 `--fast --batch-size 16 --max-new-tokens 160`（批量 GPU 解码 + 合并 adapter）；教师/API 用 `--concurrency 8`（线程池并发，100 条从 ~40 分钟压到 ~3 分钟）。**蒸馏推理需权重齐全的 GPU 机器**（本地缓存曾没下全导致奇慢）。
+- **新旧 adapter 对比**：想跑新旧蒸馏对照，把 `--adapter` 分别指向 `distill/checkpoints/sft-qwen1.5b`（新700）和 `sft-qwen1.5b-600base`（旧600），输出到不同文件再一起 score。
 
 ---
 
 ## 9. A2：time_window 归一化（已完成，推理层优化）
 
-**问题**：阶段4 第一版评测发现，模型（教师 + 蒸馏）大量输出自然语言时间窗（`"past 7 days"`、`"last month"`、`"7d"`、`"now-12h to now"`），而线上守卫 `validate_plan_steps` 只认受限词表（`full_demo_range` / `last_24_hours` / `latest` 等，见 `TIME_WINDOW_PATTERN`），导致计划被拒后回退 deterministic。教师 100 条里 83 条、蒸馏 34 条栽在这上面。
+> 本节"教师"均指评测对照的 DeepSeek 云端 planner（非训练教师，见头部术语澄清）。
+
+**问题**：阶段4 第一版评测发现，模型（DeepSeek 对照 + 蒸馏）大量输出自然语言时间窗（`"past 7 days"`、`"last month"`、`"7d"`、`"now-12h to now"`），而线上守卫 `validate_plan_steps` 只认受限词表（`full_demo_range` / `last_24_hours` / `latest` 等，见 `TIME_WINDOW_PATTERN`），导致计划被拒后回退 deterministic。DeepSeek 对照 100 条里 83 条、蒸馏 34 条栽在这上面。
 
 **方案（A2，纯推理层，不用重训）**：在 `src/agent/planner.py` 加 `_normalize_time_window`，接在 `_step_from_llm_item` 解析时间窗那步（第 407 行附近）。两条线共用这个解析函数，同时受益。
 - 相对时间折算成小时/分钟（`days×24`、`weeks×168`、`months×720`）——**关键**：gold 数据只用 hours，折算成小时才与训练格式一致，不引入模型没见过的 `days`。
@@ -288,21 +293,26 @@ python -m distill.eval_planners score \
 
 ## 10. 下一步（接手从这里选）
 
-蒸馏 A2 版残余 26 条 fallback：**10 条 JSON 截断/格式错**、**8 条 tool 非法**、**8 条 time_window 无法归一化**（字典形式等真正无法映射的）。据此排下一步优先级：
+**A1 已完成**（`54bf21d`，补 100 条 gold + 重训 + 重评，step_acc 68%→84%）。蒸馏 A1 版残余 **10 条 fallback**，逐条核查后**全部是最难的 3 步复合任务**，集中在 A1 未专门覆盖的形态：
+- **多指标同图/比值绘图**（`plot cooling_power and fan_power ratio`、`zone_temperature and setpoint together`）——单步 schema 只有一个 `metric_name`，表达不了两个 metric 的组合；
+- **绝对时段窗**（`during the night 10 PM-6 AM`）——非"最近 N 小时"型，词表本就不支持；
+- **episode/zone 具体引用 + 多文档检索**（`episode_001 zone_a`、`doc_002` / `doc_006`）——模型对具体 id 处理仍不稳。
 
-**A1 — 补 gold 数据（治本，推荐先做）**
-- 给 `distill/data/gold_labeled.jsonl` 补样本：question 用自然语言时间窗，steps 里 `time_window` 标成合法词表，让模型**自身**学会归一化（不再只靠 A2 推理层兜底）；同时补 tool 选择更清晰的样本，缓解那 8 条 tool 非法。
-- 补完 `python -m distill.build_gold_sft` 重新生成 train/val，服务器重训（~2 分钟），重跑评测看提升。
-- A1 是 A2 的"治本"版：A2 是安全网，A1 让能力进模型。
+这些**不是** time_window 归一化或基础 tool 选择问题（那两类 A1 已基本解决），是更深的多步复合表达能力。据此排下一步：
 
-**阶段3 DPO（A1 之后做）**
-- 见 §6。现在正好有蒸馏 A2 版的**真实错误**（那 26 条 fallback）可作 `rejected` 负例，比人工编造更真实。但建议先做 A1 把数据缺陷补掉，否则 DPO 在跟同一个缺陷较劲。
-- 待写：`distill/build_dpo_data.py` + `distill/train_dpo.py`（TRL `DPOTrainer`）。
+**收尾项（先做）**
+- **提交未推送改动**：HANDOFF + 报告 + 新 train_card。直推 main 会被 auto 模式拦，push 可能需用户本地 `! git push`。
+- 关键数字回写 README / 简历：**蒸馏 1.5B 达 84% step_acc，6 倍于规则基线，反超作为对照的 DeepSeek 云端 planner 21 个点，本地运行延迟仅 1/23**（可参照 `SFT_技术方案.md` 措辞；勿写"蒸馏了 DeepSeek"）。
 
-**收尾项（随时可做）**
-- **提交未推送改动**：`eval_planners.py`（并发）+ `docs/distillation_report.md`（并发 commit 曾被 auto 模式拦下）。
-- 关键数字回写 README / 简历：**蒸馏 1.5B 达 68% step_acc，近 5 倍于规则基线，追平 DeepSeek 教师，本地运行延迟仅 1/23**（可参照 `SFT_技术方案.md` 措辞）。
+**阶段3 DPO（推荐的下一个大步骤）**
+- 见 §6。现在正好有蒸馏 A1 版的**真实错误**（那 10 条 fallback + exact_match 未命中的样本）可作 `rejected` 负例，比人工编造更真实。A1 已把数据缺陷补掉，DPO 不再是跟同一个缺陷较劲。
+- 待写：`distill/build_dpo_data.py`（用项目 guard 信号构造偏好对）+ `distill/train_dpo.py`（TRL `DPOTrainer`）。
 
-**减少 JSON 截断（快速优化）**
-- 那 10 条多是 `max_new_tokens` 截断长计划。可在 `distilled_planner.py` 调大上限，或优化停止条件。
+**可选：进一步扩数据 / 改 schema（治残余 10 条）**
+- 多指标绘图需扩展 step schema（支持多 metric 或 metric 列表）——属**改 schema**，动到线上守卫，需谨慎评估。
+- 绝对时段（10PM-6AM）需在词表/归一化里支持"时段"概念——同样是能力扩展，非小改。
+- 这两类可作为独立的 A3 任务，或并入 DPO 的负例针对性优化。
+
+**减少 JSON 截断（快速优化，若重现）**
+- 若长计划被 `max_new_tokens` 截断，可在 `distilled_planner.py` 调大上限或优化停止条件。A1 版这类已很少（残余 10 条主因是上述表达力问题，非截断）。
 
