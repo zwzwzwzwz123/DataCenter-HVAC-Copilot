@@ -66,6 +66,6 @@ def test_shipped_gold_dataset_is_fully_valid() -> None:
     # data never silently degrades.
     samples, stats = load_gold("distill/data/gold_labeled.jsonl")
 
-    assert stats["total"] == 600
+    assert stats["total"] == 700
     assert stats["invalid"] == 0
-    assert stats["kept"] == 600
+    assert stats["kept"] == 700

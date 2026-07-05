@@ -1,10 +1,10 @@
 {
   "gold_path": "distill/data/gold_labeled.jsonl",
   "teacher": "hand_labeled",
-  "kept": 600,
+  "kept": 700,
   "invalid": 0,
-  "train_size": 540,
-  "val_size": 60,
+  "train_size": 630,
+  "val_size": 70,
   "prompt_source": "src.agent.planner.build_planner_messages",
   "label_source": "src.agent.planner.serialize_plan_steps"
 }
